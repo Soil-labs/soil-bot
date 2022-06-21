@@ -11,6 +11,6 @@ module.exports = {
      * @param  {number} shardId
      */
     async execute(error, shardId) {
-        logger.error(`Connection error occurs in ${shardId}`);
+        logger.error(`Connection error occurs in shard ${shardId}`);
     }
 }

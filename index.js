@@ -12,11 +12,12 @@ const client = new discord.Client({ intents: [
     discord.Intents.FLAGS.GUILD_MESSAGE_REACTIONS
 ]});
 
+client.commands = new discord.Collection();
+client.auto = new discord.Collection();
+
 const slashCommandFilesPath = path.join(process.cwd(), "slashcommands");
 const slashCommandFiles = fs.readdirSync(slashCommandFilesPath).filter((file) => file.endsWith(".js"));
 const slashCommands = [];
-
-client.commands = new discord.Collection();
 
 //Load command
 for (const file of slashCommandFiles){
@@ -26,6 +27,18 @@ for (const file of slashCommandFiles){
     //Create a set pair, (commandName, commandPackage), very usefull in events
     client.commands.set(command.data.name, command);
 }
+
+//Load autoComplete
+const autoCompleteFilesPath = path.join(process.cwd(), 'autocomplete');
+const autoCompleteFiles = fs.readdirSync(autoCompleteFilesPath).filter((file) => file.endsWith(".js"))
+
+for (const file of autoCompleteFiles){
+    const auto = require(path.join(autoCompleteFilesPath, file));
+    for (const command of auto.attachedCommand){
+        client.auto.set(command, auto)
+    }
+}
+
 
 const eventsFilesPath = path.join(process.cwd(), "events");
 const eventsFiles = fs.readdirSync(eventsFilesPath).filter((file) => file.endsWith(".js"));

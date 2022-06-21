@@ -24,7 +24,18 @@ module.exports = {
                 if (interaction.deferred){
                     interaction.editReply("Unknown error occurs, please contact admins.")
                 }
-                //No need to stop the bot
+                return logger.error(`User: ${interaction.user.username} Error: ${err.name} occurs when executing ${interaction.commandName} command. Msg: ${err.message} Stack: ${err.stack}`);
+            }
+        }
+
+        if (interaction.isAutocomplete()){
+            const command = interaction.client.auto.get(interaction.commandName);
+
+            if (!command) return;
+
+            try {
+                await command.execute(interaction);
+            } catch (err) {
                 return logger.error(`User: ${interaction.user.username} Error: ${err.name} occurs when executing ${interaction.commandName} command. Msg: ${err.message} Stack: ${err.stack}`);
             }
         }
