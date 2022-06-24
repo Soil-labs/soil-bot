@@ -26,13 +26,11 @@ module.exports = {
      */
     async execute(interaction) {
         const projectName = interaction.options.getString("project_name");
-        await interaction.reply({
-            content: `Project Name: ${projectName}`
-        })
         let link;
         if (await search(projectName)){
             link = sprintf(process.env.SOIL_CURRENT_PROJECT_LINK, projectName)
-            return interaction.followUp({
+            return interaction.reply({
+                content: `Project Name: ${projectName}`,
                 embeds: [
                     new MessageEmbed()
                         .setTitle(`Configure your project ${projectName}`)
@@ -41,7 +39,8 @@ module.exports = {
             })
         }else{
             link = process.env.SOIL_NEW_PROJECT_LINK;
-            return interaction.followUp({
+            return interaction.reply({
+                content: `Project Name: ${projectName}`,
                 embeds: [
                     new MessageEmbed()
                         .setTitle(`Create your new project ${projectName}`)

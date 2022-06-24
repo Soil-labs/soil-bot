@@ -20,6 +20,10 @@ module.exports = {
 
         const clientId = client.user.id;
         const rest = new REST({ version: '9' }).setToken(process.env.TOKEN);
+
+        const guild = client.guilds.cache.get(process.env.GUILDID);
+        //Cache guild members
+        await guild.members.fetch();
         
         try{
             if (process.env.ENV == "production"){

@@ -39,7 +39,6 @@ for (const file of autoCompleteFiles){
     }
 }
 
-
 const eventsFilesPath = path.join(process.cwd(), "events");
 const eventsFiles = fs.readdirSync(eventsFilesPath).filter((file) => file.endsWith(".js"));
 
