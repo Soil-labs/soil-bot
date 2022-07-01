@@ -42,7 +42,6 @@ module.exports = {
                 const [skills, skillsError] = await fetchSkills();
                 if (skills) myCache.set("skills", skills)
             }
-            console.log(`Update expired ${key}`)
         })
 
         myCache.on("flush", async (key, value) => {
