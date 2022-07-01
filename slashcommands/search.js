@@ -33,7 +33,9 @@ module.exports = {
 
         const user = interaction.options.getUser("user");
         const project = interaction.options.getString("project_name");
-
+        if (user.bot) return interaction.reply({
+            content: "Sorry, you cannot choose a bot as a target."
+        })
         if (user && project){
             return interaction.reply({
                 content: `Here is the user ${user.username} profile.\nHere is the project ${project} information.`

@@ -31,6 +31,9 @@ module.exports = {
     async execute(interaction) {
         const user = interaction.options.getUser('user');
         const skill = interaction.options.getString('skill')
+        if (user.bot) return interaction.reply({
+            content: "Sorry, you cannot choose a bot as a target."
+        })
         const DMchannel = await user.createDM();
         const {result ,error} = await awaitWrap(DMchannel.send({
             content: `${interaction.member.displayName} skilled you with ${skill}`

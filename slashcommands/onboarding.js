@@ -23,6 +23,9 @@ module.exports = {
      */
     async execute(interaction) {
         const user = interaction.options.getUser('user');
+        if (user.bot) return interaction.reply({
+            content: "Sorry, you cannot choose a bot as a target."
+        })
         return interaction.reply({
             content: `<@${user.id}> use this [link](https://www.google.com/) to submit your inform.`
         })

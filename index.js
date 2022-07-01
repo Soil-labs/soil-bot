@@ -1,6 +1,7 @@
 const discord = require('discord.js');
 const fs = require("fs");
 const path = require('path')
+const myCache = require('./helper/cache')
 require("dotenv").config();
 
 //Intents mean the functionality of your bot

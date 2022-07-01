@@ -1,4 +1,5 @@
 const { AutocompleteInteraction } = require("discord.js");
+const myCache = require("../helper/cache")
 module.exports = {
     attachedCommand: ["skill"],
     options: ["skill"],
@@ -9,7 +10,7 @@ module.exports = {
     async execute(interaction) {
         const focusedOption = interaction.options.getFocused(true);
         if (focusedOption.name == this.options[0]) {
-            const choices = ['python', 'js', 'tx', 'React.js', 'NextJs', 'Frontend', 'Solidity', 'Database'];
+            const choices = myCache.get("skills").map(value => value.tagName).filter(value => value)
 
             const filtered = choices.filter(value => value.startsWith(focusedOption.value));
             if (filtered.length == 0) {
