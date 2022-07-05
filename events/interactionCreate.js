@@ -29,9 +29,10 @@ module.exports = {
         }
 
         if (interaction.isAutocomplete()){
-            const command = interaction.client.auto.get(interaction.commandName);
+            const option = interaction.options.getFocused(true).name;
+            const command = interaction.client.auto.get(`${interaction.commandName}${option}`);
 
-            if (!command) return;
+            if (!command || !option) return;
 
             try {
                 await command.execute(interaction);

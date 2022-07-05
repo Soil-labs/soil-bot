@@ -57,26 +57,37 @@ const UPDATE_USER = gql`
   }
 `;
 
+const ADD_SKILL_TO_MEMBER = gql`
+  mutation (
+    $skillID: String
+    $memberID: String
+    $authorID: String
+  ){
+  addSkillToMember(
+    fields:{
+      skillID: $skillID
+      memberID: $memberID
+      authorID: $authorID
+  }){
+  	discordName
+  }
+}
+`
+
 const NEW_TWEET_PROJECT = gql`
-  mutation($projectID: Int!, $content: String!, $author: String!) {
-    newTweetPorject(
+  mutation(
+    $projectID: String
+    $content: String
+    $author: String
+  ){
+    newTweetProject(
       fields: {
         projectID: $projectID
-        content: $content
+    content: $content
         author: $author
       }
     ){
       numTweets
-      tweets {
-        content
-        author {
-          discordName
-          skills {
-            tagName
-          }
-        }
-        registeredAt
-      }
     }
   }
 `;
@@ -105,7 +116,19 @@ async function updateUser(userJSON) {
     else return [result.updateMember, null];
 }
 
-module.exports = { fetchProjects, fetchSkills, fetchUsers, updateUser };
+async function addSkillToMember(addSkillJSON){
+    const { result, error } = await awaitWrap(client.request(ADD_SKILL_TO_MEMBER, addSkillJSON));
+    if (error) return [null, error]
+    else return [result.addSkillToMember, null];
+}
+
+async function newTweetProject(tweetJSON){
+    const { result, error } = await awaitWrap(client.request(NEW_TWEET_PROJECT, tweetJSON));
+    if (error) return [null, error]
+    else return [result.newTweetPorject, null];
+}
+
+module.exports = { fetchProjects, fetchSkills, fetchUsers, updateUser, addSkillToMember, newTweetProject };
 
 // (async ()=>{
 //     const [result, error] = await updateUser({

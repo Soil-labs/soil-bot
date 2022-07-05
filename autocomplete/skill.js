@@ -18,7 +18,7 @@ module.exports = {
                 return interaction.respond([])
             } else {
                 return interaction.respond(
-                    filtered.map(value => ({ name: value.tagName, value: value._id }))
+                    filtered.map(value => ({ name: value.tagName, value: value._id}))
                 )
             }
         }

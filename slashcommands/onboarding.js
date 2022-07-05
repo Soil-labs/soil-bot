@@ -1,7 +1,8 @@
 const { SlashCommandBuilder } = require('@discordjs/builders');
 const { CommandInteraction } = require("discord.js");
-const { updateUser } = require("../helper/graphql")
+const { updateUser } = require("../helper/graphql");
 const myCache = require("../helper/cache");
+const { validUser } = require('../helper/util');
 require("dotenv").config()
 
 module.exports = {
@@ -34,7 +35,9 @@ module.exports = {
             discriminator: user.discriminator,
             discordAvatar: user.displayAvatarURL({ format: 'jpg' })
         }
-        await interaction.deferReply()
+        await interaction.deferReply({
+            ephemeral: true
+        })
         const [result, error] = await updateUser(userInform);
 
         if (error) return interaction.followUp({

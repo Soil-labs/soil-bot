@@ -1,7 +1,7 @@
 const { AutocompleteInteraction } = require("discord.js");
 const myCache = require("../helper/cache")
 module.exports = {
-    attachedCommand: ["search"],
+    attachedCommand: ["search", "skill", "user"],
     options: ["user"],
 
     /**
@@ -11,6 +11,7 @@ module.exports = {
         const focusedOption = interaction.options.getFocused(true);
         if (focusedOption.name == this.options[0]) {
             //Remove null tagName
+
             const choices = myCache.get("users").filter(value => value.discordName)
 
             const filtered = choices.filter(value => value.discordName.startsWith(focusedOption.value));

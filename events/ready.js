@@ -45,6 +45,7 @@ module.exports = {
             } 
         }
 
+        await loadCache();
 
         myCache.on("expired", async(key, value) => {
             if (key == "projects"){
@@ -58,11 +59,11 @@ module.exports = {
             }
 
             if (key == "users"){
-                const [users, usersError] = await fetchSkills();
+                const [users, usersError] = await fetchUsers();
                 if (users) myCache.set("users", users)
             }
         })
-
+        console.log(myCache.get("skills"))
         try{
             if (process.env.ENV == "production"){
                 await rest.put(Routes.applicationCommands(clientId), {
