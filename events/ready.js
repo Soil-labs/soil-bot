@@ -1,7 +1,7 @@
 const { REST } = require('@discordjs/rest');
 const { Routes } = require('discord-api-types/v9');
 const {Client} = require("discord.js");
-const {fetchProjects, fetchSkills} = require("../helper/graphql");
+const {fetchProjects, fetchSkills, fetchUsers} = require("../helper/graphql");
 const myCache = require("../helper/cache")
 const logger = require("../helper/logger");
 require("dotenv").config()
@@ -29,8 +29,10 @@ module.exports = {
 
         const [projects , projectsError] = await fetchProjects();
         const [skills, skillsError] = await fetchSkills();
+        const [users, usersError] = await fetchUsers();
         if (projects) myCache.set("projects", projects);
         if (skills) myCache.set("skills", skills)
+        if (users) myCache.set("users", users)
 
         myCache.on("expired", async(key, value) => {
             if (key == "projects"){
@@ -42,14 +44,11 @@ module.exports = {
                 const [skills, skillsError] = await fetchSkills();
                 if (skills) myCache.set("skills", skills)
             }
-        })
 
-        myCache.on("flush", async (key, value) => {
-            const [projects, projectsError] = await fetchProjects();
-            const [skills, skillsError] = await fetchSkills();
-            if (projects) myCache.set("projects", projects);
-            if (skills) myCache.set("skills", skills)
-            console.log("Flush all data")
+            if (key == "users"){
+                const [users, usersError] = await fetchSkills();
+                if (users) myCache.set("users", users)
+            }
         })
 
         try{
@@ -61,7 +60,6 @@ module.exports = {
                 logger.info("Commands are set globally");
             }else{
                 //Set commands only available in this guild 
-                //Attention: here we use applicationGuildCommands not applicationGuildCommand
                 await rest.put(Routes.applicationGuildCommands(clientId, process.env.GUILDID), {
                     //JSON Format
                     body: commands 

@@ -1,5 +1,7 @@
 const { SlashCommandBuilder } = require('@discordjs/builders');
 const { CommandInteraction } = require("discord.js");
+const { updateUser } = require("../helper/graphql")
+const myCache = require("../helper/cache");
 require("dotenv").config()
 
 module.exports = {
@@ -26,8 +28,30 @@ module.exports = {
         if (user.bot) return interaction.reply({
             content: "Sorry, you cannot choose a bot as a target."
         })
-        return interaction.reply({
-            content: `<@${user.id}> use this [link](https://www.google.com/) to submit your inform.`
+        const userInform = {
+            _id: user.id,
+            discordName: "BlueAlex123237",
+            discriminator: user.discriminator,
+            discordAvatar: user.displayAvatarURL({ format: 'jpg' })
+        }
+        await interaction.deferReply()
+        const [result, error] = await updateUser(userInform);
+
+        if (error) return interaction.followUp({
+            content: `Error occured: \`${error.response.errors[0].message}\``
+        })
+        const updateCache = myCache.get("users").filter(value => value._id == user.id);
+        if (updateCache.length == 0){
+            myCache.set("users", [ ...myCache.get("users"), userInform ])
+        }else{
+            //length == 1
+            const tmp = myCache.get("users")
+            tmp.splice(tmp.indexOf(updateCache[0]), 1, userInform);
+            myCache.set("users", tmp)
+        }
+        
+        return interaction.followUp({
+            content: `${user.username} has been onboarded.`
         })
     }
 
