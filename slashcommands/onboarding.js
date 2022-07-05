@@ -30,7 +30,7 @@ module.exports = {
         })
         const userInform = {
             _id: user.id,
-            discordName: "BlueAlex123237",
+            discordName: user.username,
             discriminator: user.discriminator,
             discordAvatar: user.displayAvatarURL({ format: 'jpg' })
         }
@@ -49,7 +49,7 @@ module.exports = {
             tmp.splice(tmp.indexOf(updateCache[0]), 1, userInform);
             myCache.set("users", tmp)
         }
-        
+
         return interaction.followUp({
             content: `${user.username} has been onboarded.`
         })

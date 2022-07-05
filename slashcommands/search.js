@@ -1,5 +1,6 @@
 const { SlashCommandBuilder } = require('@discordjs/builders');
-const { CommandInteraction } = require("discord.js");
+const { CommandInteraction, MessageEmbed } = require("discord.js");
+const myCache = require('../helper/cache');
 require("dotenv").config()
 
 module.exports = {
@@ -12,9 +13,10 @@ module.exports = {
         this.data = new SlashCommandBuilder()
             .setName(this.commandName)
             .setDescription(this.description)
-            .addUserOption(option =>
+            .addStringOption(option =>
                 option.setName("user")
-                    .setDescription("The member you'd like to support"))
+                    .setDescription("Choose a user from the list")
+                    .setAutocomplete(true))
             .addStringOption(option =>
                 option.setName("project_name")
                     .setDescription("Choose a project from the list")
@@ -31,23 +33,29 @@ module.exports = {
             })
         }
 
-        const user = interaction.options.getUser("user");
+        const userId = interaction.options.getString("user");
         const project = interaction.options.getString("project_name");
 
-        if (user && user.bot) return interaction.reply({
-            content: "Sorry, you cannot choose a bot as a target."
+        if (userId && project) return interaction.reply({
+            content: "Please choose one option in this command.",
+            ephemeral: true
         })
 
-        if (user && project){
-            return interaction.reply({
-                content: `Here is the user ${user.username} profile.\nHere is the project ${project} information.`
+        if (userId){
+            const searchResult = myCache.get("users").filter(value => value._id == userId);
+            if (searchResult.length == 0) return interaction.reply({
+                content: "Sorry, we cannot find information of this userr.",
+                ephemeral: true
             })
-        }
-
-        if (user){
+            const member = searchResult[0];
             return interaction.reply({
-                content: `Here is the user ${user.username} profile.`
+                embeds: [
+                    new MessageEmbed()
+                    .setTitle(`${member?.discordName ?? "Unknown"} Profile`)
+                    .setThumbnail(member?.discordAvatar)
+                ]
             })
+            
         }
 
         if (project){

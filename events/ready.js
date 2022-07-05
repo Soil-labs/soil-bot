@@ -27,12 +27,24 @@ module.exports = {
         //Cache guild members
         await guild.members.fetch();
 
-        const [projects , projectsError] = await fetchProjects();
-        const [skills, skillsError] = await fetchSkills();
-        const [users, usersError] = await fetchUsers();
-        if (projects) myCache.set("projects", projects);
-        if (skills) myCache.set("skills", skills)
-        if (users) myCache.set("users", users)
+        const loadCache = async() =>{
+            const [projects , projectsError] = await fetchProjects();
+            const [skills, skillsError] = await fetchSkills();
+            const [users, usersError] = await fetchUsers();
+            if (projects) {
+                myCache.set("projects", projects);
+                logger.info("Loading projects successfully.");
+            }
+            if (skills){
+                myCache.set("skills", skills);
+                logger.info("Loading skills successfully.");
+            }
+            if (users){
+                myCache.set("users", users);
+                logger.info("Loading users successfully.");
+            } 
+        }
+
 
         myCache.on("expired", async(key, value) => {
             if (key == "projects"){

@@ -28,6 +28,8 @@ const GET_USERS = gql`
     findMembers(fields: {}) {
       _id
       discordName
+      discordAvatar
+      discriminator
     }
   }
 `;
@@ -50,6 +52,7 @@ const UPDATE_USER = gql`
       _id
       discriminator
       discordName
+      discordAvatar
     }
   }
 `;
