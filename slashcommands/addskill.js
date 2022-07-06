@@ -1,7 +1,7 @@
 const { SlashCommandBuilder } = require('@discordjs/builders');
 const { CommandInteraction } = require("discord.js");
 const myCache = require('../helper/cache');
-const { addSkillToMember } = require('../helper/graphql');
+const { addSkillToMember, addSkill } = require('../helper/graphql');
 const {awaitWrap, validSkill, validUser} = require("../helper/util")
 require("dotenv").config()
 
@@ -22,7 +22,7 @@ module.exports = {
                     .setAutocomplete(true))
             .addStringOption(option =>
                 option.setName("skill")
-                    .setDescription("Choose a project from the list or create a new one")
+                    .setDescription("Choose a skill from the list or create a new one")
                     .setRequired(true)
                     .setAutocomplete(true))
     },
@@ -32,9 +32,8 @@ module.exports = {
      */
     async execute(interaction) {
         const user = interaction.options.getString('user');
-        const skill = interaction.options.getString('skill')
+        let skill = interaction.options.getString('skill')
 
-        console.log(user)
         if (!validUser(user)) return interaction.reply({
             content: "Sorry, user you chose is not valid, please use \`/onboarding\` command to add him/her first.",
             ephemeral: true
@@ -45,12 +44,31 @@ module.exports = {
             ephemeral: true
         })
 
-        if (!validSkill(skill)) return interaction.reply({
-            content: "Sorry, skill you chose is not valid.",
+        await interaction.deferReply({
             ephemeral: true
-        })
+        });
 
-        await interaction.deferReply();
+        if (!validSkill(skill)){
+            await interaction.followUp({
+                content: "Creating a new skill for you...",
+            })
+            const [newSkill, newSkillError] = await addSkill({ tagName: skill });
+            if (newSkillError) return interaction.editReply({
+                content: `Error occured: \`${newSkillError.response.errors[0].message}\``
+            })
+            await interaction.editReply({
+                content: `A new skill \`${skill}\` has been created.`,
+            })
+            myCache.set("skills", [
+                ...myCache.get("skills"),
+                {
+                    _id: newSkill._id,
+                    tagName: skill
+                }
+            ]);
+            skill = newSkill._id;
+        }
+
         const [result, error] = await addSkillToMember(
             {
                 skillID: skill,
@@ -59,20 +77,17 @@ module.exports = {
             }
         );
 
-        if (error) return interaction.followUp({
+        if (error) return interaction.editReply({
             content: `Error occured: \`${error.response.errors[0].message}\``,
-            ephemeral: true
         })
 
         const member = interaction.guild.members.cache.get(user);
-        if (!member) return interaction.followUp({
-            content: `Sorry, cannot find this member in the Discord but your request has been handled.`,
-            ephemeral: true
+        if (!member) return interaction.editReply({
+            content: `Sorry, cannot find this member in the Discord but you have skilled this user successfully.`,
         })
         
-        if (member.user.bot) return interaction.followUp({
+        if (member.user.bot) return interaction.editReply({
             content: `Sorry, you cannot support a bot.`,
-            ephemeral: true
         })
 
         const DMchannel = await member.user.createDM();
@@ -83,16 +98,19 @@ module.exports = {
 
         if (validSkill(skill)){
             const skillName = myCache.get("skills").filter(value => value._id == skill)[0].tagName
-            if (DMerror) return interaction.followUp({
-                content: `<@${user}>: I cannot DM you.\n${interaction.member.displayName} just skilled you with \`${skillName}\`!`
-            })
-            else return interaction.followUp({
+            if (DMerror){
+                interaction.channel.send({
+                    content: `<@${user}>: I cannot DM you.\n${interaction.member.displayName} just skilled you with \`${skillName}\`!`
+                })
+                return interaction.editReply({
+                    content: `Broadcast has been sent to the channel <#${interaction.channel.id}>.`
+                })
+            }
+            else return interaction.editReply({
                 content: 'DM is sent.',
-                ephemeral: true
             })
-        }else return interaction.followUp({
-            content: "Sorry, skill you chose is not valid, but your request has been handled. ",
-            ephemeral: true
+        }else return interaction.editReply({
+            content: "Sorry, skill you chose is not valid, but you have skilled this user successfully. ",
         })
     }
 

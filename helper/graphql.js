@@ -80,7 +80,7 @@ const NEW_TWEET_PROJECT = gql`
     $content: String
     $author: String
   ){
-    newTweetPorject(
+    newTweetProject(
       fields: {
         projectID: $projectID
         content: $content
@@ -109,6 +109,39 @@ const FETCH_PROJECT_DETAIL = gql`
                 }
                 registeredAt
             }    
+        }
+    }
+`;
+
+const FETCH_USER_DETAIL = gql`
+    query(
+        $userID: ID
+    ){
+        findMember(fields:{
+            _id: $userID
+        }){
+            skills{
+                tagName
+                authors{
+                    discordName
+                }
+                registeredAt
+            }
+            projects{
+                tagName
+            }
+        }
+    }
+`;
+
+const ADD_SKILL = gql`
+    query(
+        $tagName: String 
+    ){
+        findSkill(fields:{
+            tagName: $tagName
+        }){
+            _id
         }
     }
 `;
@@ -146,7 +179,7 @@ async function addSkillToMember(addSkillJSON){
 async function newTweetProject(tweetJSON){
     const { result, error } = await awaitWrap(client.request(NEW_TWEET_PROJECT, tweetJSON));
     if (error) return [null, error]
-    else return [result.newTweetPorject, null];
+    else return [result.newTweetProject, null];
 }
 
 async function fetchProjectDetail(projectIdJSON){
@@ -155,7 +188,20 @@ async function fetchProjectDetail(projectIdJSON){
     else return [result.findProject, null];
 }
 
-module.exports = { fetchProjects, fetchSkills, fetchUsers, updateUser, addSkillToMember, newTweetProject, fetchProjectDetail };
+async function fecthUserDetail(userIdJSON){
+    const { result, error } = await awaitWrap(client.request(FETCH_USER_DETAIL, userIdJSON));
+    if (error) return [null, error]
+    else return [result.findMember, null];
+}
+
+async function addSkill(skillNameJSON){
+    const { result, error } = await awaitWrap(client.request(ADD_SKILL, skillNameJSON));
+    if (error) return [null, error]
+    else return [result.findSkill, null];
+}
+
+
+module.exports = { fetchProjects, fetchSkills, fetchUsers, updateUser, addSkillToMember, newTweetProject, fetchProjectDetail, addSkill, fecthUserDetail };
 
 // (async ()=>{
 //     const [result, error] = await updateUser({

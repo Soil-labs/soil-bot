@@ -1,7 +1,9 @@
 const { SlashCommandBuilder } = require('@discordjs/builders');
 const { CommandInteraction, MessageEmbed } = require("discord.js");
-const { fetchProjectDetail } = require('../helper/graphql');
+const { fetchProjectDetail, fecthUserDetail } = require('../helper/graphql');
 const myCache = require('../helper/cache');
+const { validUser, validProject } = require('../helper/util');
+const user = require('../autocomplete/user');
 const sprintf = require('sprintf-js').sprintf;
 require("dotenv").config()
 
@@ -44,45 +46,77 @@ module.exports = {
         })
 
         if (userId){
-            const searchResult = myCache.get("users").filter(value => value._id == userId);
-            if (searchResult.length == 0) return interaction.reply({
-                content: "Sorry, we cannot find information of this userr.",
+            const member = validUser(userId);
+            if (!member) return interaction.reply({
+                content: "Sorry, we cannot find information of this user.",
                 ephemeral: true
             })
-            const member = searchResult[0];
-            return interaction.reply({
-                embeds: [
-                    new MessageEmbed()
-                    .setTitle(`${member?.discordName ?? "Unknown"} Profile`)
-                    .setThumbnail(member?.discordAvatar)
-                ]
+            await interaction.deferReply({ ephemeral: true });
+            const userEmbed = new MessageEmbed()
+                .setTitle(`${member?.discordName ?? "Unknown"} Profile`)
+                .setThumbnail(member?.discordAvatar)
+            const [userDetail, error] = await fecthUserDetail({ userID: userId });
+            if (error) return interaction.followUp({
+                content: `Error occured: \`${error.response.errors[0].message}\``
+            });
+            let fields = [];
+            userDetail.skills.forEach((value) => {
+                let endorsedBy = value.authors.map(value => value.discordName ?? "anonymous");
+                if (endorsedBy.length == 0) endorsedBy = "Null"
+                fields.push(
+                    {
+                        name: "skill",
+                        value: value.tagName ?? "No skill name",
+                        inline: true
+                    },
+                    {
+                        name: "endorsed by",
+                        value: `\`${endorsedBy.toString()}\``,
+                        inline: true
+                    },
+                    {
+                        name: "when",
+                        value: `<t:${Math.floor(parseInt(value.registeredAt)/1000)}>`,
+                        inline: true
+                    }
+                )
+            });
+            let projects = userDetail.projects.map(value => value.tagName ?? "Unknow project");
+            if (projects.length == 0) projects = "Null";
+            fields.push({
+                name: "Project attended",
+                value: `\`${projects.toString()}\``
+            });
+            return interaction.followUp({
+                embeds: [userEmbed.addFields(fields)]
             })
-            
         }
 
         if (projectId){
-            await interaction.deferReply({
+            if (!validProject(projectId)) return interaction.reply({
+                content: "Sorry, we cannot find information of this project.",
                 ephemeral: true
-            });
+            })
+            await interaction.deferReply({ ephemeral: true });
             const [result, error] = await fetchProjectDetail({projectID: projectId});
             if (error) return interaction.followUp({
                 content: `Error occured: \`${error.response.errors[0].message}\``
             })
             const projectEmbed = new MessageEmbed()
-                .setAuthor({name: result?.tagName ?? "No tagName"})
-                .setTitle(sprintf("Title: %s", result?.title ?? "No title"))
-                .setDescription(sprintf("Description: %s", result?.description ?? "No description"));
+                .setAuthor({name: result.tagName ?? "No tagName"})
+                .setTitle(sprintf("Title: %s", result.title ?? "No title"))
+                .setDescription(sprintf("Description: %s", result.description ?? "No description"))
             let tweets = [];
             result.tweets.forEach((value) => {
                 tweets.push(
                     {
                         name: "Content",
-                        value: value?.content ?? "No content",
+                        value: value.content ?? "No content",
                         inline: true
                     },
                     {
                         name: "Author",
-                        value: value?.author?.discordName ?? "No author name",
+                        value: `\`${value.author?.discordName ?? "anonymous"}\``,
                         inline: true
                     },
                     {
@@ -93,7 +127,7 @@ module.exports = {
                 )
             })
             return interaction.followUp({
-                content: `Here is the project ${result?.tagName ?? "No tagName"} information.`,
+                content: `Here is the project ${result.tagName ?? "No tagName"} information.`,
                 embeds: [projectEmbed.addFields(tweets)]
             })
         }

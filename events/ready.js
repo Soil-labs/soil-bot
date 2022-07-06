@@ -4,6 +4,7 @@ const {Client} = require("discord.js");
 const {fetchProjects, fetchSkills, fetchUsers} = require("../helper/graphql");
 const myCache = require("../helper/cache")
 const logger = require("../helper/logger");
+const AsciiTable = require('ascii-table/ascii-table');
 require("dotenv").config()
 
 module.exports = {
@@ -31,18 +32,21 @@ module.exports = {
             const [projects , projectsError] = await fetchProjects();
             const [skills, skillsError] = await fetchSkills();
             const [users, usersError] = await fetchUsers();
+            const table = new AsciiTable("Cache Loading ...");
+            table.setHeading("Data", "Status")
             if (projects) {
                 myCache.set("projects", projects);
-                logger.info("Loading projects successfully.");
-            }
+                table.addRow("Projects", "✅ Fetched and cached");
+            }else table.addRow("Projects", "❌ Error")
             if (skills){
                 myCache.set("skills", skills);
-                logger.info("Loading skills successfully.");
-            }
+                table.addRow("Skills", "✅ Fetched and cached");
+            }else table.addRow("Skills", "❌ Error")
             if (users){
                 myCache.set("users", users);
-                logger.info("Loading users successfully.");
-            } 
+                table.addRow("Users", "✅ Fetched and cached");
+            } else table.addRow("Users", "❌ Error")
+            logger.info(`\n${table.toString()}`);
         }
 
         await loadCache();

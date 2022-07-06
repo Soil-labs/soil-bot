@@ -43,13 +43,13 @@ module.exports = {
         if (error) return interaction.followUp({
             content: `Error occured: \`${error.response.errors[0].message}\``
         })
-        const updateCache = myCache.get("users").filter(value => value._id == user.id);
-        if (updateCache.length == 0){
+        const updateCache = validUser(user.id);
+        if (!updateCache){
             myCache.set("users", [ ...myCache.get("users"), userInform ])
         }else{
             //length == 1
             const tmp = myCache.get("users")
-            tmp.splice(tmp.indexOf(updateCache[0]), 1, userInform);
+            tmp.splice(tmp.indexOf(updateCache), 1, userInform);
             myCache.set("users", tmp)
         }
 
