@@ -91,16 +91,15 @@ module.exports = {
         })
 
         const DMchannel = await member.user.createDM();
-
+        const skillResult = validSkill(skill);
         const {DMresult ,DMerror} = await awaitWrap(DMchannel.send({
-            content: `${interaction.member.displayName} skilled you with ${skill}`
+            content: `${interaction.member.displayName} skilled you with \`${skillResult.tagName ?? "No skill name"}\``
         }), "DMresult", "DMerror");
 
-        if (validSkill(skill)){
-            const skillName = myCache.get("skills").filter(value => value._id == skill)[0].tagName
+        if (skillResult){
             if (DMerror){
                 interaction.channel.send({
-                    content: `<@${user}>: I cannot DM you.\n${interaction.member.displayName} just skilled you with \`${skillName}\`!`
+                    content: `<@${user}>: I cannot DM you.\n${interaction.member.displayName} just skilled you with \`${skillResult.tagName ?? "No skill name"}\`!`
                 })
                 return interaction.editReply({
                     content: `Broadcast has been sent to the channel <#${interaction.channel.id}>.`
