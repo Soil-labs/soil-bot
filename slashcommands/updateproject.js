@@ -1,7 +1,7 @@
 const { SlashCommandBuilder } = require('@discordjs/builders');
 const { CommandInteraction } = require("discord.js");
 const { newTweetProject } = require('../helper/graphql');
-const { validUser } = require('../helper/util');
+const { validUser, validProject } = require('../helper/util');
 
 module.exports = {
     commandName: "update",
@@ -32,6 +32,11 @@ module.exports = {
         const userId = interaction.user.id;
         const updateNews = interaction.options.getString("update_news");
         await interaction.deferReply({
+            ephemeral: true
+        })
+        
+        if (!validProject(updateProjectId)) return interaction.reply({
+            content: "Sorry, we cannot find this project",
             ephemeral: true
         })
         if (!validUser(userId)) return interaction.reply({

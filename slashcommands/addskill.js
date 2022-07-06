@@ -10,16 +10,14 @@ module.exports = {
     description: "Skill someone",
 
     data: null,
-
     generateData() {
         this.data = new SlashCommandBuilder()
             .setName(this.commandName)
             .setDescription(this.description)
-            .addStringOption(option =>
+            .addUserOption(option =>
                 option.setName("user")
                     .setDescription("The member you'd like to support")
-                    .setRequired(true)
-                    .setAutocomplete(true))
+                    .setRequired(true))
             .addStringOption(option =>
                 option.setName("skill")
                     .setDescription("Choose a skill from the list or create a new one")
@@ -31,10 +29,14 @@ module.exports = {
      * @param  {CommandInteraction} interaction
      */
     async execute(interaction) {
-        const user = interaction.options.getString('user');
-        let skill = interaction.options.getString('skill')
+        const user = interaction.options.getUser('user');
+        let skill = interaction.options.getString('skill');
 
-        if (!validUser(user)) return interaction.reply({
+        if (user.bot) return interaction.reply({
+            content: `Sorry, you cannot support a bot.`,
+        })
+
+        if (!validUser(user.id)) return interaction.reply({
             content: "Sorry, user you chose is not valid, please use \`/onboarding\` command to add him/her first.",
             ephemeral: true
         })
@@ -72,7 +74,7 @@ module.exports = {
         const [result, error] = await addSkillToMember(
             {
                 skillID: skill,
-                memberID: user,
+                memberID: user.id,
                 authorID: interaction.user.id
             }
         );
@@ -81,16 +83,7 @@ module.exports = {
             content: `Error occured: \`${error.response.errors[0].message}\``,
         })
 
-        const member = interaction.guild.members.cache.get(user);
-        if (!member) return interaction.editReply({
-            content: `Sorry, cannot find this member in the Discord but you have skilled this user successfully.`,
-        })
-        
-        if (member.user.bot) return interaction.editReply({
-            content: `Sorry, you cannot support a bot.`,
-        })
-
-        const DMchannel = await member.user.createDM();
+        const DMchannel = await user.createDM();
         const skillResult = validSkill(skill);
         const {DMresult ,DMerror} = await awaitWrap(DMchannel.send({
             content: `${interaction.member.displayName} skilled you with \`${skillResult.tagName ?? "No skill name"}\``
@@ -99,7 +92,7 @@ module.exports = {
         if (skillResult){
             if (DMerror){
                 interaction.channel.send({
-                    content: `<@${user}>: I cannot DM you.\n${interaction.member.displayName} just skilled you with \`${skillResult.tagName ?? "No skill name"}\`!`
+                    content: `<@${user.id}>: I cannot DM you.\n${interaction.member.displayName} just skilled you with \`${skillResult.tagName ?? "No skill name"}\`!`
                 })
                 return interaction.editReply({
                     content: `Broadcast has been sent to the channel <#${interaction.channel.id}>.`
