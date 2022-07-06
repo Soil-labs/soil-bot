@@ -76,20 +76,41 @@ const ADD_SKILL_TO_MEMBER = gql`
 
 const NEW_TWEET_PROJECT = gql`
   mutation(
-    $projectID: String
+    $projectID: ID
     $content: String
     $author: String
   ){
-    newTweetProject(
+    newTweetPorject(
       fields: {
         projectID: $projectID
-    content: $content
+        content: $content
         author: $author
       }
     ){
       numTweets
     }
   }
+`;
+
+const FETCH_PROJECT_DETAIL = gql`
+    query(
+        $projectID: ID
+    ){
+        findProject(fields:{
+            _id: $projectID
+        }){
+            tagName
+            title
+            description
+            tweets{
+                content
+                author {
+                    discordName
+                }
+                registeredAt
+            }    
+        }
+    }
 `;
 
 async function fetchProjects() {
@@ -128,7 +149,13 @@ async function newTweetProject(tweetJSON){
     else return [result.newTweetPorject, null];
 }
 
-module.exports = { fetchProjects, fetchSkills, fetchUsers, updateUser, addSkillToMember, newTweetProject };
+async function fetchProjectDetail(projectIdJSON){
+    const { result, error } = await awaitWrap(client.request(FETCH_PROJECT_DETAIL, projectIdJSON));
+    if (error) return [null, error]
+    else return [result.findProject, null];
+}
+
+module.exports = { fetchProjects, fetchSkills, fetchUsers, updateUser, addSkillToMember, newTweetProject, fetchProjectDetail };
 
 // (async ()=>{
 //     const [result, error] = await updateUser({

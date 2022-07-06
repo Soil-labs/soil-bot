@@ -63,7 +63,6 @@ module.exports = {
                 if (users) myCache.set("users", users)
             }
         })
-        console.log(myCache.get("skills"))
         try{
             if (process.env.ENV == "production"){
                 await rest.put(Routes.applicationCommands(clientId), {

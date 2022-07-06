@@ -1,8 +1,7 @@
 const { SlashCommandBuilder } = require('@discordjs/builders');
-const { CommandInteraction, MessageEmbed } = require("discord.js");
-const {update} = require("../config/database");
+const { CommandInteraction } = require("discord.js");
 const { newTweetProject } = require('../helper/graphql');
-const sprintf = require('sprintf-js').sprintf;
+const { validUser } = require('../helper/util');
 
 module.exports = {
     commandName: "update",
@@ -20,11 +19,6 @@ module.exports = {
                     .setRequired(true)
                     .setAutocomplete(true))
             .addStringOption(option =>
-                option.setName("user")
-                    .setDescription("Select users")
-                    .setAutocomplete(true)
-                    .setRequired(true))
-            .addStringOption(option =>
                 option.setName("update_news")
                     .setDescription("News or announcement you'd like to report")
                     .setRequired(true))
@@ -35,9 +29,13 @@ module.exports = {
      */
     async execute(interaction) {
         const updateProjectId = interaction.options.getString("project_name");
-        const userId = interaction.options.getString("user");
+        const userId = interaction.user.id;
         const updateNews = interaction.options.getString("update_news");
         await interaction.deferReply({
+            ephemeral: true
+        })
+        if (!validUser(userId)) return interaction.reply({
+            content: "Sorry, you don't have access to update this project.",
             ephemeral: true
         })
         const [result, error] = await newTweetProject({

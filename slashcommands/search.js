@@ -1,6 +1,8 @@
 const { SlashCommandBuilder } = require('@discordjs/builders');
 const { CommandInteraction, MessageEmbed } = require("discord.js");
+const { fetchProjectDetail } = require('../helper/graphql');
 const myCache = require('../helper/cache');
+const sprintf = require('sprintf-js').sprintf;
 require("dotenv").config()
 
 module.exports = {
@@ -34,9 +36,9 @@ module.exports = {
         }
 
         const userId = interaction.options.getString("user");
-        const project = interaction.options.getString("project_name");
+        const projectId = interaction.options.getString("project_name");
 
-        if (userId && project) return interaction.reply({
+        if (userId && projectId) return interaction.reply({
             content: "Please choose one option in this command.",
             ephemeral: true
         })
@@ -58,9 +60,41 @@ module.exports = {
             
         }
 
-        if (project){
-            return interaction.reply({
-                content: `Here is the project ${project} information.`
+        if (projectId){
+            await interaction.deferReply({
+                ephemeral: true
+            });
+            const [result, error] = await fetchProjectDetail({projectID: projectId});
+            if (error) return interaction.followUp({
+                content: `Error occured: \`${error.response.errors[0].message}\``
+            })
+            const projectEmbed = new MessageEmbed()
+                .setAuthor({name: result?.tagName ?? "No tagName"})
+                .setTitle(sprintf("Title: %s", result?.title ?? "No title"))
+                .setDescription(sprintf("Description: %s", result?.description ?? "No description"));
+            let tweets = [];
+            result.tweets.forEach((value) => {
+                tweets.push(
+                    {
+                        name: "Content",
+                        value: value?.content ?? "No content",
+                        inline: true
+                    },
+                    {
+                        name: "Author",
+                        value: value?.author?.discordName ?? "No author name",
+                        inline: true
+                    },
+                    {
+                        name: "Time",
+                        value: `<t:${Math.floor(parseInt(value.registeredAt)/1000)}>`,
+                        inline: true
+                    }
+                )
+            })
+            return interaction.followUp({
+                content: `Here is the project ${result?.tagName ?? "No tagName"} information.`,
+                embeds: [projectEmbed.addFields(tweets)]
             })
         }
     }
