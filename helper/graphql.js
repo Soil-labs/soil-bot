@@ -128,7 +128,9 @@ const FETCH_USER_DETAIL = gql`
                 registeredAt
             }
             projects{
-                tagName
+                project{
+                  tagName
+                }
             }
         }
     }

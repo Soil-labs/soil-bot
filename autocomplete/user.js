@@ -1,7 +1,7 @@
 const { AutocompleteInteraction } = require("discord.js");
 const myCache = require("../helper/cache")
 module.exports = {
-    attachedCommand: ["search", "skill", "user"],
+    attachedCommand: ["skill", "user"],
     options: ["user"],
 
     /**

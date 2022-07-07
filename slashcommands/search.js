@@ -17,10 +17,9 @@ module.exports = {
         this.data = new SlashCommandBuilder()
             .setName(this.commandName)
             .setDescription(this.description)
-            .addStringOption(option =>
+            .addUserOption(option =>
                 option.setName("user")
-                    .setDescription("Choose a user from the list")
-                    .setAutocomplete(true))
+                    .setDescription("Choose a user from the list"))
             .addStringOption(option =>
                 option.setName("project_name")
                     .setDescription("Choose a project from the list")
@@ -37,25 +36,30 @@ module.exports = {
             })
         }
 
-        const userId = interaction.options.getString("user");
+        const user = interaction.options.getUser("user");
         const projectId = interaction.options.getString("project_name");
 
-        if (userId && projectId) return interaction.reply({
+        if (user && projectId) return interaction.reply({
             content: "Please choose one option in this command.",
             ephemeral: true
         })
 
-        if (userId){
-            const member = validUser(userId);
+        if (user){
+            if (user.bot) return interaction.reply({
+                content: "Sorry, you cannot choose a bot as a target."
+            })
+
+            const member = validUser(user.id);
             if (!member) return interaction.reply({
                 content: "Sorry, we cannot find information of this user.",
                 ephemeral: true
             })
+
             await interaction.deferReply({ ephemeral: true });
             const userEmbed = new MessageEmbed()
                 .setTitle(`${member?.discordName ?? "Unknown"} Profile`)
                 .setThumbnail(member?.discordAvatar)
-            const [userDetail, error] = await fecthUserDetail({ userID: userId });
+            const [userDetail, error] = await fecthUserDetail({ userID: user.id });
             if (error) return interaction.followUp({
                 content: `Error occured: \`${error.response.errors[0].message}\``
             });
@@ -81,7 +85,7 @@ module.exports = {
                     }
                 )
             });
-            let projects = userDetail.projects.map(value => value.tagName ?? "Unknow project");
+            let projects = userDetail.projects.map(value => value.project?.tagName ?? "Unknow project name");
             if (projects.length == 0) projects = "Null";
             fields.push({
                 name: "Project attended",
