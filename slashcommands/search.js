@@ -33,6 +33,7 @@ module.exports = {
         if (interaction.options._hoistedOptions.length == 0) {
             return interaction.reply({
                 content: "Please choose at least one option.",
+                ephemeral: true
             })
         }
 
@@ -46,7 +47,8 @@ module.exports = {
 
         if (user){
             if (user.bot) return interaction.reply({
-                content: "Sorry, you cannot choose a bot as a target."
+                content: "Sorry, you cannot choose a bot as a target.",
+                ephemeral: true
             })
 
             const member = validUser(user.id);
@@ -61,9 +63,13 @@ module.exports = {
                 .setThumbnail(member?.discordAvatar)
             const [userDetail, error] = await fecthUserDetail({ userID: user.id });
             if (error) return interaction.followUp({
-                content: `Error occured: \`${error.response.errors[0].message}\``
+                content: `Error occured: \`${error.response.errors[0].message}\``,
             });
             let fields = [];
+            if (userDetail.skills.length == 0) fields.push({
+                name: "skill",
+                value: "No skill"
+            })
             userDetail.skills.forEach((value) => {
                 let endorsedBy = value.authors.map(value => value.discordName ?? "anonymous");
                 if (endorsedBy.length == 0) endorsedBy = "Null"
