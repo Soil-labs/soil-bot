@@ -86,7 +86,7 @@ module.exports = {
                 )
             });
             let projects = userDetail.projects.map(value => value.project?.tagName ?? "Unknow project name");
-            if (projects.length == 0) projects = "Null";
+            if (projects.length == 0) projects = "\`No project\`";
             fields.push({
                 name: "Project attended",
                 value: `\`${projects.toString()}\``
