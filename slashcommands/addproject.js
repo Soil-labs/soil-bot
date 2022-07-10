@@ -1,6 +1,7 @@
 const { SlashCommandBuilder } = require('@discordjs/builders');
 const { CommandInteraction, MessageEmbed } = require("discord.js");
-const {search} = require("../config/database")
+const CONSTANT = require("../helper/const");
+const { validProject } = require('../helper/util');
 const sprintf = require("sprintf-js").sprintf
 require("dotenv").config()
 
@@ -25,27 +26,30 @@ module.exports = {
      * @param  {CommandInteraction} interaction
      */
     async execute(interaction) {
-        const projectName = interaction.options.getString("project_name");
+        const projectId = interaction.options.getString("project_name");
         let link;
-        if (await search(projectName)){
-            link = sprintf(process.env.SOIL_CURRENT_PROJECT_LINK, projectName)
+        const result = validProject(projectId);
+        if (result){
+            link = CONSTANT.URL.NEW_PROJECT
             return interaction.reply({
-                content: `Project Name: ${projectName}`,
+                content: `Project Name: \`${result.tagName}\``,
                 embeds: [
                     new MessageEmbed()
-                        .setTitle(`Configure your project ${projectName}`)
-                        .setDescription(`Click [here](${link}) to check your projects.`)
-                ]
+                        .setTitle(`Configure your project: ${result.tagName}`)
+                        .setDescription(`Click [here](${link}) to configure your projects.`)
+                ],
+                ephemeral: true
             })
         }else{
-            link = process.env.SOIL_NEW_PROJECT_LINK;
+            link = CONSTANT.URL.NEW_PROJECT
             return interaction.reply({
-                content: `Project Name: ${projectName}`,
+                content: `Project Name: ${projectId}`,
                 embeds: [
                     new MessageEmbed()
-                        .setTitle(`Create your new project ${projectName}`)
+                        .setTitle(`Create your new project: \`${projectId}\``)
                         .setDescription(`Click [here](${link}) to create your projects.`)
-                ]
+                ],
+                ephemeral: true
             })
         }
     }
