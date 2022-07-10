@@ -35,11 +35,11 @@ module.exports = {
             ephemeral: true
         })
         
-        if (!validProject(updateProjectId)) return interaction.reply({
+        if (!validProject(updateProjectId)) return interaction.followUp({
             content: "Sorry, we cannot find this project",
             ephemeral: true
         })
-        if (!validUser(userId)) return interaction.reply({
+        if (!validUser(userId)) return interaction.followUp({
             content: "Sorry, you don't have access to update this project.",
             ephemeral: true
         })

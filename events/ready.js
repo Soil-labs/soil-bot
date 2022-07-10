@@ -1,7 +1,7 @@
 const { REST } = require('@discordjs/rest');
 const { Routes } = require('discord-api-types/v9');
 const {Client} = require("discord.js");
-const {fetchProjects, fetchSkills, fetchUsers} = require("../helper/graphql");
+const {fetchProjects, fetchSkills, fetchUsers, fetchUnverifiedSkills} = require("../helper/graphql");
 const myCache = require("../helper/cache")
 const logger = require("../helper/logger");
 const AsciiTable = require('ascii-table/ascii-table');
@@ -31,6 +31,7 @@ module.exports = {
         const loadCache = async() =>{
             const [projects , projectsError] = await fetchProjects();
             const [skills, skillsError] = await fetchSkills();
+            const [unverifiedSkills, unverifiedSkillsError] = await fetchUnverifiedSkills();
             const [users, usersError] = await fetchUsers();
             const table = new AsciiTable("Cache Loading ...");
             table.setHeading("Data", "Status")
@@ -42,6 +43,10 @@ module.exports = {
                 myCache.set("skills", skills);
                 table.addRow("Skills", "✅ Fetched and cached");
             }else table.addRow("Skills", "❌ Error")
+            if (unverifiedSkills){
+                myCache.set("unverifiedSkills", unverifiedSkills);
+                table.addRow("Unverified Skills", "✅ Fetched and cached");
+            }else table.addRow("Unverified Skills", "❌ Error")            
             if (users){
                 myCache.set("users", users);
                 table.addRow("Users", "✅ Fetched and cached");

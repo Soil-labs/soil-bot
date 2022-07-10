@@ -48,8 +48,10 @@ module.exports = {
             myCache.set("users", [ ...myCache.get("users"), userInform ])
         }else{
             //length == 1
-            const tmp = myCache.get("users")
-            tmp.splice(tmp.indexOf(updateCache), 1, userInform);
+            const tmp = myCache.get("users");
+            const idArray = tmp.map(value => value._id);
+            const index = idArray.indexOf(updateCache._id);
+            tmp.splice(index, 1, userInform);
             myCache.set("users", tmp)
         }
 

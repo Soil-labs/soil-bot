@@ -10,7 +10,7 @@ module.exports = {
     async execute(interaction) {
         const focusedOption = interaction.options.getFocused(true);
         if (focusedOption.name == this.options[0]) {
-            //Remove null tagName
+            //Remove null title
 
             const choices = myCache.get("users").filter(value => value.discordName)
 

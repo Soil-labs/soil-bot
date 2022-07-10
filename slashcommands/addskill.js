@@ -1,8 +1,9 @@
 const { SlashCommandBuilder } = require('@discordjs/builders');
 const { CommandInteraction, User } = require("discord.js");
-const myCache = require('../helper/cache');
 const { addSkillToMember, addSkill, updateUser } = require('../helper/graphql');
-const {awaitWrap, validSkill, validUser} = require("../helper/util")
+const {awaitWrap, validSkill, validUser} = require("../helper/util");
+const myCache = require('../helper/cache');
+const CONSTANT = require("../helper/const");
 require("dotenv").config()
 
 module.exports = {
@@ -31,7 +32,8 @@ module.exports = {
     async execute(interaction) {
         const user = interaction.options.getUser('user');
         let skill = interaction.options.getString('skill');
-
+        let skillState = CONSTANT.SKILL_STATE.APPROVED;
+        let skillName = '';
         await interaction.deferReply({
             ephemeral: true
         })
@@ -77,33 +79,37 @@ module.exports = {
                 });
             }
         }
-
-        if (!validSkill(skill)){
+        const validResult = validSkill(skill);
+        if (!validResult){
             //In this case, skill is the name of this skill, not a skillID for Database
             await interaction.followUp({
-                content: "Creating a new skill for you...",
+                content: "Creating a new unverified skill for you...",
                 ephemeral: true
             })
 
-            const [newSkill, newSkillError] = await addSkill({ tagName: skill });
-            if (newSkillError) return interaction.followUp({
-                content: `Error occured when creating new skill \`${skill}\`: \`${newSkillError.response.errors[0].message}\``,
+            const [unverifiedSkill, unverifiedSkillError] = await addSkill({ name: skill });
+            if (unverifiedSkillError) return interaction.followUp({
+                content: `Error occured when creating a new unverified skill \`${skill}\`: \`${unverifiedSkillError.response.errors[0].message}\``,
                 ephemeral: true
             })
 
             await interaction.followUp({
-                content: `A new skill \`${skill}\` has been created.`,
+                content: `A new unverified skill \`${skill}\` has been created.`,
                 ephemeral: true
             })
-            myCache.set("skills", [
-                ...myCache.get("skills"),
+            myCache.set("unverifiedSkills", [
+                ...myCache.get("unverifiedSkills"),
                 {
-                    _id: newSkill._id,
-                    tagName: skill
+                    _id: unverifiedSkill._id,
+                    name: skill
                 }
             ]);
             //Fetch the skillID from the Database
-            skill = newSkill._id;
+            skillName = skill;
+            skill = unverifiedSkill._id;
+            skillState = CONSTANT.SKILL_STATE.WAITING;
+        }else{
+            skillName = validResult.name
         }
 
         const [result, error] = await addSkillToMember(
@@ -119,28 +125,30 @@ module.exports = {
             ephemeral: true
         })
 
-        const DMchannel = await user.createDM();
-        const skillResult = validSkill(skill);
-        const {DMresult ,DMerror} = await awaitWrap(DMchannel.send({
-            content: `${interaction.member.displayName} skilled you with \`${skillResult.tagName ?? "No skill name"}\``
-        }), "DMresult", "DMerror");
+        let dmContent = '';
+        let dmErrorContent = '';
+        if (skillState == CONSTANT.SKILL_STATE.WAITING){
+            dmContent = `${interaction.member.displayName} skilled you with \`${skillName ?? "No skill name"}\`, but this skill is under verification. Once when it is verified, you will see it in your profile.`
+            dmErrorContent = `<@${user.id}>: I cannot DM you.\n${interaction.member.displayName} just skilled you with \`${skillName?? "No skill name"}\`. But this skill is under verification. Once when it is verified, you will see it in your profile.`
+        }else{
+            dmContent = `${interaction.member.displayName} skilled you with \`${skillName ?? "No skill name"}\``;
+            dmErrorContent = `<@${user.id}>: I cannot DM you.\n${interaction.member.displayName} just skilled you with \`${skillName ?? "No skill name"}\`!`;
+        }
 
-        if (skillResult){
-            if (DMerror){
-                interaction.channel.send({
-                    content: `<@${user.id}>: I cannot DM you.\n${interaction.member.displayName} just skilled you with \`${skillResult.tagName ?? "No skill name"}\`!`
-                })
-                return interaction.followUp({
-                    content: `Broadcast has been sent to the channel <#${interaction.channel.id}>.`,
-                    ephemeral: true
-                })
-            }
-            else return interaction.followUp({
-                content: `DM is sent. Skill ${user.username} with ${skillResult.tagName ?? "No skill name"} successfully!`,
+        const DMchannel = await user.createDM();
+        const {DMresult ,DMerror} = await awaitWrap(DMchannel.send({
+            content: dmContent
+        }), "DMresult", "DMerror");
+        if (DMerror){
+            interaction.channel.send({
+                content: dmErrorContent
+            })
+            return interaction.followUp({
+                content: `Broadcast has been sent to the channel <#${interaction.channel.id}>.`,
                 ephemeral: true
             })
         }else return interaction.followUp({
-            content: "Sorry, skill you chose is not valid, but you have skilled this user successfully. ",
+            content: `DM is sent. Skill ${user.username} with \`${skillName ?? "No skill name"}\` successfully!`,
             ephemeral: true
         })
     },

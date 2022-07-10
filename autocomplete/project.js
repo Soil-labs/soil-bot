@@ -11,13 +11,13 @@ module.exports = {
     async execute(interaction){
         const focusedOption = interaction.options.getFocused(true);
         if (focusedOption.name == this.options[0]){
-            const choices = myCache.get("projects").filter(value => value.tagName)
-            const filtered = choices.filter(value => value.tagName.startsWith(focusedOption.value));
+            const choices = myCache.get("projects").filter(value => value.title)
+            const filtered = choices.filter(value => value.title.startsWith(focusedOption.value));
             if (filtered.length == 0) {
                 return interaction.respond([])
             } else {
                 return interaction.respond(
-                    filtered.map(value => ({ name: value.tagName, value: value._id }))
+                    filtered.map(value => ({ name: value.title, value: value._id }))
                 )
             }
         }

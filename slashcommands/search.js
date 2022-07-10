@@ -1,9 +1,7 @@
 const { SlashCommandBuilder } = require('@discordjs/builders');
 const { CommandInteraction, MessageEmbed } = require("discord.js");
 const { fetchProjectDetail, fecthUserDetail } = require('../helper/graphql');
-const myCache = require('../helper/cache');
 const { validUser, validProject } = require('../helper/util');
-const user = require('../autocomplete/user');
 const sprintf = require('sprintf-js').sprintf;
 require("dotenv").config()
 
@@ -76,7 +74,7 @@ module.exports = {
                 fields.push(
                     {
                         name: "skill",
-                        value: value.tagName ?? "No skill name",
+                        value: value.name ?? "No skill name",
                         inline: true
                     },
                     {
@@ -91,7 +89,7 @@ module.exports = {
                     }
                 )
             });
-            let projects = userDetail.projects.map(value => value.project?.tagName ?? "Unknow project name");
+            let projects = userDetail.projects.map(value => value.info?.title ?? "Unknow project name");
             if (projects.length == 0) projects = "\`No project\`";
             fields.push({
                 name: "Project attended",
@@ -113,7 +111,7 @@ module.exports = {
                 content: `Error occured: \`${error.response.errors[0].message}\``
             })
             const projectEmbed = new MessageEmbed()
-                .setAuthor({name: result.tagName ?? "No tagName"})
+                .setAuthor({name: result.title ?? "No title"})
                 .setTitle(sprintf("Title: %s", result.title ?? "No title"))
                 .setDescription(sprintf("Description: %s", result.description ?? "No description"))
             let tweets = [];
@@ -137,7 +135,7 @@ module.exports = {
                 )
             })
             return interaction.followUp({
-                content: `Here is the project ${result.tagName ?? "No tagName"} information.`,
+                content: `Here is the project ${result.title ?? "No Title"} information.`,
                 embeds: [projectEmbed.addFields(tweets)]
             })
         }

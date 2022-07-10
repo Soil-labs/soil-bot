@@ -7,4 +7,10 @@ const GRAPHQL_ERROR = Object.freeze({
     KEY_ERROR: "Key Error."
 })
 
-module.exports = {URL, GRAPHQL_ERROR}
+const SKILL_STATE = Object.freeze({
+    WAITING: "waiting",
+    REJECTED: "rejected",
+    APPROVED: "approved"
+})
+
+module.exports = {URL, GRAPHQL_ERROR, SKILL_STATE}

@@ -32,10 +32,10 @@ module.exports = {
         if (result){
             link = CONSTANT.URL.NEW_PROJECT
             return interaction.reply({
-                content: `Project Name: \`${result.tagName}\``,
+                content: `Project Name: \`${result.title}\``,
                 embeds: [
                     new MessageEmbed()
-                        .setTitle(`Configure your project: ${result.tagName}`)
+                        .setTitle(`Configure your project: ${result.title}`)
                         .setDescription(`Click [here](${link}) to configure your projects.`)
                 ],
                 ephemeral: true

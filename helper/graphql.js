@@ -8,7 +8,8 @@ const GET_PROJECTS = gql`
     query{
         findProjects(fields:{}){
             _id
-            tagName      
+            title
+            description      
         }
     }
 `;
@@ -18,7 +19,8 @@ const GET_SKILLS = gql`
         findSkills(fields:{
         }){
             _id
-            tagName
+            name
+            state
         }
     }
 `;
@@ -56,6 +58,15 @@ const UPDATE_USER = gql`
     }
   }
 `;
+
+const GET_UNVERIFIED_SKILL = gql`
+  query{
+        waitingToAproveSkills(fields:{}){
+            _id
+            name
+        }
+    }
+`
 
 const ADD_SKILL_TO_MEMBER = gql`
   mutation (
@@ -99,7 +110,6 @@ const FETCH_PROJECT_DETAIL = gql`
         findProject(fields:{
             _id: $projectID
         }){
-            tagName
             title
             description
             tweets{
@@ -121,15 +131,15 @@ const FETCH_USER_DETAIL = gql`
             _id: $userID
         }){
             skills{
-                tagName
+                name
                 authors{
                     discordName
                 }
                 registeredAt
             }
             projects{
-                project{
-                  tagName
+                info{
+                  title
                 }
             }
         }
@@ -137,11 +147,11 @@ const FETCH_USER_DETAIL = gql`
 `;
 
 const ADD_SKILL = gql`
-    query(
-        $tagName: String 
+    mutation(
+        $name: String 
     ){
-        findSkill(fields:{
-            tagName: $tagName
+        createSkill(fields:{
+            name: $name
         }){
             _id
         }
@@ -158,6 +168,12 @@ async function fetchSkills() {
     const { result, error } = await awaitWrap(client.request(GET_SKILLS));
     if (error) return [null, error]
     else return [result.findSkills, null]
+}
+
+async function fetchUnverifiedSkills(){
+    const { result, error } = await awaitWrap(client.request(GET_UNVERIFIED_SKILL));
+    if (error) return [null, error]
+    else return [result.waitingToAproveSkills, null]
 }
 
 async function fetchUsers() {
@@ -199,11 +215,11 @@ async function fecthUserDetail(userIdJSON){
 async function addSkill(skillNameJSON){
     const { result, error } = await awaitWrap(client.request(ADD_SKILL, skillNameJSON));
     if (error) return [null, error]
-    else return [result.findSkill, null];
+    else return [result.createSkill, null];
 }
 
 
-module.exports = { fetchProjects, fetchSkills, fetchUsers, updateUser, addSkillToMember, newTweetProject, fetchProjectDetail, addSkill, fecthUserDetail };
+module.exports = { fetchProjects, fetchSkills, fetchUsers, fetchUnverifiedSkills, updateUser, addSkillToMember, newTweetProject, fetchProjectDetail, addSkill, fecthUserDetail };
 
 // (async ()=>{
 //     const [result, error] = await updateUser({
