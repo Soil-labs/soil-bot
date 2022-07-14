@@ -92,13 +92,13 @@ module.exports = {
                 .setTitle(sprintf("%s Personal Tagline", user.username))
                 .setThumbnail(member?.discordAvatar)
             
-            let skillNames = userDetail.skills.map(value => value.name ?? "Unknow skill name");
+            let skillNames = userDetail.skills.map(value => value.name ?? "Unknown skill name");
             let top3Skills = '';
             skillNames = skillNames.splice(0, 3);
             if (skillNames.length == 0) top3Skills = "No skill";
-            top3Skills = insertVerticalBar(skillNames);
+            else top3Skills = insertVerticalBar(skillNames);
 
-            let projects = userDetail.projects.map(value => value.info?.title ?? "Unknow project name");
+            let projects = userDetail.projects.map(value => value.info?.title ?? "Unknown project name");
             if (projects.length == 0) projects = "No project";
             else projects = insertVerticalBar(projects);
             
