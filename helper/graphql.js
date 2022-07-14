@@ -118,7 +118,11 @@ const FETCH_PROJECT_DETAIL = gql`
                     discordName
                 }
                 registeredAt
-            }    
+            }
+            role{
+              _id
+              title
+            }
         }
     }
 `;
@@ -142,6 +146,7 @@ const FETCH_USER_DETAIL = gql`
                   title
                 }
             }
+            hoursPerWeek
         }
     }
 `;
@@ -156,6 +161,21 @@ const ADD_SKILL = gql`
             _id
         }
     }
+`;
+
+const FETCH_SKILL_DETAIL = gql`
+  query(
+    $skillID: ID
+  ){
+    findSkill(fields:{
+        _id: $skillID
+    }){
+      name
+      members{
+        _id
+      }
+    }
+  }
 `;
 
 async function fetchProjects() {
@@ -206,10 +226,16 @@ async function fetchProjectDetail(projectIdJSON){
     else return [result.findProject, null];
 }
 
-async function fecthUserDetail(userIdJSON){
+async function fetchUserDetail(userIdJSON){
     const { result, error } = await awaitWrap(client.request(FETCH_USER_DETAIL, userIdJSON));
     if (error) return [null, error]
     else return [result.findMember, null];
+}
+
+async function fetchSkillDetail(skillJSON){
+    const { result, error } = await awaitWrap(client.request(FETCH_SKILL_DETAIL, skillJSON));
+    if (error) return [null, error]
+    else return [result.findSkill, null];
 }
 
 async function addSkill(skillNameJSON){
@@ -219,7 +245,19 @@ async function addSkill(skillNameJSON){
 }
 
 
-module.exports = { fetchProjects, fetchSkills, fetchUsers, fetchUnverifiedSkills, updateUser, addSkillToMember, newTweetProject, fetchProjectDetail, addSkill, fecthUserDetail };
+module.exports = { 
+  fetchProjects, 
+  fetchSkills, 
+  fetchUsers, 
+  fetchUnverifiedSkills, 
+  updateUser, 
+  addSkillToMember, 
+  newTweetProject, 
+  fetchProjectDetail, 
+  addSkill, 
+  fetchUserDetail, 
+  fetchSkillDetail 
+};
 
 // (async ()=>{
 //     const [result, error] = await updateUser({

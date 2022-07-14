@@ -25,8 +25,9 @@ module.exports = {
         const rest = new REST({ version: '9' }).setToken(process.env.TOKEN);
 
         const guild = client.guilds.cache.get(process.env.GUILDID);
-        //Cache guild members
+        //Cache guild members and channels
         await guild.members.fetch();
+        await guild.channels.fetch();
 
         const loadCache = async() =>{
             const [projects , projectsError] = await fetchProjects();

@@ -35,4 +35,13 @@ function validProject(projectId){
     return result.length != 0?result[0]:null
 }
 
-module.exports = { awaitWrap, validProject, validSkill, validUser }
+function insertVerticalBar(array){
+    const length = array.length;
+    for (let i = 0; i < length; i ++){
+        array.splice(1 + 2 * i, 0, ' | ')
+    }
+    array.pop();
+    return array.toString().replace(/,/g, '')
+}
+
+module.exports = { awaitWrap, validProject, validSkill, validUser, insertVerticalBar }

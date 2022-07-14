@@ -28,7 +28,6 @@
     "nodemon": "^2.0.16",
     "pino": "^8.0.0",
     "pino-pretty": "^8.0.0",
-    "sprintf-js": "^1.1.2",
-    "wokcommands": "^1.5.3"
+    "sprintf-js": "^1.1.2"
   }
 }

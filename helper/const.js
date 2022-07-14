@@ -13,4 +13,12 @@ const SKILL_STATE = Object.freeze({
     APPROVED: "approved"
 })
 
-module.exports = {URL, GRAPHQL_ERROR, SKILL_STATE}
+const LINK = Object.freeze({
+    PROJECT: "https://www.soil.xyz/project/%s",
+    PROJECT_GATEWAY: "https://www.soil.xyz/project/",
+    USER: "https://www.soil.xyz/profile/%s",
+    SKILL: "https://www.soil.xyz/member/%s",
+    ONBOARD: "https://www.soil.xyz/onboard/%s"
+})
+
+module.exports = { URL, GRAPHQL_ERROR, SKILL_STATE, LINK }
