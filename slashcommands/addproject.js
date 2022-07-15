@@ -2,7 +2,7 @@ const { SlashCommandBuilder } = require('@discordjs/builders');
 const { CommandInteraction, MessageEmbed } = require("discord.js");
 const CONSTANT = require("../helper/const");
 const { validProject } = require('../helper/util');
-const sprintf = require("sprintf-js").sprintf
+
 require("dotenv").config()
 
 module.exports = {

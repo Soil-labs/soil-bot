@@ -1,13 +1,14 @@
 const { SlashCommandBuilder } = require('@discordjs/builders');
 const { CommandInteraction, User } = require("discord.js");
 const { addSkillToMember, addSkill, updateUser } = require('../helper/graphql');
-const {awaitWrap, validSkill, validUser} = require("../helper/util");
+const { awaitWrap, validSkill, validUser } = require("../helper/util");
 const myCache = require('../helper/cache');
 const CONSTANT = require("../helper/const");
+const { sprintf } = require('sprintf-js');
 require("dotenv").config()
 
 module.exports = {
-    commandName: "skill",
+    commandName: "endorse",
     description: "Skill someone",
 
     data: null,
@@ -34,6 +35,7 @@ module.exports = {
         let skill = interaction.options.getString('skill');
         let skillState = CONSTANT.SKILL_STATE.APPROVED;
         let skillName = '';
+
         await interaction.deferReply({
             ephemeral: true
         })
@@ -43,38 +45,47 @@ module.exports = {
         })
 
         if (!validUser(interaction.user.id)) {
-            const authorOnboardResult = await this.onboardNewUser(interaction.user);
+            const authorOnboardResult = await this._onboardNewUser(interaction.user);
             if (authorOnboardResult.error) return interaction.followUp({
                 content: `Error occured when onboarding you: \`${authorOnboardResult.message}\``,
                 ephemeral: true
             });
-            const authorDMchannel = await interaction.user.createDM();
-            const {authorDMresult ,authorDMerror} = await awaitWrap(authorDMchannel.send({
-                content: `Hi, ${interaction.user.username}! Please use this [link](https://www.google.com/) to verify yourself`
-            }), "authorDMresult", "authorDMerror");
-            if (authorDMerror) await interaction.followUp({
-                content: "Cannot DM you! Please use this [link](https://www.google.com/) to verify yourself",
+
+            const onboardLink = sprintf(CONSTANT.LINK.ONBOARD, interaction.user.id)
+            await interaction.followUp({
+                content: sprintf(CONSTANT.CONTENT.ONBOARD, { onboardLink: onboardLink }),
                 ephemeral: true
             })
         }
 
-        if (!validUser(user.id)) {
-            const userOnboardResult = await this.onboardNewUser(user);
+        const isNewMember = validUser(user.id)?true:false
+        if (isNewMember) {
+            const userOnboardResult = await this._onboardNewUser(user);
             if (userOnboardResult.error) return interaction.followUp({
                 content: `Error occured when onboarding ${user.username}: \`${userOnboardResult.message}\``,
                 ephemeral: true
             });
+
+            const userOnboardLink = sprintf(CONSTANT.LINK.ONBOARD, user.id)
             const userDMchannel = await user.createDM()
             const {userDMresult ,userDMerror} = await awaitWrap(userDMchannel.send({
-                content: `Hi, ${user.username}! Please use this [link](https://www.google.com/) to verify yourself`
+                content: sprintf(CONSTANT.CONTENT.INVITE_DM, {
+                    inviterName: interaction.member.displayName,
+                    onboardLink: userOnboardLink
+                })
             }), "userDMresult", "userDMerror");
+
             if (userDMerror){
                 await interaction.channel.send({
-                    content: `<@${user.id}>, I cannot DM you! Please use this [link](https://www.google.com/) to verify yourself`
+                    content: sprintf(CONSTANT.CONTENT.INVITE_DM_FAIL, {
+                        inviteeId: user.id,
+                        inviterId: interaction.user.id,
+                        onboardLink: userOnboardLink
+                    })
                 })
             }else{
                 await interaction.followUp({
-                    content: `Onboarding verification link has been DM to ${user.username}`,
+                    content: sprintf("Onboard DM is sent to \`%s\`", user.username),
                     ephemeral: true
                 });
             }
@@ -104,7 +115,6 @@ module.exports = {
                     name: skill
                 }
             ]);
-            //Fetch the skillID from the Database
             skillName = skill;
             skill = unverifiedSkill._id;
             skillState = CONSTANT.SKILL_STATE.WAITING;
@@ -125,15 +135,22 @@ module.exports = {
             ephemeral: true
         })
 
-        let dmContent = '';
-        let dmErrorContent = '';
-        if (skillState == CONSTANT.SKILL_STATE.WAITING){
-            dmContent = `${interaction.member.displayName} skilled you with \`${skillName ?? "No skill name"}\`, but this skill is under verification. Once when it is verified, you will see it in your profile.`
-            dmErrorContent = `<@${user.id}>: I cannot DM you.\n${interaction.member.displayName} just skilled you with \`${skillName?? "No skill name"}\`. But this skill is under verification. Once when it is verified, you will see it in your profile.`
-        }else{
-            dmContent = `${interaction.member.displayName} skilled you with \`${skillName ?? "No skill name"}\``;
-            dmErrorContent = `<@${user.id}>: I cannot DM you.\n${interaction.member.displayName} just skilled you with \`${skillName ?? "No skill name"}\`!`;
+        const infor = {
+            endorseeName: user.username,
+            endorseeId: user.id,
+            endorserName: interaction.user.username,
+            endorserId: interaction.user.id,
+            skillName: skillName,
+            claimEndorsementLink: sprintf(CONSTANT.LINK.CLAIM_ENDORSEMENT, user.id),
+            onboardLink: sprintf(CONSTANT.LINK.ONBOARD, user.id),
+            endorserEndorsementLink: sprintf(CONSTANT.LINK.ENDORSEMENTS, interaction.user.id)
         }
+        const contents = [...this._contents].filter(([condition, content]) => (
+            condition.isNewMember == isNewMember && condition.isVerifiedSkill == (skillState == CONSTANT.SKILL_STATE.APPROVED)
+        ))
+        const { dmContent, dmErrorContent } = contents[0][1](infor);
+        let endorserReply = isNewMember ? sprintf(CONSTANT.LINK.ENDORSE_NEW_MEMBER_CASE_ENDORSER_REPLY, infor) 
+            : sprintf(CONSTANT.LINK.ENDORSE_OLD_MEMBER_CASE_ENDORSER_REPLY, infor)
 
         const DMchannel = await user.createDM();
         const {DMresult ,DMerror} = await awaitWrap(DMchannel.send({
@@ -143,19 +160,16 @@ module.exports = {
             interaction.channel.send({
                 content: dmErrorContent
             })
-            return interaction.followUp({
-                content: `Broadcast has been sent to the channel <#${interaction.channel.id}>.`,
-                ephemeral: true
-            })
-        }else return interaction.followUp({
-            content: `DM is sent. Skill ${user.username} with \`${skillName ?? "No skill name"}\` successfully!`,
+        }
+        return interaction.followUp({
+            content: endorserReply,
             ephemeral: true
         })
     },
     /**
      * @param  {User} user
      */
-    async onboardNewUser(user){
+    async _onboardNewUser(user){
 
         const userInform = {
             _id: user.id,
@@ -176,6 +190,25 @@ module.exports = {
         return {
             error: false
         }
-    }
+    },
+
+    _contents: new Map([
+        [{ isNewMember: true, isVerifiedSkill: true} , (infor) => ({
+            dmContent: sprintf(CONSTANT.CONTENT.ENDORSE_NEW_MEMBER_CASE_ENDORSEE_DM, infor),
+            dmErrorContent: sprintf(CONSTANT.CONTENT.ENDORSE_NEW_MEMBER_CASE_ENDORSEE_DM_FAIL,infor)
+        })],
+        [{ isNewMember: true, isVerifiedSkill: false} , (infor) => ({
+            dmContent: sprintf(CONSTANT.CONTENT.ENDORSE_NEW_MEMBER_CASE_ENDORSEE_DM_UNVERIFIED_SKILL, infor),
+            dmErrorContent: sprintf(CONSTANT.CONTENT.ENDORSE_NEW_MEMBER_CASE_ENDORSEE_DM_FAIL_UNVERIFIED_SKILL, infor)
+        })],
+        [{ isNewMember: false, isVerifiedSkill: true} , (infor) => ({
+            dmContent: sprintf(CONSTANT.CONTENT.ENDORSE_OLD_MEMBER_CASE_ENDORSEE_DM, infor),
+            dmErrorContent: sprintf(CONSTANT.CONTENT.ENDORSE_OLD_MEMBER_CASE_ENDORSEE_DM_FAIL, infor)
+        })],
+        [{ isNewMember: false, isVerifiedSkill: false} , (infor) => ({
+            dmContent: sprintf(CONSTANT.CONTENT.ENDORSE_OLD_MEMBER_CASE_ENDORSEE_DM_UNVERIFIED_SKILL, infor),
+            dmErrorContent: sprintf(CONSTANT.CONTENT.ENDORSE_OLD_MEMBER_CASE_ENDORSEE_DM_FAIL_UNVERIFIED_SKILL, infor)
+        })]
+    ])
 
 }

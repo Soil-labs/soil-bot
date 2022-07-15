@@ -1,8 +1,10 @@
 const { SlashCommandBuilder } = require('@discordjs/builders');
 const { CommandInteraction } = require("discord.js");
 const { validUser } = require('../helper/util');
+const { updateUser } = require('../helper/graphql');
 const { sprintf } = require('sprintf-js');
 const CONSTANT = require("../helper/const");
+
 require("dotenv").config()
 
 module.exports = {
@@ -21,15 +23,33 @@ module.exports = {
      * @param  {CommandInteraction} interaction
      */
     async execute(interaction) {
-        const userId = interaction.user.id;
-        const searchResult = validUser(userId);
+        const user = interaction.user;
+        const searchResult = validUser(user.id);
+
         if (searchResult) return interaction.reply({
             content: "Sorry, you have onboarded before.",
             ephemeral: true
         })
-        const onboardLink = sprintf(CONSTANT.LINK.ONBOARD, userId)
+
+        const userInform = {
+            _id: user.id,
+            discordName: user.username,
+            discriminator: user.discriminator,
+            discordAvatar: user.displayAvatarURL({ format: 'jpg' })
+        }
+
+        const [result, error] = await updateUser(userInform);
+
+        if (error) return interaction.reply({
+            content: `Error occured when onboarding yourself: \`${error.response.errors[0].message}\``,
+            ephemeral: true
+        });
+
+        myCache.set("users", [ ...myCache.get("users"), userInform ])
+        
+        const onboardLink = sprintf(CONSTANT.LINK.ONBOARD, user.id)
         return interaction.reply({
-            content: sprintf("Say hi 👋 to your magic ✨, AI-driven bot that helps you find & be found 🔎  for opportunities to collaborate, learn & earn across the DAO.\n\nIn order for the perfect project to find you ❤️ - we've made a quick & easy onboarding flow.\n\nClick 👇\n\n🔗Link to [onboarding flow](%s).", onboardLink),
+            content: sprintf(CONSTANT.CONTENT.ONBOARD, { onboardLink: onboardLink }),
             ephemeral: true
         })
     }
