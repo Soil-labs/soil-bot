@@ -1,6 +1,6 @@
 const { SlashCommandBuilder } = require('@discordjs/builders');
 const { CommandInteraction, User } = require("discord.js");
-const { addSkillToMember, addSkill, updateUser } = require('../helper/graphql');
+const { addSkillToMember, addSkill, updateUser, fetchUserDetail } = require('../helper/graphql');
 const { awaitWrap, validSkill, validUser } = require("../helper/util");
 const myCache = require('../helper/cache');
 const CONSTANT = require("../helper/const");
@@ -36,12 +36,18 @@ module.exports = {
         let skillState = CONSTANT.SKILL_STATE.APPROVED;
         let skillName = '';
 
-        await interaction.deferReply({
+        if (user.bot) return interaction.followUp({
+            content: `Sorry, you cannot support a bot.`,
             ephemeral: true
         })
 
-        if (user.bot) return interaction.followUp({
-            content: `Sorry, you cannot support a bot.`
+        if (user.id == interaction.user.id) return interaction.reply({
+            content: "Sorry, you cannot endorse yourself.",
+            ephemeral: true
+        })
+
+        await interaction.deferReply({
+            ephemeral: true
         })
 
         if (!validUser(interaction.user.id)) {
@@ -58,7 +64,7 @@ module.exports = {
             })
         }
 
-        const isNewMember = validUser(user.id)?true:false
+        const isNewMember = validUser(user.id)?false:true
         if (isNewMember) {
             const userOnboardResult = await this._onboardNewUser(user);
             if (userOnboardResult.error) return interaction.followUp({
@@ -120,6 +126,15 @@ module.exports = {
             skillState = CONSTANT.SKILL_STATE.WAITING;
         }else{
             skillName = validResult.name
+            const [userDetail, userDetailError] = await fetchUserDetail({ userID: user.id });
+            if (userDetailError) return interaction.followUp({
+                content: `Error occured: \`${error.response.errors[0].message}\``,
+            });
+            const skillOverlap = userDetail.skills.filter(value => value._id == skill);
+            if (skillOverlap.length != 0) return interaction.followUp({
+                content: `Sorry, this user has had this skill \`${skillName}\`.`
+            })
+            
         }
 
         const [result, error] = await addSkillToMember(
@@ -149,8 +164,9 @@ module.exports = {
             condition.isNewMember == isNewMember && condition.isVerifiedSkill == (skillState == CONSTANT.SKILL_STATE.APPROVED)
         ))
         const { dmContent, dmErrorContent } = contents[0][1](infor);
-        let endorserReply = isNewMember ? sprintf(CONSTANT.LINK.ENDORSE_NEW_MEMBER_CASE_ENDORSER_REPLY, infor) 
-            : sprintf(CONSTANT.LINK.ENDORSE_OLD_MEMBER_CASE_ENDORSER_REPLY, infor)
+
+        const endorserReply = isNewMember ? sprintf(CONSTANT.CONTENT.ENDORSE_NEW_MEMBER_CASE_ENDORSER_REPLY, infor) 
+            : sprintf(CONSTANT.CONTENT.ENDORSE_OLD_MEMBER_CASE_ENDORSER_REPLY, infor);
 
         const DMchannel = await user.createDM();
         const {DMresult ,DMerror} = await awaitWrap(DMchannel.send({

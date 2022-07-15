@@ -3,6 +3,7 @@ const { CommandInteraction } = require("discord.js");
 const { validUser } = require('../helper/util');
 const { updateUser } = require('../helper/graphql');
 const { sprintf } = require('sprintf-js');
+const myCache = require("../helper/cache");
 const CONSTANT = require("../helper/const");
 
 require("dotenv").config()

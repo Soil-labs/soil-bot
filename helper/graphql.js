@@ -135,6 +135,7 @@ const FETCH_USER_DETAIL = gql`
             _id: $userID
         }){
             skills{
+                _id
                 name
                 authors{
                     discordName

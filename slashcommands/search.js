@@ -77,6 +77,11 @@ module.exports = {
             })
 
             const member = validUser(user.id);
+            if (!member && user.id == interaction.user.id) return interaction.reply({
+                content: "Sorry, we cannot find your information, use \`/onboard\` command to join.",
+                ephemeral: true
+            })
+
             if (!member) return interaction.reply({
                 content: "Sorry, we cannot find information of this user.",
                 ephemeral: true

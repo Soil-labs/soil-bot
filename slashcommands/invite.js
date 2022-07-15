@@ -69,7 +69,7 @@ module.exports = {
                 inviterName: interaction.member.displayName,
                 onboardLink: onboardLink
             })
-        }))
+        }), "DMResult", "DMError")
         if (DMError) {
             interaction.channel.send({
                 content: sprintf(CONSTANT.CONTENT.INVITE_DM_FAIL, {
