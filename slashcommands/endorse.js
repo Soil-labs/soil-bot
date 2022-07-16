@@ -9,7 +9,7 @@ require("dotenv").config()
 
 module.exports = {
     commandName: "endorse",
-    description: "Skill someone",
+    description: "Endorse someone's skill",
 
     data: null,
     generateData() {

@@ -10,7 +10,7 @@ require("dotenv").config()
 
 module.exports = {
     commandName: "onboard",
-    description: "Onboard yourself",
+    description: "Find & be found for opportunity",
 
     data: null,
 

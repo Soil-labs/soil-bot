@@ -29,7 +29,8 @@ module.exports = {
      */
     async execute(interaction) {
         const user = interaction.options.getUser('user');
-        if (user.id == interaction.user.id) return interaction.reply({
+        const author = interaction.user
+        if (user.id == author.id) return interaction.reply({
             content: "Sorry, you cannot invite yourself.",
             ephemeral: true
         })
@@ -37,8 +38,13 @@ module.exports = {
             content: "Sorry, you cannot choose a bot as a target.",
             ephemeral: true
         })
-        const updateCache = validUser(user.id);
-        if (updateCache) return interaction.reply({
+        const isNewAuthor = validUser(author.id);
+        if (!isNewAuthor) return interaction.reply({
+            content: "Please use \`/onboard\` command to onboard yourself first"
+        })
+
+        const isNewUser = validUser(user.id);
+        if (isNewUser) return interaction.reply({
             content: "Sorry, this user has been onboarded.",
             ephemeral: true
         })
@@ -74,7 +80,7 @@ module.exports = {
             interaction.channel.send({
                 content: sprintf(CONSTANT.CONTENT.INVITE_DM_FAIL, {
                     inviteeId: user.id,
-                    inviterId: interaction.user.id,
+                    inviterId: author.id,
                     onboardLink: onboardLink
                 })
             })

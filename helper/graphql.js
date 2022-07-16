@@ -122,6 +122,9 @@ const FETCH_PROJECT_DETAIL = gql`
             role{
               _id
               title
+            }    
+            champion{
+              _id
             }
         }
     }

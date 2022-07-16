@@ -10,7 +10,7 @@ require("dotenv").config()
 
 module.exports = {
     commandName: "search",
-    description: "Search a user or a project",
+    description: "Search everything in Soil🌱",
 
     data: null,
 
@@ -23,7 +23,7 @@ module.exports = {
                     .setDescription("Output all projects information"))
             .addSubcommand(command =>
                 command.setName("for")
-                    .setDescription("Output all projects information")
+                    .setDescription("Search for projects, users or skills")
                     .addUserOption(option =>
                         option.setName("user")
                             .setDescription("Choose a user from the list"))
@@ -33,7 +33,7 @@ module.exports = {
                             .setAutocomplete(true))
                     .addStringOption(option =>
                         option.setName("skill")
-                            .setDescription("Choose a project from the list")
+                            .setDescription("Choose a skill from the list")
                             .setAutocomplete(true))
             )
     },
