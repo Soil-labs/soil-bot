@@ -21,6 +21,7 @@
     "@discordjs/builders": "^0.15.0",
     "@discordjs/rest": "^0.5.0",
     "ascii-table": "^0.0.9",
+    "ascii-table3": "^0.7.6",
     "discord.js": "^13.8.0",
     "dotenv": "^16.0.1",
     "graphql-request": "^4.3.0",

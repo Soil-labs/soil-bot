@@ -15,6 +15,7 @@ const client = new discord.Client({ intents: [
 
 client.commands = new discord.Collection();
 client.auto = new discord.Collection();
+client.buttons = new discord.Collection();
 
 const slashCommandFilesPath = path.join(process.cwd(), "slashcommands");
 const slashCommandFiles = fs.readdirSync(slashCommandFilesPath).filter((file) => file.endsWith(".js"));
@@ -40,6 +41,18 @@ for (const file of autoCompleteFiles){
         for (const option of auto.options){
             client.auto.set(`${command}${option}`, auto)
         }
+    }
+}
+
+const buttonFilesPath = path.join(process.cwd(), "button");
+const buttonFiles = fs.readdirSync(buttonFilesPath).filter((file) => file.endsWith(".js"));
+
+//Load button
+for (const file of buttonFiles){
+    const button = require(path.join(buttonFilesPath, file));
+    //Our self-defined customId is an array
+    for(const id of button.customId){
+        client.buttons.set(id, button);
     }
 }
 

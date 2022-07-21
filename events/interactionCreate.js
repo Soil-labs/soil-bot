@@ -28,6 +28,20 @@ module.exports = {
             }
         }
 
+        if(interaction.isButton()){
+
+            const button = interaction.client.buttons.get(interaction.customId)
+
+            if(!button) return;
+
+            try{
+                await button.execute(interaction);
+            }catch(err){
+                //console.error(err)
+                return logger.error(`User: ${interaction.user.username} Error: ${err.name} occurs when interacting ${interaction.customId} button. Msg: ${err.message} Stack: ${err.stack}`);
+            }
+        }
+
         if (interaction.isAutocomplete()){
             const option = interaction.options.getFocused(true).name;
             const command = interaction.client.auto.get(`${interaction.commandName}${option}`);

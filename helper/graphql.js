@@ -70,9 +70,9 @@ const GET_UNVERIFIED_SKILL = gql`
 
 const ADD_SKILL_TO_MEMBER = gql`
   mutation (
-    $skillID: String
-    $memberID: String
-    $authorID: String
+    $skillID: ID
+    $memberID: ID
+    $authorID: ID
   ){
   addSkillToMember(
     fields:{
@@ -90,15 +90,34 @@ const NEW_TWEET_PROJECT = gql`
     $projectID: ID
     $content: String
     $author: String
+    $approved: Boolean!
   ){
     newTweetProject(
       fields: {
         projectID: $projectID
         content: $content
         author: $author
+        approved: $approved
       }
     ){
       numTweets
+      newTweetID
+    }
+  }
+`;
+
+const APPROVE_TWEET = gql`
+  mutation(
+    $projectID: ID
+    $tweetID: ID
+    $approved: Boolean
+  ){
+    approveTweet(fields:{
+      projectID: $projectID
+      tweetID: $tweetID
+      approved: $approved 
+    }){
+      title
     }
   }
 `;
@@ -118,6 +137,7 @@ const FETCH_PROJECT_DETAIL = gql`
                     discordName
                 }
                 registeredAt
+                approved
             }
             role{
               _id
@@ -182,6 +202,26 @@ const FETCH_SKILL_DETAIL = gql`
   }
 `;
 
+const MATCH_MEMBER = gql`
+  query(
+    $memberId: ID
+  ){
+    matchMembersToUser(fields:{
+      memberID: $memberId
+    }){
+    matchPercentage
+      member{
+        _id
+        discordName
+      }
+      commonSkills{
+        name
+      }
+        
+    }
+  }
+`
+
 async function fetchProjects() {
     const { result, error } = await awaitWrap(client.request(GET_PROJECTS));
     if (error) return [null, error]
@@ -224,6 +264,12 @@ async function newTweetProject(tweetJSON){
     else return [result.newTweetProject, null];
 }
 
+async function approveTweet(tweetJSON){
+    const { result, error } = await awaitWrap(client.request(APPROVE_TWEET, tweetJSON));
+    if (error) return [null, error]
+    else return [result.approveTweet, null];
+}
+
 async function fetchProjectDetail(projectIdJSON){
     const { result, error } = await awaitWrap(client.request(FETCH_PROJECT_DETAIL, projectIdJSON));
     if (error) return [null, error]
@@ -248,6 +294,12 @@ async function addSkill(skillNameJSON){
     else return [result.createSkill, null];
 }
 
+async function matchMember(memberJSON){
+    const { result, error } = await awaitWrap(client.request(MATCH_MEMBER, memberJSON));
+    if (error) return [null, error]
+    else return [result.matchMembersToUser, null];
+}
+
 
 module.exports = { 
   fetchProjects, 
@@ -257,10 +309,12 @@ module.exports = {
   updateUser, 
   addSkillToMember, 
   newTweetProject, 
+  approveTweet,
   fetchProjectDetail, 
   addSkill, 
   fetchUserDetail, 
-  fetchSkillDetail 
+  fetchSkillDetail,
+  matchMember
 };
 
 // (async ()=>{

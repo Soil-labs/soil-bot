@@ -132,7 +132,7 @@ module.exports = {
                 .setDescription(sprintf("✅ **Status**: %s\n\n👨‍👩‍👧‍👦 **Open Roles**: %d\n\n🔗 Click [here](%s) to see its profile\n\n📣**Recent Announcement**", 
                     result.status ?? "⚙️pre-launch | 🚀launched | 📦archived", result.role.length, projectLink))
             let tweets = [];
-            result.tweets.forEach((value) => {
+            result.tweets.filter(value => value.approved).forEach((value) => {
                 tweets.push(
                     {
                         name: "Content",

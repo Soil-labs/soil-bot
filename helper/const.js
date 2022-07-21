@@ -43,14 +43,17 @@ const CONTENT = Object.freeze({
     ENDORSE_OLD_MEMBER_CASE_ENDORSEE_DM_UNVERIFIED_SKILL: "Your skills are getting noticed, %(endorseeName)s! \`%(endorserName)s\` just endorsed you for **unverified** \`%(skillName)s\`\n\nThe skill is been send to the Moderators if its approved you will see it on your account!",
     ENDORSE_OLD_MEMBER_CASE_ENDORSEE_DM_FAIL_UNVERIFIED_SKILL: "Your skills are getting noticed, <@%(endorseeId)s>! <@%(endorserId)s> just endorsed you for **unverified** \`%(skillName)s\`\n\nThe skill is been send to the Moderators if its approved you will see it on your account!",
 
-    NEW_TWEET_PROJECT_CHAMPION_DM: "\`%(newTweetMemberName)s\` added a key milestone update to your project:\n\n**%(newTweetContent)s**\n\nDo you confirm this update?",
-    NEW_TWEET_PROJECT_CHAMPION_DM_FAIL: "<@%(championId)s>, \`%(newTweetMemberName)s\` added a key milestone update to your project:\n\n**%(newTweetContent)s**\n\nDo you confirm this update?"
+    NEW_TWEET_PROJECT_CHAMPION_DM: "\`%(newTweetMemberName)s\`(ID: \`%(newTweetMemberId)s\`) added a key milestone update to your project:\n\n**%(newTweetContent)s**\n\n**Project ID**: ||%(projectId)s||\n\n**Update ID**: ||%(tweetId)s||",
+    NEW_TWEET_PROJECT_CHAMPION_DM_FAIL: "<@%(championId)s>, \`<@%(newTweetMemberId)s>\` added a key milestone update to your project:\n\n**%(newTweetContent)s**\n\n**Project ID**: ||%(projectId)s||\n\n**Update ID**: ||%(tweetId)s||"
 
 })
 
 const NUMERICAL_VALUE = Object.freeze({
-    BUTTON_COLLECTOR_INTERVAL: 20 
+    BUTTON_COLLECTOR_INTERVAL: 20,
+    DB_ID_LENGTH: 24,
+    DISCORD_ID_LENGTH: 18
 })
+
 
 module.exports = { 
     URL, 
