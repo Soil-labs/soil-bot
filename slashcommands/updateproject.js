@@ -96,12 +96,9 @@ module.exports = {
             })
 
             const contentInfo = {
-                newTweetMemberName: interaction.member.displayName,
-                newTweetMemberId: interaction.user.id,
                 newTweetContent: updateNews,
-                projectId: updateProjectId,
-                tweetId: result.tweetId,
-                championId: champion.id
+                championId: champion.id,
+                projectLink: sprintf(CONSTANT.LINK.PROJECT, updateProjectId)
             }
             const dmChannel = await champion.createDM();
             const { dmResult, dmError } = await awaitWrap(dmChannel.send({
@@ -119,7 +116,7 @@ module.exports = {
             }
 
             return interaction.followUp({
-                content: "New tweet to this project has been uploaded successfully. DM has been sent to the champion."
+                content: `New tweet to this project has been uploaded successfully. DM has been sent to \`${champion.displayName}\`.`
             })
         }
 

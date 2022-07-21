@@ -9,7 +9,7 @@ require("dotenv").config()
 
 module.exports = {
     commandName: "match",
-    description: "Find a potential member matching your skills",
+    description: "Find a potential member matching your skills or check others matching cases",
 
     data: null,
 
@@ -17,13 +17,31 @@ module.exports = {
         this.data = new SlashCommandBuilder()
             .setName(this.commandName)
             .setDescription(this.description)
+            .addUserOption(option =>
+                option.setName("user")
+                    .setDescription("Choose a user you'd like to know his/her cases"))
     },
 
     /**
      * @param  {CommandInteraction} interaction
      */
     async execute(interaction) {
-        const isValidUser = validUser(interaction.user.id);
+        let targetUser;
+        let userDetailErrorContent, noSkillContent;
+
+        const user = interaction.options.getUser("user");
+
+        if (user){
+            targetUser = user;
+            userDetailErrorContent = `Sorry, we cannot find a match for you. Error occured when fetching his/her profile: \`%s\`.`;
+            noSkillContent = `Sorry, we cannot find a match for you because this member doesn't have any skill.`
+        }else {
+            targetUser = interaction.user;
+            userDetailErrorContent = `Sorry, we cannot find a match for you. Error occured when fetching your profile: \`%s\`.`;
+            noSkillContent = `Sorry, we cannot find a match for you because you don't have any skill. Try to find someone to endorse you!`
+        }
+
+        const isValidUser = validUser(targetUser.id);
 
         if (!isValidUser) return interaction.reply({
             content: "Sorry, you are not a member of Soil. Please use \`/onboard\` command to join in our family!",
@@ -32,28 +50,28 @@ module.exports = {
         await interaction.deferReply({
             ephemeral: true
         })
-        const [matchResult, matchError] = await matchMember({ memberId: interaction.user.id });
+        const [matchResult, matchError] = await matchMember({ memberId: targetUser.id });
 
         if (matchError) return interaction.followUp({
             content: `Error occured when matching: \`${matchError.response.errors[0].message}\``
         })
 
         if (matchResult.length == 0) {
-            const [userDetail, userDetailError] = await fetchUserDetail({ userID: interaction.user.id });
+            const [userDetail, userDetailError] = await fetchUserDetail({ userID: targetUser.id });
 
             if (userDetailError) return interaction.followUp({
-                content: `Sorry, we cannot find a match for you. Error occured when fetching your profile: \`${matchError.response.errors[0].message}\`.`
+                content: sprintf(userDetailErrorContent, error.response.errors[0].message)
             })
 
             if (!userDetail.skills.length) return interaction.followUp({
-                content: `Sorry, we cannot find a match for you because you don't have any skill. Try to find someone to endorse you!`
+                content: noSkillContent
             })
 
             return interaction.followUp({
                 content: `Sorry, we cannot find a match for you without a detailed reason. Please report this case to our team.`
             })
         }
-        const table = new AsciiTable3(`${interaction.member.displayName} Matching Result`)
+        const table = new AsciiTable3(`${targetUser.username} Matching Result`)
             .setHeading("⚙️Similarity", "🧙Name", "💻Common Skill")
             .setAlign(3, AlignmentEnum.CENTER);
 
@@ -67,7 +85,6 @@ module.exports = {
             return sprintf("> ⚙️Similarity: %.2f%%   🧙Name: %s 💻Common Skill: %s\n", value.matchPercentage, name, skillList);
         }).toString().replace(/,/g, '');
 
-        console.log(table.toString())
         return interaction.followUp({
             content: table.toString(),
             embeds: [
