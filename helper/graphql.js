@@ -202,7 +202,7 @@ const FETCH_SKILL_DETAIL = gql`
   }
 `;
 
-const MATCH_MEMBER = gql`
+const MATCH_MEMBER_TO_USER = gql`
   query(
     $memberId: ID
   ){
@@ -221,6 +221,25 @@ const MATCH_MEMBER = gql`
     }
   }
 `
+
+const MATCH_MEMBER_TO_SKILL = gql`
+  query(
+    $skillsID: [ID]
+  ){
+    matchMembersToSkills(fields:{
+      skillsID: $skillsID
+    }){
+      matchPercentage
+      member{
+        _id
+        discordName
+      }
+      commonSkills{
+        name
+      }
+  }
+}
+`;
 
 async function fetchProjects() {
     const { result, error } = await awaitWrap(client.request(GET_PROJECTS));
@@ -294,10 +313,16 @@ async function addSkill(skillNameJSON){
     else return [result.createSkill, null];
 }
 
-async function matchMember(memberJSON){
-    const { result, error } = await awaitWrap(client.request(MATCH_MEMBER, memberJSON));
+async function matchMemberToUser(memberJSON){
+    const { result, error } = await awaitWrap(client.request(MATCH_MEMBER_TO_USER, memberJSON));
     if (error) return [null, error]
     else return [result.matchMembersToUser, null];
+}
+
+async function matchMemberToSkill(skillsJSON){
+    const { result, error } = await awaitWrap(client.request(MATCH_MEMBER_TO_SKILL, skillsJSON));
+    if (error) return [null, error]
+    else return [result.matchMembersToSkills, null];
 }
 
 
@@ -314,7 +339,8 @@ module.exports = {
   addSkill, 
   fetchUserDetail, 
   fetchSkillDetail,
-  matchMember
+  matchMemberToUser,
+  matchMemberToSkill
 };
 
 // (async ()=>{
