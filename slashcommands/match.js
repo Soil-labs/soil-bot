@@ -27,70 +27,23 @@ module.exports = {
 
             .addSubcommand(command =>
                 command.setName("skill")
-                    .setDescription("one skill")
+                    .setDescription("Find members with skills")
                     .addStringOption(option =>
                         option.setName("skill_name_1")
                         .setDescription("Choose a skill")
-                        .setAutocomplete(true)
-                        .setRequired(true)))
-
-            .addSubcommand(command =>
-                command.setName("skill_2")
-                    .setDescription("two skill")
-                    .addStringOption(option =>
-                        option.setName("skill_name_1")
-                        .setDescription("Choose a skill")
-                        .setAutocomplete(true)
-                        .setRequired(true))
+                        .setAutocomplete(true))
                     .addStringOption(option =>
                         option.setName("skill_name_2")
                         .setDescription("Choose a skill")
-                        .setAutocomplete(true)
-                        .setRequired(true)))
-
-            .addSubcommand(command =>
-                command.setName("skill_3")
-                    .setDescription("three skill")
-                    .addStringOption(option =>
-                        option.setName("skill_name_1")
-                        .setDescription("Choose a skill")
-                        .setAutocomplete(true)
-                        .setRequired(true))
-                    .addStringOption(option =>
-                        option.setName("skill_name_2")
-                        .setDescription("Choose a skill")
-                        .setAutocomplete(true)
-                        .setRequired(true))
+                        .setAutocomplete(true))
                     .addStringOption(option =>
                         option.setName("skill_name_3")
                         .setDescription("Choose a skill")
-                        .setAutocomplete(true)
-                        .setRequired(true)))
-            
-            .addSubcommand(command =>
-                command.setName("skill_4")
-                    .setDescription("four skill")
-                    .addStringOption(option =>
-                        option.setName("skill_name_1")
-                        .setDescription("Choose a skill")
-                        .setAutocomplete(true)
-                        .setRequired(true))
-                    .addStringOption(option =>
-                        option.setName("skill_name_2")
-                        .setDescription("Choose a skill")
-                        .setAutocomplete(true)
-                        .setRequired(true))
-                    .addStringOption(option =>
-                        option.setName("skill_name_3")
-                        .setDescription("Choose a skill")
-                        .setAutocomplete(true)
-                        .setRequired(true))
+                        .setAutocomplete(true))
                     .addStringOption(option =>
                         option.setName("skill_name_4")
                         .setDescription("Choose a skill")
-                        .setAutocomplete(true)
-                        .setRequired(true)))
-                    
+                        .setAutocomplete(true)))
     },
 
     /**
@@ -174,6 +127,11 @@ module.exports = {
             interaction.options.getString("skill_name_4")
         ].filter(value => validSkill(value)))
 
+        if (skills.length == 0) return interaction.reply({
+            content: "Please choose at least one option",
+            ephemeral: true
+        })
+
         await interaction.deferReply({
             ephemeral: true
         })
@@ -202,13 +160,13 @@ module.exports = {
                 return sprintf("> ⚙️Similarity: %.2f%%   🧙Name: %s 💻Common Skill: %s\n", value.matchPercentage, name, skillList);
             }).toString().replace(/,/g, '');
         
-            return interaction.followUp({
-                content: table.toString(),
-                embeds: [
-                    new MessageEmbed()
-                        .setTitle("Skill Matching Result")
-                        .setDescription(matchContent)
-                ]
+        return interaction.followUp({
+            content: table.toString(),
+            embeds: [
+                new MessageEmbed()
+                    .setTitle("Skill Matching Result")
+                    .setDescription(matchContent)
+            ]
         })
 
     }
