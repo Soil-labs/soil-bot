@@ -21,7 +21,8 @@ const LINK = Object.freeze({
     SKILL: "https://www.soil.xyz/member/%s/",
     ONBOARD: "https://www.soil.xyz/onboard/%s/",
     ENDORSEMENTS: "https://www.soil.xyz/member/%s/endorsements/",
-    CLAIM_ENDORSEMENT: "https://www.soil.xyz/endorsment/%s/"
+    CLAIM_ENDORSEMENT: "https://www.soil.xyz/endorsment/%s/",
+    AIRTABLE_ONBOARDING: "https://airtable.com/shrLeYlIfsS7r4ZOi?prefill_discord+Name=@%(discordName)s&prefill_ID=%(discordId)s&prefill_AuthorName=@%(discordName)s&hide_Parent+Record+ID=true&hide_AuthorName=true&hide_ID=true&hide_AuthorID=true",
 })
 
 const CONTENT = Object.freeze({

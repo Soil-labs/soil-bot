@@ -1,5 +1,5 @@
 const { SlashCommandBuilder } = require('@discordjs/builders');
-const { CommandInteraction } = require("discord.js");
+const { CommandInteraction, MessageEmbed } = require("discord.js");
 const { validUser } = require('../helper/util');
 const { updateUser } = require('../helper/graphql');
 const { sprintf } = require('sprintf-js');
@@ -48,9 +48,16 @@ module.exports = {
 
         myCache.set("users", [ ...myCache.get("users"), userInform ])
         
-        const onboardLink = sprintf(CONSTANT.LINK.ONBOARD, user.id)
+        const onboardLink = sprintf(CONSTANT.LINK.AIRTABLE_ONBOARDING, {
+            discordName: interaction.user.username,
+            discordId: interaction.user.id
+        })
         return interaction.reply({
-            content: sprintf(CONSTANT.CONTENT.ONBOARD, { onboardLink: onboardLink }),
+            embeds: [
+                new MessageEmbed()
+                    .setTitle("🥰Planting seeds for yourself & others how WAGMI🥰")
+                    .setDescription(sprintf("**Click the [link](<%s>) to endorse**", onboardLink))
+            ],
             ephemeral: true
         })
     }
