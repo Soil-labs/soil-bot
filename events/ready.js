@@ -72,8 +72,8 @@ module.exports = {
                 const [users, usersError] = await fetchUsers();
                 if (users) myCache.set("users", users)
             }
-            console.log("cached")
         })
+        
         try{
             if (process.env.ENV == "production"){
                 await rest.put(Routes.applicationCommands(clientId), {
