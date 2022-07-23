@@ -27,8 +27,17 @@ module.exports = {
         const user = interaction.user;
         const searchResult = validUser(user.id);
 
+        const onboardLink = sprintf(CONSTANT.LINK.AIRTABLE_ONBOARDING, {
+            discordName: encodeURIComponent(interaction.user.username),
+            discordId: interaction.user.id
+        })
+
+        const replyEmbed = new MessageEmbed()
+            .setTitle("🥰Planting seeds for yourself & others how WAGMI🥰")
+            .setDescription(sprintf("**Click the [link](<%s>) to endorse**", onboardLink));
+
         if (searchResult) return interaction.reply({
-            content: "Sorry, you have onboarded before.",
+            embeds: [replyEmbed],
             ephemeral: true
         })
 
@@ -47,17 +56,9 @@ module.exports = {
         });
 
         myCache.set("users", [ ...myCache.get("users"), userInform ])
-        
-        const onboardLink = sprintf(CONSTANT.LINK.AIRTABLE_ONBOARDING, {
-            discordName: interaction.user.username,
-            discordId: interaction.user.id
-        })
+
         return interaction.reply({
-            embeds: [
-                new MessageEmbed()
-                    .setTitle("🥰Planting seeds for yourself & others how WAGMI🥰")
-                    .setDescription(sprintf("**Click the [link](<%s>) to endorse**", onboardLink))
-            ],
+            embeds: [replyEmbed],
             ephemeral: true
         })
     }

@@ -54,7 +54,7 @@ module.exports = {
             let targetUser;
             let userDetailErrorContent, noSkillContent;
 
-            const user = interaction.options.getUser("user");
+            const user = interaction.options.getUser("user_name");
 
             if (user){
                 targetUser = user;
