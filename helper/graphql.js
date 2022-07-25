@@ -2,7 +2,7 @@ const { gql, GraphQLClient } = require("graphql-request")
 const { awaitWrap } = require("./util");
 const CONSTANT = require("./const");
 
-const client = new GraphQLClient(CONSTANT.URL.GRAPHQL, { headers: {} })
+const client = new GraphQLClient(CONSTANT.LINK.GRAPHQL, { headers: {} })
 
 const GET_PROJECTS = gql`
     query{

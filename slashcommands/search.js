@@ -127,10 +127,11 @@ module.exports = {
             })
 
             const projectLink = sprintf(CONSTANT.LINK.PROJECT, projectId)
+            const projectTweetLink = sprintf(CONSTANT.LINK.PROJECT_TWEET, projectId)
             const projectEmbed = new MessageEmbed()
                 .setTitle(sprintf("✨%s", result.title ?? "No title"))
-                .setDescription(sprintf("✅ **Status**: %s\n\n👨‍👩‍👧‍👦 **Open Roles**: %d\n\n🔗 Click [here](%s) to see its profile\n\n📣**Recent Announcement**", 
-                    result.status ?? "⚙️pre-launch | 🚀launched | 📦archived", result.role.length, projectLink))
+                .setDescription(sprintf("✅ **Status**: %s\n\n👨‍👩‍👧‍👦 **Open Roles**: %d\n\n🔗 Click [here](%s) to see its profile\n\n🔈**[Recent Announcement](%s)**", 
+                    result.status ?? "⚙️pre-launch | 🚀launched | 📦archived", result.role.length, projectLink, projectTweetLink))
             let tweets = [];
             result.tweets.filter(value => value.approved).forEach((value) => {
                 tweets.push(

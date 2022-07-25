@@ -10,7 +10,7 @@ module.exports = {
      */
     async execute(interaction){
         const focusedOption = interaction.options.getFocused(true);
-        if (focusedOption.name == this.options[0]){
+        if (this.options.includes(focusedOption.name)){
             const choices = myCache.get("projects").filter(value => value.title)
             const filtered = choices.filter(value => value.title.startsWith(focusedOption.value));
             if (filtered.length == 0) {

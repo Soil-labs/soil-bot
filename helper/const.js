@@ -1,8 +1,3 @@
-const URL = Object.freeze({
-    GRAPHQL: "https://oasis-bot-test-deploy.herokuapp.com/graphql",
-    NEW_PROJECT: "https://soil-app-front-p7kor7uzy-msaratzidis-gmailcom.vercel.app/form"
-})
-
 const GRAPHQL_ERROR = Object.freeze({
     KEY_ERROR: "Key Error."
 })
@@ -14,6 +9,9 @@ const SKILL_STATE = Object.freeze({
 })
 
 const LINK = Object.freeze({
+    NEW_PROJECT: "https://soil-app-front-p7kor7uzy-msaratzidis-gmailcom.vercel.app/form",
+    PROJECT_TWEET: "https://soil-app-front-end-ruddy.vercel.app/projects/%s/feed",
+    GRAPHQL: "https://oasis-bot-test-deploy.herokuapp.com/graphql",
     SOIL: "https://www.Soil.xyz",
     PROJECT: "https://www.soil.xyz/project/%s",
     PROJECT_GATEWAY: "https://www.soil.xyz/project/",
@@ -23,6 +21,7 @@ const LINK = Object.freeze({
     ENDORSEMENTS: "https://www.soil.xyz/member/%s/endorsements/",
     CLAIM_ENDORSEMENT: "https://www.soil.xyz/endorsment/%s/",
     AIRTABLE_ONBOARDING: "https://airtable.com/shrLeYlIfsS7r4ZOi?prefill_discord+Name=@%(discordName)s&prefill_ID=%(discordId)s&prefill_AuthorName=@%(discordName)s&hide_Parent+Record+ID=true&hide_AuthorName=true&hide_ID=true&hide_AuthorID=true",
+    RECOMMENDATION: "https://soil-app-front-end-ruddy.vercel.app/projects?tab=1"
 })
 
 const CONTENT = Object.freeze({
@@ -57,7 +56,6 @@ const NUMERICAL_VALUE = Object.freeze({
 
 
 module.exports = { 
-    URL, 
     GRAPHQL_ERROR, 
     SKILL_STATE, 
     LINK, 

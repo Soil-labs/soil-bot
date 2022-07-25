@@ -1,5 +1,6 @@
 const { SlashCommandBuilder } = require('@discordjs/builders');
 const { CommandInteraction, MessageEmbed } = require("discord.js");
+const { sprintf } = require('sprintf-js');
 const CONSTANT = require("../helper/const");
 const { validProject } = require('../helper/util');
 
@@ -30,18 +31,18 @@ module.exports = {
         let link;
         const result = validProject(projectId);
         if (result){
-            link = CONSTANT.URL.NEW_PROJECT
+            link = sprintf(CONSTANT.LINK.PROJECT_TWEET, result._id)
             return interaction.reply({
                 content: `Project Name: \`${result.title}\``,
                 embeds: [
                     new MessageEmbed()
                         .setTitle(`Configure your project: ${result.title}`)
-                        .setDescription(`Click [here](${link}) to configure your projects.`)
+                        .setDescription(`Click [here](${link}) to check project's progress.`)
                 ],
                 ephemeral: true
             })
         }else{
-            link = CONSTANT.URL.NEW_PROJECT
+            link = CONSTANT.LINK.NEW_PROJECT
             return interaction.reply({
                 content: `Project Name: ${projectId}`,
                 embeds: [

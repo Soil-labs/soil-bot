@@ -106,8 +106,8 @@ module.exports = {
                 const memberInGuild = interaction.guild.members.cache.get(value.member._id);
                 const name = memberInGuild ? `<@${value.member._id}>` : value.member.discordName ;
                 const skillList = insertVerticalBar(value.commonSkills.map(value => value.name));
-                table.addRow(sprintf("%.2f%%", value.matchPercentage), value.member.discordName, skillList)
-                return sprintf("> ⚙️Similarity: %.2f%%   🧙Name: %s 💻Common Skill: %s\n", value.matchPercentage, name, skillList);
+                table.addRow(sprintf("%d%%", value.matchPercentage), value.member.discordName, skillList)
+                return sprintf("> ⚙️Similarity: %d%%   🧙Name: %s 💻Common Skill: %s\n", value.matchPercentage, name, skillList);
             }).toString().replace(/,/g, '');
 
             return interaction.followUp({
@@ -156,8 +156,8 @@ module.exports = {
                 const memberInGuild = interaction.guild.members.cache.get(value.member._id);
                 const name = memberInGuild ? `<@${value.member._id}>` : value.member.discordName ;
                 const skillList = insertVerticalBar(value.commonSkills.map(value => value.name));
-                table.addRow(sprintf("%.2f%%", value.matchPercentage), value.member.discordName, skillList)
-                return sprintf("> ⚙️Similarity: %.2f%%   🧙Name: %s 💻Common Skill: %s\n", value.matchPercentage, name, skillList);
+                table.addRow(sprintf("%d%%", value.matchPercentage), value.member.discordName, skillList)
+                return sprintf("> ⚙️Similarity: %d%%   🧙Name: %s 💻Common Skill: %s\n", value.matchPercentage, name, skillList);
             }).toString().replace(/,/g, '');
         
         return interaction.followUp({
