@@ -3,7 +3,7 @@ const { CommandInteraction, MessageEmbed } = require("discord.js");
 const { validUser, insertVerticalBar, validSkill } = require('../helper/util');
 const { matchMemberToUser, matchMemberToSkill, fetchUserDetail } = require('../helper/graphql');
 const { sprintf } = require('sprintf-js');
-const { AsciiTable3, AlignmentEnum } = require('ascii-table3');
+const CONSTANT = require("../helper/const");
 const _ = require("lodash")
 
 require("dotenv").config()
@@ -22,26 +22,27 @@ module.exports = {
                 command.setName("user")
                     .setDescription("Find a potential member matching your skills or check others matching cases")
                     .addUserOption(option =>
-                        option.setName("user_name")
+                        option.setName("user")
                         .setDescription("Choose a user you'd like to know his/her cases")))
 
             .addSubcommand(command =>
                 command.setName("skill")
                     .setDescription("Find members with skills")
                     .addStringOption(option =>
-                        option.setName("skill_name_1")
+                        option.setName("skill_1")
+                        .setDescription("Choose a skill")
+                        .setAutocomplete(true)
+                        .setRequired(true))
+                    .addStringOption(option =>
+                        option.setName("skill_2")
                         .setDescription("Choose a skill")
                         .setAutocomplete(true))
                     .addStringOption(option =>
-                        option.setName("skill_name_2")
+                        option.setName("skill_3")
                         .setDescription("Choose a skill")
                         .setAutocomplete(true))
                     .addStringOption(option =>
-                        option.setName("skill_name_3")
-                        .setDescription("Choose a skill")
-                        .setAutocomplete(true))
-                    .addStringOption(option =>
-                        option.setName("skill_name_4")
+                        option.setName("skill_4")
                         .setDescription("Choose a skill")
                         .setAutocomplete(true)))
     },
@@ -50,11 +51,12 @@ module.exports = {
      * @param  {CommandInteraction} interaction
      */
     async execute(interaction) {
+        //Wait for optimization
         if (interaction.options.getSubcommand() == "user"){
             let targetUser;
             let userDetailErrorContent, noSkillContent;
 
-            const user = interaction.options.getUser("user_name");
+            const user = interaction.options.getUser("user");
 
             if (user){
                 targetUser = user;
@@ -96,35 +98,63 @@ module.exports = {
                     content: `Sorry, we cannot find a match for you without a detailed reason. Please report this case to our team.`
                 })
             }
-            const table = new AsciiTable3(`${targetUser.username} Matching Result`)
-                .setHeading("⚙️Similarity", "🧙Name", "💻Common Skills")
-                .setAlign(3, AlignmentEnum.CENTER);
 
-            const matchContent = matchResult.sort((first, second) => {
+            let fields = [];
+            const top3Match = matchResult.sort((first, second) => {
                 return second.matchPercentage - first.matchPercentage
-            }).map((value) => {
+            }).splice(0, 3);
+        let matchField = "", nameField = "", skillField = ""
+            top3Match.forEach((value) => {
                 const memberInGuild = interaction.guild.members.cache.get(value.member._id);
-                const name = memberInGuild ? `<@${value.member._id}>` : value.member.discordName ;
-                const skillList = insertVerticalBar(value.commonSkills.map(value => value.name));
-                table.addRow(sprintf("%d%%", value.matchPercentage), value.member.discordName, skillList)
-                return sprintf("> ⚙️Similarity: %d%%   🧙Name: %s 💻Common Skill: %s\n", value.matchPercentage, name, skillList);
-            }).toString().replace(/,/g, '');
+                const name = memberInGuild ? `<@${value.member._id}>` : value.member.discordName;
+                const matchLink = memberInGuild ? sprintf("[%d%%](%s)", value.matchPercentage, sprintf(CONSTANT.LINK.USER, memberInGuild.id)) 
+                    : sprintf("%d%%", value.matchPercentage);
+                const skillList = insertVerticalBar(value.commonSkills.map(value => value.name).splice(0, 2));
+        
+                matchField += `${matchLink}\n`;
+                nameField += `${name}\n`;
+                skillField += `${skillList}\n`;
+            });
 
-            return interaction.followUp({
-                content: table.toString(),
+            let embedDescription
+            if (top3Match.length == 0) embedDescription = CONSTANT.CONTENT.MATCH_USER_FAIL;
+            else {
+                embedDescription = sprintf(CONSTANT.CONTENT.MATCH_USER, { matchNum: top3Match.length });
+                fields.push(
+                    {
+                        name: "⚙️MATCH",
+                        value: matchField,
+                        inline: true
+                    },
+                    {
+                        name: "🧙NAME",
+                        value: nameField,
+                        inline: true
+                    },
+                    {
+                        name: "💻SKILL",
+                        value: skillField,
+                        inline: true
+                    }
+                )
+            }
+            
+            return interaction.followUp({                
                 embeds: [
                     new MessageEmbed()
-                        .setTitle(`${interaction.member.displayName} Matching Result`)
-                        .setDescription(matchContent)
+                        .setDescription(embedDescription)
+                        .setAuthor({ name: `@${targetUser.username} - Member Matching Results`, iconURL: targetUser.avatarURL(), url: sprintf(CONSTANT.LINK.USER, targetUser.id) })
+                        .setColor("#74FA6D")
+                        .addFields(fields)
                 ]
             })
         }
 
         const skills = _.uniq([
-            interaction.options.getString("skill_name_1"),
-            interaction.options.getString("skill_name_2"),
-            interaction.options.getString("skill_name_3"),
-            interaction.options.getString("skill_name_4")
+            interaction.options.getString("skill_1"),
+            interaction.options.getString("skill_2"),
+            interaction.options.getString("skill_3"),
+            interaction.options.getString("skill_4")
         ].filter(value => validSkill(value)))
 
         if (skills.length == 0) return interaction.reply({
@@ -146,26 +176,53 @@ module.exports = {
             content: "Sorry, I cannot find a member with these skills"
         })
 
-        const table = new AsciiTable3("Skill Matching Result")
-                .setHeading("⚙️Similarity", "🧙Name", "💻Common Skills")
-                .setAlign(3, AlignmentEnum.CENTER);
+        let fields = [];
+        const top3Match = matchResult.sort((first, second) => {
+            return second.matchPercentage - first.matchPercentage
+        }).splice(0, 3);
+        let matchField = "", nameField = "", skillField = ""
+        top3Match.forEach((value) => {
+            const memberInGuild = interaction.guild.members.cache.get(value.member._id);
+            const name = memberInGuild ? `<@${value.member._id}>` : value.member.discordName;
+            const matchLink = memberInGuild ? sprintf("[%d%%](%s)", value.matchPercentage, sprintf(CONSTANT.LINK.USER, memberInGuild.id)) 
+                : sprintf("%d%%", value.matchPercentage);
+            const skillList = insertVerticalBar(value.commonSkills.map(value => value.name).splice(0, 2));
+    
+            matchField += `${matchLink}\n`;
+            nameField += `${name}\n`;
+            skillField += `${skillList}\n`;
+        });
 
-        const matchContent = matchResult.sort((first, second) => {
-                return second.matchPercentage - first.matchPercentage
-            }).map((value) => {
-                const memberInGuild = interaction.guild.members.cache.get(value.member._id);
-                const name = memberInGuild ? `<@${value.member._id}>` : value.member.discordName ;
-                const skillList = insertVerticalBar(value.commonSkills.map(value => value.name));
-                table.addRow(sprintf("%d%%", value.matchPercentage), value.member.discordName, skillList)
-                return sprintf("> ⚙️Similarity: %d%%   🧙Name: %s 💻Common Skill: %s\n", value.matchPercentage, name, skillList);
-            }).toString().replace(/,/g, '');
-        
+        let embedDescription
+        if (top3Match.length == 0) embedDescription = CONSTANT.CONTENT.MATCH_SKILL_FALL;
+        else {
+            embedDescription = sprintf(CONSTANT.CONTENT.MATCH_SKILL, { matchNum: top3Match.length });
+            fields.push(
+                {
+                    name: "⚙️MATCH",
+                    value: matchField,
+                    inline: true
+                },
+                {
+                    name: "🧙NAME",
+                    value: nameField,
+                    inline: true
+                },
+                {
+                    name: "💻SKILL",
+                    value: skillField,
+                    inline: true
+                }
+            )
+        }
+
         return interaction.followUp({
-            content: table.toString(),
             embeds: [
                 new MessageEmbed()
-                    .setTitle("Skill Matching Result")
-                    .setDescription(matchContent)
+                    .setDescription(embedDescription)
+                    .setAuthor({ name: `@${interaction.member.displayName} - Skill Matching Results`, iconURL: interaction.user.avatarURL(), url: sprintf(CONSTANT.LINK.USER, interaction.user.id) })
+                    .setColor("#74FA6D")
+                    .addFields(fields)
             ]
         })
 

@@ -1,8 +1,10 @@
 const { AutocompleteInteraction } = require("discord.js");
 const myCache = require("../helper/cache")
+const CONSTANT = require("../helper/const");
+
 module.exports = {
     attachedCommand: ["endorse", "search", "match"],
-    options: ["skill", "skill_name_1", "skill_name_2", "skill_name_3", "skill_name_4"],
+    options: ["skill", "skill_1", "skill_2", "skill_3", "skill_4"],
 
     /**
      * @param  {AutocompleteInteraction} interaction
@@ -13,7 +15,8 @@ module.exports = {
             //Remove null title
             const choices = myCache.get("skills").filter(value => value.name)
 
-            const filtered = choices.filter(value => value.name.startsWith(focusedOption.value));
+            const filtered = choices.filter(value => value.name.startsWith(focusedOption.value))
+                .splice(0, CONSTANT.NUMERICAL_VALUE.AUTOCOMPLETE_OPTION_LENGTH);
             if (filtered.length == 0) {
                 return interaction.respond([])
             } else {

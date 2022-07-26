@@ -90,6 +90,7 @@ const NEW_TWEET_PROJECT = gql`
     $projectID: ID
     $content: String
     $author: String
+    $title: String
     $approved: Boolean!
   ){
     newTweetProject(

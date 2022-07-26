@@ -28,7 +28,7 @@ module.exports = {
                         option.setName("user")
                             .setDescription("Choose a user from the list"))
                     .addStringOption(option =>
-                        option.setName("project_name")
+                        option.setName("project")
                             .setDescription("Choose a project from the list")
                             .setAutocomplete(true))
                     .addStringOption(option =>
@@ -62,7 +62,7 @@ module.exports = {
         }
 
         const user = interaction.options.getUser("user");
-        const projectId = interaction.options.getString("project_name");
+        const projectId = interaction.options.getString("project");
         const skillId = interaction.options.getString("skill");
 
         if (user && projectId && skillId) return interaction.reply({

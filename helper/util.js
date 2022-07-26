@@ -36,12 +36,13 @@ function validProject(projectId){
 }
 
 function insertVerticalBar(array){
-    const length = array.length;
-    for (let i = 0; i < length; i ++){
-        array.splice(1 + 2 * i, 0, ' | ')
-    }
-    array.pop();
-    return array.toString().replace(/,/g, '')
+    // const length = array.length;
+    // for (let i = 0; i < length; i ++){
+    //     array.splice(1 + 2 * i, 0, ' | ')
+    // }
+    // array.pop();
+    // return array.toString().replace(/,/g, '')
+    return array.toString()
 }
 
 module.exports = { awaitWrap, validProject, validSkill, validUser, insertVerticalBar }
