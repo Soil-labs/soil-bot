@@ -33,15 +33,15 @@ const CONTENT = Object.freeze({
     ENDORSE_OLD_MEMBER_CASE_ENDORSER_REPLY: "On behalf of \`%(endorseeName)s\`, a heartfelt thank you - this is how wagmi ❤️",
 
     
-    ENDORSE_NEW_MEMBER_CASE_ENDORSEE_DM: `Looks like this is your first time using Soil 🌱 , \`%(endorseeName)s\`! Allow us to take this opportunity to welcome 👋  you to Soil 🌱, your magic ✨, AI-driven bot that helps you find & be found 🔎  for opportunities to collaborate, learn & earn across the DAO.\n\nWithout you knowing, someting amazing just happened. \`%(endorserName)s\` just endorsed your for \`%(skillName)s\` 🤩\n\nGo fill out your profile so you can claim your endorsement! %(onboardLink)s\n\nOr if you'd like to learn more about Soil 🌱, go to ${LINK.SOIL} !`,
-    ENDORSE_NEW_MEMBER_CASE_ENDORSEE_DM_FAIL: `Looks like this is your first time using Soil 🌱 , <@%(endorseeId)s>! Allow us to take this opportunity to welcome 👋  you to Soil 🌱, your magic ✨, AI-driven bot that helps you find & be found 🔎  for opportunities to collaborate, learn & earn across the DAO.\n\nWithout you knowing, someting amazing just happened. <@%(endorserId)s> just endorsed your for \`%(skillName)s\` 🤩\n\nGo fill out your profile so you can claim your endorsement! %(onboardLink)s\n\nOr if you'd like to learn more about Soil 🌱, go to ${LINK.SOIL} !`,
-    ENDORSE_OLD_MEMBER_CASE_ENDORSEE_DM: "Your skills are getting noticed, %(endorseeName)s! \`%(endorserName)s\` just endorsed you for \`%(skillName)s\`\n\nClaim your endorsements here: %(claimEndorsementLink)s !",
-    ENDORSE_OLD_MEMBER_CASE_ENDORSEE_DM_FAIL: "Your skills are getting noticed, <@%(endorseeId)s>! <@%(endorserId)s> just endorsed you for \`%(skillName)s\`\n\nClaim your endorsements here: %(claimEndorsementLink)s !",
+    ENDORSE_NEW_MEMBER_CASE_ENDORSEE_DM: `Looks like this is your first time using Soil 🌱 , \`%(endorseeName)s\`! Allow us to take this opportunity to welcome 👋  you to Soil 🌱, your magic ✨, AI-driven bot that helps you find & be found 🔎  for opportunities to collaborate, learn & earn across the DAO.\n\nWithout you knowing, someting amazing just happened. \`%(endorserName)s\` just endorsed your for \`%(skillName)s\` 🤩\n\nGo fill out your profile so you can [claim your endorsement](%(onboardLink)s) ! \n\nOr if you'd like to learn more about Soil 🌱, go to [here](${LINK.SOIL}) !`,
+    ENDORSE_NEW_MEMBER_CASE_ENDORSEE_DM_FAIL: `Looks like this is your first time using Soil 🌱! Allow us to take this opportunity to welcome 👋  you to Soil 🌱, your magic ✨, AI-driven bot that helps you find & be found 🔎  for opportunities to collaborate, learn & earn across the DAO.\n\nWithout you knowing, someting amazing just happened. <@%(endorserId)s> just endorsed your for \`%(skillName)s\` 🤩\n\nGo fill out your profile so you can [claim your endorsement](%(onboardLink)s) \n\nOr if you'd like to learn more about Soil 🌱, go to [here](${LINK.SOIL}) !`,
+    ENDORSE_OLD_MEMBER_CASE_ENDORSEE_DM: "Your skills are getting noticed, %(endorseeName)s! \`%(endorserName)s\` just endorsed you for \`%(skillName)s\`\n\nClaim your endorsements [here](%(claimEndorsementLink)s) !",
+    ENDORSE_OLD_MEMBER_CASE_ENDORSEE_DM_FAIL: "Your skills are getting noticed! <@%(endorserId)s> just endorsed you for \`%(skillName)s\`\n\nClaim your endorsements [here](%(claimEndorsementLink)s) !",
     
-    ENDORSE_NEW_MEMBER_CASE_ENDORSEE_DM_UNVERIFIED_SKILL: `Looks like this is your first time using Soil 🌱 , \`%(endorseeName)s\`! Allow us to take this opportunity to welcome 👋  you to Soil 🌱, your magic ✨, AI-driven bot that helps you find & be found 🔎  for opportunities to collaborate, learn & earn across the DAO.\n\nWithout you knowing, someting amazing just happened. \`%(endorserName)s\` just endorsed your for **unverified** \`%(skillName)s\` 🤩\n\nThe skill is been send to the Moderators if its approved you will see it on your account\n\nOr if you'd like to learn more about Soil 🌱, go to ${LINK.SOIL} !`,
-    ENDORSE_NEW_MEMBER_CASE_ENDORSEE_DM_FAIL_UNVERIFIED_SKILL: `Looks like this is your first time using Soil 🌱 , <@%(endorseeId)s>! Allow us to take this opportunity to welcome 👋  you to Soil 🌱, your magic ✨, AI-driven bot that helps you find & be found 🔎  for opportunities to collaborate, learn & earn across the DAO.\n\nWithout you knowing, someting amazing just happened. <@%(endorserId)s> just endorsed your for **unverified** \`%(skillName)s\` 🤩\n\nThe skill is been send to the Moderators if its approved you will see it on your account\n\nOr if you'd like to learn more about Soil 🌱, go to ${LINK.SOIL} !`,
+    ENDORSE_NEW_MEMBER_CASE_ENDORSEE_DM_UNVERIFIED_SKILL: `Looks like this is your first time using Soil 🌱 , \`%(endorseeName)s\`! Allow us to take this opportunity to welcome 👋  you to Soil 🌱, your magic ✨, AI-driven bot that helps you find & be found 🔎  for opportunities to collaborate, learn & earn across the DAO.\n\nWithout you knowing, someting amazing just happened. \`%(endorserName)s\` just endorsed your for **unverified** \`%(skillName)s\` 🤩\n\nThe skill is been send to the Moderators if its approved you will see it on your account\n\nOr if you'd like to learn more about Soil 🌱, go to [here](${LINK.SOIL}) !`,
+    ENDORSE_NEW_MEMBER_CASE_ENDORSEE_DM_FAIL_UNVERIFIED_SKILL: `Looks like this is your first time using Soil 🌱 ! Allow us to take this opportunity to welcome 👋  you to Soil 🌱, your magic ✨, AI-driven bot that helps you find & be found 🔎  for opportunities to collaborate, learn & earn across the DAO.\n\nWithout you knowing, someting amazing just happened. <@%(endorserId)s> just endorsed your for **unverified** \`%(skillName)s\` 🤩\n\nThe skill is been send to the Moderators if its approved you will see it on your account\n\nOr if you'd like to learn more about Soil 🌱, go to [here](${LINK.SOIL}) !`,
     ENDORSE_OLD_MEMBER_CASE_ENDORSEE_DM_UNVERIFIED_SKILL: "Your skills are getting noticed, %(endorseeName)s! \`%(endorserName)s\` just endorsed you for **unverified** \`%(skillName)s\`\n\nThe skill is been send to the Moderators if its approved you will see it on your account!",
-    ENDORSE_OLD_MEMBER_CASE_ENDORSEE_DM_FAIL_UNVERIFIED_SKILL: "Your skills are getting noticed, <@%(endorseeId)s>! <@%(endorserId)s> just endorsed you for **unverified** \`%(skillName)s\`\n\nThe skill is been send to the Moderators if its approved you will see it on your account!",
+    ENDORSE_OLD_MEMBER_CASE_ENDORSEE_DM_FAIL_UNVERIFIED_SKILL: "Your skills are getting noticed! <@%(endorserId)s> just endorsed you for **unverified** \`%(skillName)s\`\n\nThe skill is been send to the Moderators if its approved you will see it on your account!",
 
     NEW_TWEET_PROJECT_CHAMPION_DM: "A key milestone update to your project:\n\n**%(newTweetContent)s**\n\nHere is the link to get this change: %(projectLink)s",
     NEW_TWEET_PROJECT_CHAMPION_DM_FAIL: "<@%(championId)s>, a key milestone update to your project:\n\n**%(newTweetContent)s**\n\nClick [here](%(projectLink)s) to get this change.",
@@ -49,7 +49,9 @@ const CONTENT = Object.freeze({
     MATCH_USER: "Looks like you've matched with quite a few people. Here is top %(matchNum)s best matching candidates.\n\u200B\n",
     MATCH_USER_FAIL: "Wow, your skill is so special that no matching result is for you. You are unique!\n\u200B\n",
     MATCH_SKILL: "Looks like you've matched with quite a few people. Here is top %(matchNum)s best matching candidates.\n\u200B\n",
-    MATCH_SKILL_FALL: "Wow, your skill is so special that no matching result is for you. You are unique!\n\u200B\n"
+    MATCH_SKILL_FALL: "Wow, your skill is so special that no matching result is for you. You are unique!\n\u200B\n",
+
+    ENDORSE_ATTRIBUTE: "You have successfully endorsed \`%(endorseeName)s\` with \`%(attributeName)s\` trait",
 })
 
 const NUMERICAL_VALUE = Object.freeze({
@@ -59,11 +61,22 @@ const NUMERICAL_VALUE = Object.freeze({
     AUTOCOMPLETE_OPTION_LENGTH: 25
 })
 
+const ATTRIBUTES = Object.freeze([
+    "Director",
+    "Motivator",
+    "Inspirer",
+    "Helper",
+    "Supporter",
+    "Coordinator",
+    "Observer",
+    "Reformer"
+])
 
 module.exports = { 
     GRAPHQL_ERROR, 
     SKILL_STATE, 
     LINK, 
     CONTENT,
-    NUMERICAL_VALUE
+    NUMERICAL_VALUE,
+    ATTRIBUTES
 }

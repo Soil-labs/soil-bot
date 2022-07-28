@@ -21,9 +21,12 @@ module.exports = {
                     .setRequired(true)
                     .setAutocomplete(true))
             .addStringOption(option =>
-                option.setName("milestone_update")
-                    .setDescription("News or announcement you'd like to report")
+                option.setName("title")
+                    .setDescription("Title of News or announcement you'd like to report")
                     .setRequired(true))
+            .addStringOption(option =>
+                option.setName("content")
+                    .setDescription("Content of News or announcement you'd like to report"))
     },
 
     /**
@@ -32,7 +35,13 @@ module.exports = {
     async execute(interaction) {
         const updateProjectId = interaction.options.getString("project_name");
         const userId = interaction.user.id;
-        const updateNews = interaction.options.getString("milestone_update");
+        const updateNewsTitle = interaction.options.getString("title");
+        const updateNewsContent = interaction.options.getString("content");
+
+        if (!updateNewsTitle && !updateNewsContent) return interaction.reply({
+            content: "Sorry, you have to upload either \`title\` or \`content\`, or both.",
+            ephemeral: true
+        })
 
         await interaction.deferReply({
             ephemeral: true
@@ -53,22 +62,31 @@ module.exports = {
             content: `Error occured when fetching project details: \`${projectError.response.errors[0].message}\``
         })
 
-        const projectUpdateInfor = {
+        const projectUpdateInform = {
             projectID: updateProjectId,
-            content: updateNews,
+            title: updateNewsTitle,
+            content: updateNewsContent,
             author: userId
         }
         const championId = projectDetail.champion?._id;
         if (!championId) {
-            return interaction.followUp({
-                content: "Sorry, project you chose does not have any champion. Your tweet cannot be updated."
+            const result = await this._updateProject({
+                ...projectUpdateInform,
+                approved: true
+            });
+
+            if (result.error) return interaction.followUp({
+                content: `Error occured when updating this tweet: \`${result.message}\``
             })
 
+            return interaction.followUp({
+                content: "New tweet to this project has been uploaded successfully."
+            })
         }else{
             //Champion herself/himself update a tweet for the project
             if (championId == interaction.user.id){
                 const result = await this._updateProject({
-                    ...projectUpdateInfor,
+                    ...projectUpdateInform,
                     approved: true
                 });
 
@@ -82,7 +100,7 @@ module.exports = {
             }
              
             const result = await this._updateProject({
-                ...projectUpdateInfor,
+                ...projectUpdateInform,
                 approved: true
             });
 
@@ -96,7 +114,7 @@ module.exports = {
             })
 
             const contentInfo = {
-                newTweetContent: updateNews,
+                newTweetContent: updateNewsTitle,
                 championId: champion.id,
                 projectLink: sprintf(CONSTANT.LINK.PROJECT, updateProjectId)
             }

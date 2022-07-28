@@ -108,8 +108,16 @@ module.exports = {
             if (projects.length == 0) projects = "No project";
             else projects = insertVerticalBar(projects);
             
-            userEmbed.setDescription(sprintf("🛠**Top 3 Skills**: %s\n\n✅**Current Availability**: %f h/week\n\n🌱**Current Projects**: %s\n\n🔗Click [here](%s) to see the profile",
-                top3Skills, userDetail.hoursPerWeek ?? 0, projects, userLink))
+            let attributes = userDetail.attributes;
+            let top3Attributes;
+            attributes = Object.keys(attributes)
+                .filter((value) => (attributes[value]))
+                .sort((a, b) => attributes[b] - attributes[a]).map((value) => (`${value}(${attributes[value]})`)).splice(0, 3);
+            if (attributes.length == 0) top3Attributes = "No attribute"
+            else top3Attributes = insertVerticalBar(attributes)
+            
+            userEmbed.setDescription(sprintf("🛠**Top 3 Skills**: %s\n\n✅**Current Availability**: %f h/week\n\n🧠 **Attribute**: %s\n\n🌱**Current Projects**: %s\n\n🔗Click [here](%s) to see the profile",
+                top3Skills, userDetail.hoursPerWeek ?? 0, top3Attributes, projects, userLink))
             return interaction.followUp({
                 embeds: [userEmbed]
             })
@@ -137,7 +145,7 @@ module.exports = {
                 tweets.push(
                     {
                         name: "Content",
-                        value: value.content ?? "No content",
+                        value: sprintf("%s\n%s", value.title ?? "No title", value.content ?? "No content"),
                         inline: true
                     },
                     {

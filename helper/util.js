@@ -42,7 +42,11 @@ function insertVerticalBar(array){
     // }
     // array.pop();
     // return array.toString().replace(/,/g, '')
-    return array.toString()
+    const tmp = array.map((value, index) => {
+        if (index == 0) return `${value}`
+        else return ` ${value}`
+    })
+    return tmp.toString()
 }
 
 module.exports = { awaitWrap, validProject, validSkill, validUser, insertVerticalBar }

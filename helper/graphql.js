@@ -91,11 +91,12 @@ const NEW_TWEET_PROJECT = gql`
     $content: String
     $author: String
     $title: String
-    $approved: Boolean!
+    $approved: Boolean
   ){
     newTweetProject(
       fields: {
         projectID: $projectID
+        title: $title
         content: $content
         author: $author
         approved: $approved
@@ -133,6 +134,7 @@ const FETCH_PROJECT_DETAIL = gql`
             title
             description
             tweets{
+                title
                 content
                 author {
                     discordName
@@ -172,6 +174,16 @@ const FETCH_USER_DETAIL = gql`
                 }
             }
             hoursPerWeek
+            attributes{
+              Director
+              Motivator
+              Inspirer
+              Helper
+              Supporter
+              Coordinator
+              Observer
+              Reformer
+            }
         }
     }
 `;
@@ -241,6 +253,20 @@ const MATCH_MEMBER_TO_SKILL = gql`
   }
 }
 `;
+
+const ENDORSE_ATTRIBUTE = gql`
+  mutation(
+    $memberId: ID,
+    $attribute: attributesEnum
+  ){
+    endorseAttribute(fields:{
+    _id: $memberId
+    attribute: $attribute
+  }){
+      _id
+    }
+  }
+`
 
 async function fetchProjects() {
     const { result, error } = await awaitWrap(client.request(GET_PROJECTS));
@@ -326,6 +352,12 @@ async function matchMemberToSkill(skillsJSON){
     else return [result.matchMembersToSkills, null];
 }
 
+async function endorseAttribute(attributeJSON){
+    const { result, error } = await awaitWrap(client.request(ENDORSE_ATTRIBUTE, attributeJSON));
+    if (error) return [null, error]
+    else return [result.endorseAttribute, null];
+}
+
 
 module.exports = { 
   fetchProjects, 
@@ -341,15 +373,6 @@ module.exports = {
   fetchUserDetail, 
   fetchSkillDetail,
   matchMemberToUser,
-  matchMemberToSkill
+  matchMemberToSkill,
+  endorseAttribute
 };
-
-// (async ()=>{
-//     const [result, error] = await updateUser({
-//         _id: "891314708689354183",
-//         discordName: "buller",
-//         discriminator: "2739",
-//         discordAvatar: "adsfe222e2efdscv3i8t"
-//     });
-//     console.log(error?error.message:result)
-// })()

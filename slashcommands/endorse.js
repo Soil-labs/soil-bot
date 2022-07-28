@@ -1,5 +1,5 @@
 const { SlashCommandBuilder } = require('@discordjs/builders');
-const { CommandInteraction, User } = require("discord.js");
+const { CommandInteraction, User, MessageEmbed } = require("discord.js");
 const { addSkillToMember, addSkill, updateUser, fetchUserDetail } = require('../helper/graphql');
 const { awaitWrap, validSkill, validUser } = require("../helper/util");
 const myCache = require('../helper/cache');
@@ -64,7 +64,7 @@ module.exports = {
             })
         }
 
-        const isNewMember = validUser(user.id)?false:true
+        const isNewMember = validUser(user.id) ? false : true
         if (isNewMember) {
             const userOnboardResult = await this._onboardNewUser(user);
             if (userOnboardResult.error) return interaction.followUp({
@@ -105,12 +105,12 @@ module.exports = {
             })
 
             const [unverifiedSkill, unverifiedSkillError] = await addSkill({ name: skill });
-            if (unverifiedSkillError) return interaction.followUp({
+            if (unverifiedSkillError) return interaction.editReply({
                 content: `Error occured when creating a new unverified skill \`${skill}\`: \`${unverifiedSkillError.response.errors[0].message}\``,
                 ephemeral: true
             })
 
-            await interaction.followUp({
+            await interaction.editReply({
                 content: `A new unverified skill \`${skill}\` has been created.`,
                 ephemeral: true
             })
@@ -126,15 +126,14 @@ module.exports = {
             skillState = CONSTANT.SKILL_STATE.WAITING;
         }else{
             skillName = validResult.name
-            const [userDetail, userDetailError] = await fetchUserDetail({ userID: user.id });
-            if (userDetailError) return interaction.followUp({
-                content: `Error occured: \`${error.response.errors[0].message}\``,
-            });
-            const skillOverlap = userDetail.skills.filter(value => value._id == skill);
-            if (skillOverlap.length != 0) return interaction.followUp({
-                content: `Sorry, this user has had this skill \`${skillName}\`.`
-            })
-            
+            // const [userDetail, userDetailError] = await fetchUserDetail({ userID: user.id });
+            // if (userDetailError) return interaction.followUp({
+            //     content: `Error occured: \`${error.response.errors[0].message}\``,
+            // });
+            // const skillOverlap = userDetail.skills.filter(value => value._id == skill);
+            // if (skillOverlap.length != 0) return interaction.followUp({
+            //     content: `Sorry, this user has had this skill \`${skillName}\`.`
+            // })
         }
 
         const [result, error] = await addSkillToMember(
@@ -170,11 +169,24 @@ module.exports = {
 
         const DMchannel = await user.createDM();
         const {DMresult ,DMerror} = await awaitWrap(DMchannel.send({
-            content: dmContent
+            embeds: [
+                new MessageEmbed()
+                    .setAuthor({ name: `@${interaction.user.username} endorse you 👍!`, url: sprintf(CONSTANT.LINK.ENDORSEMENTS, interaction.user.id), iconURL: interaction.user.avatarURL() })
+                    .setTitle(`Congrates ${user.username} 🎉`)
+                    .setDescription(dmContent)
+                    .setThumbnail(user.avatarURL())
+            ]
         }), "DMresult", "DMerror");
         if (DMerror){
             interaction.channel.send({
-                content: dmErrorContent
+                content: `<@${user.id}>`,
+                embeds: [
+                    new MessageEmbed()
+                        .setAuthor({ name: `@${interaction.user.username} endorse you 👍!`, url: sprintf(CONSTANT.LINK.ENDORSEMENTS, interaction.user.id), iconURL: interaction.user.avatarURL() })
+                        .setTitle(`Congrates ${user.username} 🎉`)
+                        .setDescription(dmErrorContent)
+                        .setThumbnail(user.avatarURL())
+                ]
             })
         }
         return interaction.followUp({

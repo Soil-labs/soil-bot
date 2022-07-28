@@ -51,7 +51,7 @@ module.exports = {
      * @param  {CommandInteraction} interaction
      */
     async execute(interaction) {
-        //Wait for optimization
+        let matchResult, authorName, userId, avatarURL;
         if (interaction.options.getSubcommand() == "user"){
             let targetUser;
             let userDetailErrorContent, noSkillContent;
@@ -77,13 +77,13 @@ module.exports = {
             await interaction.deferReply({
                 ephemeral: true
             })
-            const [matchResult, matchError] = await matchMemberToUser({ memberId: targetUser.id });
+            const [tmpResult, matchError] = await matchMemberToUser({ memberId: targetUser.id });
 
             if (matchError) return interaction.followUp({
                 content: `Error occured when matching: \`${matchError.response.errors[0].message}\``
             })
 
-            if (matchResult.length == 0) {
+            if (tmpResult.length == 0) {
                 const [userDetail, userDetailError] = await fetchUserDetail({ userID: targetUser.id });
 
                 if (userDetailError) return interaction.followUp({
@@ -98,83 +98,41 @@ module.exports = {
                     content: `Sorry, we cannot find a match for you without a detailed reason. Please report this case to our team.`
                 })
             }
+            matchResult = tmpResult;
+            authorName = `@${targetUser.username} - Member Matching Results`;
+            avatarURL = targetUser.avatarURL();
+            userId = targetUser.id
+        }else{
+            const skills = _.uniq([
+                interaction.options.getString("skill_1"),
+                interaction.options.getString("skill_2"),
+                interaction.options.getString("skill_3"),
+                interaction.options.getString("skill_4")
+            ].filter(value => validSkill(value)))
 
-            let fields = [];
-            const top3Match = matchResult.sort((first, second) => {
-                return second.matchPercentage - first.matchPercentage
-            }).splice(0, 3);
-        let matchField = "", nameField = "", skillField = ""
-            top3Match.forEach((value) => {
-                const memberInGuild = interaction.guild.members.cache.get(value.member._id);
-                const name = memberInGuild ? `<@${value.member._id}>` : value.member.discordName;
-                const matchLink = memberInGuild ? sprintf("[%d%%](%s)", value.matchPercentage, sprintf(CONSTANT.LINK.USER, memberInGuild.id)) 
-                    : sprintf("%d%%", value.matchPercentage);
-                const skillList = insertVerticalBar(value.commonSkills.map(value => value.name).splice(0, 2));
-        
-                matchField += `${matchLink}\n`;
-                nameField += `${name}\n`;
-                skillField += `${skillList}\n`;
-            });
-
-            let embedDescription
-            if (top3Match.length == 0) embedDescription = CONSTANT.CONTENT.MATCH_USER_FAIL;
-            else {
-                embedDescription = sprintf(CONSTANT.CONTENT.MATCH_USER, { matchNum: top3Match.length });
-                fields.push(
-                    {
-                        name: "⚙️MATCH",
-                        value: matchField,
-                        inline: true
-                    },
-                    {
-                        name: "🧙NAME",
-                        value: nameField,
-                        inline: true
-                    },
-                    {
-                        name: "💻SKILL",
-                        value: skillField,
-                        inline: true
-                    }
-                )
-            }
-            
-            return interaction.followUp({                
-                embeds: [
-                    new MessageEmbed()
-                        .setDescription(embedDescription)
-                        .setAuthor({ name: `@${targetUser.username} - Member Matching Results`, iconURL: targetUser.avatarURL(), url: sprintf(CONSTANT.LINK.USER, targetUser.id) })
-                        .setColor("#74FA6D")
-                        .addFields(fields)
-                ]
+            if (skills.length == 0) return interaction.reply({
+                content: "Please choose at least one option",
+                ephemeral: true
             })
+
+            await interaction.deferReply({
+                ephemeral: true
+            })
+
+            const [tmpResult, matchError] = await matchMemberToSkill({ skillsID: skills });
+
+            if (matchError) return interaction.followUp({
+                content: `Error occured when matching: \`${matchError.response.errors[0].message}\``
+            })
+
+            if (tmpResult.length == 0) return interaction.followUp({
+                content: "Sorry, I cannot find a member with these skills"
+            })
+            matchResult = tmpResult;
+            authorName = `@${interaction.user.username} - Skill Matching Results`;
+            avatarURL = interaction.user.avatarURL();
+            userId = interaction.user.id;
         }
-
-        const skills = _.uniq([
-            interaction.options.getString("skill_1"),
-            interaction.options.getString("skill_2"),
-            interaction.options.getString("skill_3"),
-            interaction.options.getString("skill_4")
-        ].filter(value => validSkill(value)))
-
-        if (skills.length == 0) return interaction.reply({
-            content: "Please choose at least one option",
-            ephemeral: true
-        })
-
-        await interaction.deferReply({
-            ephemeral: true
-        })
-
-        const [matchResult, matchError] = await matchMemberToSkill({ skillsID: skills });
-
-        if (matchError) return interaction.followUp({
-            content: `Error occured when matching: \`${matchError.response.errors[0].message}\``
-        })
-
-        if (matchResult.length == 0) return interaction.followUp({
-            content: "Sorry, I cannot find a member with these skills"
-        })
 
         let fields = [];
         const top3Match = matchResult.sort((first, second) => {
@@ -186,7 +144,8 @@ module.exports = {
             const name = memberInGuild ? `<@${value.member._id}>` : value.member.discordName;
             const matchLink = memberInGuild ? sprintf("[%d%%](%s)", value.matchPercentage, sprintf(CONSTANT.LINK.USER, memberInGuild.id)) 
                 : sprintf("%d%%", value.matchPercentage);
-            const skillList = insertVerticalBar(value.commonSkills.map(value => value.name).splice(0, 2));
+            const top2Skill = value.commonSkills.map(value => value.name).splice(0, 2);
+            const skillList = top2Skill.length ? insertVerticalBar(value.commonSkills.map(value => value.name).splice(0, 2)) : "No common skill"
     
             matchField += `${matchLink}\n`;
             nameField += `${name}\n`;
@@ -220,7 +179,7 @@ module.exports = {
             embeds: [
                 new MessageEmbed()
                     .setDescription(embedDescription)
-                    .setAuthor({ name: `@${interaction.member.displayName} - Skill Matching Results`, iconURL: interaction.user.avatarURL(), url: sprintf(CONSTANT.LINK.USER, interaction.user.id) })
+                    .setAuthor({ name: authorName, iconURL: avatarURL, url: sprintf(CONSTANT.LINK.USER, userId) })
                     .setColor("#74FA6D")
                     .addFields(fields)
             ]
