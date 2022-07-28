@@ -17,11 +17,11 @@ module.exports = {
         
             //TODO Need to handle this error
             if (!command) return;
-            const userCheck = ["908392557258604544", "812526237074456577"]
-            if (!userCheck.includes(interaction.user.id)) return interaction.reply({
-                content: "Sorry, the bot is under construction.",
-                ephemeral: true
-            })
+            // const userCheck = ["908392557258604544", "812526237074456577"]
+            // if (!userCheck.includes(interaction.user.id)) return interaction.reply({
+            //     content: "Sorry, the bot is under construction.",
+            //     ephemeral: true
+            // })
             try{
                 await command.execute(interaction);
             }catch (err){
