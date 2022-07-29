@@ -59,6 +59,10 @@ module.exports = {
             const user = interaction.options.getUser("user");
 
             if (user){
+                if (user.bot) return interaction.reply({
+                    content: "Sorry, you cannot choose a bot as a target user.",
+                    ephemeral: true
+                })
                 targetUser = user;
                 userDetailErrorContent = `Sorry, we cannot find a match for you. Error occured when fetching his/her profile: \`%s\`.`;
                 noSkillContent = `Sorry, we cannot find a match for you because this member doesn't have any skill.`
@@ -180,7 +184,7 @@ module.exports = {
                 new MessageEmbed()
                     .setDescription(embedDescription)
                     .setAuthor({ name: authorName, iconURL: avatarURL, url: sprintf(CONSTANT.LINK.USER, userId) })
-                    .setColor("#74FA6D")
+                    .setColor(CONSTANT.MESSAGE_SETTING.EMBED_COLOR)
                     .addFields(fields)
             ]
         })

@@ -43,8 +43,10 @@ const CONTENT = Object.freeze({
     ENDORSE_OLD_MEMBER_CASE_ENDORSEE_DM_UNVERIFIED_SKILL: "Your skills are getting noticed, %(endorseeName)s! \`%(endorserName)s\` just endorsed you for **unverified** \`%(skillName)s\`\n\nThe skill is been send to the Moderators if its approved you will see it on your account!",
     ENDORSE_OLD_MEMBER_CASE_ENDORSEE_DM_FAIL_UNVERIFIED_SKILL: "Your skills are getting noticed! <@%(endorserId)s> just endorsed you for **unverified** \`%(skillName)s\`\n\nThe skill is been send to the Moderators if its approved you will see it on your account!",
 
-    NEW_TWEET_PROJECT_CHAMPION_DM: "A key milestone update to your project:\n\n**%(newTweetContent)s**\n\nHere is the link to get this change: %(projectLink)s",
-    NEW_TWEET_PROJECT_CHAMPION_DM_FAIL: "<@%(championId)s>, a key milestone update to your project:\n\n**%(newTweetContent)s**\n\nClick [here](%(projectLink)s) to get this change.",
+    NEW_TWEET_PROJECT_NO_CHAMPION: "A key milestone update to this project:\n\n%(newTweetContent)s\n\nClick [here](%(tweetLink)s) to get this change.",
+    NEW_TWEET_PROJECT_CHAMPION_ME: "A key milestone update to your project:\n\n%(newTweetContent)s\n\nClick [here](%(tweetLink)s) to get this change.",
+    NEW_TWEET_PROJECT_CHAMPION_DM: "A key milestone update to your project:\n\n%(newTweetContent)s\n\nClick [here](%(tweetLink)s) to get this change.",
+    NEW_TWEET_PROJECT_CHAMPION_DM_FAIL: "A key milestone update to your project:\n\n%(newTweetContent)s\n\nClick [here](%(tweetLink)s) to get this change.",
 
     MATCH_USER: "Looks like you've matched with quite a few people. Here is top %(matchNum)s best matching candidates.\n\u200B\n",
     MATCH_USER_FAIL: "Wow, your skill is so special that no matching result is for you. You are unique!\n\u200B\n",
@@ -59,6 +61,10 @@ const NUMERICAL_VALUE = Object.freeze({
     DB_ID_LENGTH: 24,
     DISCORD_ID_LENGTH: 18,
     AUTOCOMPLETE_OPTION_LENGTH: 25
+})
+
+const MESSAGE_SETTING = Object.freeze({
+    EMBED_COLOR: "#74FA6D"
 })
 
 const ATTRIBUTES = Object.freeze([
@@ -78,5 +84,6 @@ module.exports = {
     LINK, 
     CONTENT,
     NUMERICAL_VALUE,
+    MESSAGE_SETTING,
     ATTRIBUTES
 }

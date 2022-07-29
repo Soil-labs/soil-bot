@@ -1,5 +1,5 @@
 const { SlashCommandBuilder } = require('@discordjs/builders');
-const { CommandInteraction, MessageActionRow, MessageButton } = require("discord.js");
+const { CommandInteraction, MessageActionRow, MessageButton, MessageEmbed } = require("discord.js");
 const { newTweetProject, fetchProjectDetail } = require('../helper/graphql');
 const { validUser, validProject, awaitWrap } = require('../helper/util');
 const CONSTANT = require("../helper/const");
@@ -43,11 +43,17 @@ module.exports = {
             ephemeral: true
         })
 
+        let updateContent;
+        if (updateNewsContent) updateContent = sprintf("**Title:** %s\n\n**Content:** %s", updateNewsTitle, updateNewsContent);
+        else updateContent = sprintf("**Title:** %s", updateNewsTitle);
+
         await interaction.deferReply({
             ephemeral: true
         })
         
-        if (!validProject(updateProjectId)) return interaction.followUp({
+        const isValidProject = validProject(updateProjectId);
+
+        if (!isValidProject) return interaction.followUp({
             content: "Sorry, we cannot find this project",
             ephemeral: true
         })
@@ -69,6 +75,18 @@ module.exports = {
             author: userId
         }
         const championId = projectDetail.champion?._id;
+        const embedAuthorName = `@${interaction.user.username} updated the project`;
+        const tweetLink = sprintf(CONSTANT.LINK.PROJECT_TWEET, updateProjectId);
+        const iconURL = interaction.user.avatarURL();
+        const embedMessage = new MessageEmbed()
+            .setAuthor({ name: embedAuthorName, url: tweetLink, iconURL: iconURL})
+            .setTitle(`${isValidProject.title} Announcement`)
+            .setColor(CONSTANT.MESSAGE_SETTING.EMBED_COLOR)
+            .setTimestamp();
+        const embedInform = {
+            newTweetContent: updateContent,
+            tweetLink: tweetLink
+        }
         if (!championId) {
             const result = await this._updateProject({
                 ...projectUpdateInform,
@@ -80,7 +98,11 @@ module.exports = {
             })
 
             return interaction.followUp({
-                content: "New tweet to this project has been uploaded successfully."
+                content: "New tweet to this project has been uploaded successfully.",
+                embeds: [
+                    embedMessage.setDescription(
+                        sprintf(CONSTANT.CONTENT.NEW_TWEET_PROJECT_NO_CHAMPION, embedInform))
+                ]
             })
         }else{
             //Champion herself/himself update a tweet for the project
@@ -95,7 +117,11 @@ module.exports = {
                 })
 
                 return interaction.followUp({
-                    content: "New tweet to your project has been uploaded successfully."
+                    content: "New tweet to your project has been uploaded successfully.",
+                    embeds: [
+                        embedMessage.setDescription(
+                            sprintf(CONSTANT.CONTENT.NEW_TWEET_PROJECT_CHAMPION_ME, embedInform))
+                    ]
                 })
             }
              
@@ -113,19 +139,21 @@ module.exports = {
                 content: "New tweet to this project has been uploaded successfully but I cannot access this champion now."
             })
 
-            const contentInfo = {
-                newTweetContent: updateNewsTitle,
-                championId: champion.id,
-                projectLink: sprintf(CONSTANT.LINK.PROJECT, updateProjectId)
-            }
             const dmChannel = await champion.createDM();
             const { dmResult, dmError } = await awaitWrap(dmChannel.send({
-                content: sprintf(CONSTANT.CONTENT.NEW_TWEET_PROJECT_CHAMPION_DM, contentInfo)
+                embeds: [
+                    embedMessage.setDescription(
+                        sprintf(CONSTANT.CONTENT.NEW_TWEET_PROJECT_CHAMPION_DM, embedInform))
+                ]
             }))
 
             if (dmError){
                 interaction.channel.send({
-                    content: sprintf(CONSTANT.CONTENT.NEW_TWEET_PROJECT_CHAMPION_DM_FAIL, contentInfo)
+                    content: `<@${championId}>`,
+                    embeds: [
+                        embedMessage.setDescription(
+                            sprintf(CONSTANT.CONTENT.NEW_TWEET_PROJECT_CHAMPION_DM_FAIL, embedInform))
+                    ]
                 });
 
                 return interaction.followUp({
