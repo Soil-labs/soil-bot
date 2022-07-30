@@ -48,13 +48,13 @@ const buttonFilesPath = path.join(process.cwd(), "button");
 const buttonFiles = fs.readdirSync(buttonFilesPath).filter((file) => file.endsWith(".js"));
 
 //Load button
-for (const file of buttonFiles){
-    const button = require(path.join(buttonFilesPath, file));
-    //Our self-defined customId is an array
-    for(const id of button.customId){
-        client.buttons.set(id, button);
-    }
-}
+// for (const file of buttonFiles){
+//     const button = require(path.join(buttonFilesPath, file));
+//     //Our self-defined customId is an array
+//     for(const id of button.customId){
+//         client.buttons.set(id, button);
+//     }
+// }
 
 const eventsFilesPath = path.join(process.cwd(), "events");
 const eventsFiles = fs.readdirSync(eventsFilesPath).filter((file) => file.endsWith(".js"));
