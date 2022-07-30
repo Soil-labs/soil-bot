@@ -44,8 +44,8 @@ for (const file of autoCompleteFiles){
     }
 }
 
-const buttonFilesPath = path.join(process.cwd(), "button");
-const buttonFiles = fs.readdirSync(buttonFilesPath).filter((file) => file.endsWith(".js"));
+// const buttonFilesPath = path.join(process.cwd(), "button");
+// const buttonFiles = fs.readdirSync(buttonFilesPath).filter((file) => file.endsWith(".js"));
 
 //Load button
 // for (const file of buttonFiles){
