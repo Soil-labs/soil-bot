@@ -36,6 +36,15 @@ const GET_USERS = gql`
   }
 `;
 
+const GET_TEAMS = gql`
+  query{
+    findTeams(fields:{}){
+      _id
+      name
+    }
+  }
+`
+
 const UPDATE_USER = gql`
   mutation (
     $_id: ID
@@ -61,10 +70,10 @@ const UPDATE_USER = gql`
 
 const GET_UNVERIFIED_SKILL = gql`
   query{
-        waitingToAproveSkills(fields:{}){
-            _id
-            name
-        }
+      waitingToAproveSkills(fields:{}){
+        _id
+        name
+      }
     }
 `
 
@@ -155,7 +164,7 @@ const FETCH_PROJECT_DETAIL = gql`
 
 const FETCH_USER_DETAIL = gql`
     query(
-        $userID: ID
+      $userID: ID
     ){
         findMember(fields:{
             _id: $userID
@@ -187,6 +196,26 @@ const FETCH_USER_DETAIL = gql`
         }
     }
 `;
+
+const FETCH_TEAM_DETAIL = gql`
+  query(
+    $teamIds: [ID]
+  ){
+    findTeams(fields:{
+      _id: $teamIds
+    }){
+      description
+      projects{
+        _id
+        title
+      }
+      members{
+        _id
+        discordName
+      }
+    }
+  }
+`
 
 const ADD_SKILL = gql`
     mutation(
@@ -268,6 +297,28 @@ const ENDORSE_ATTRIBUTE = gql`
   }
 `
 
+const CREATE_PROJECT_UPDATE = gql`
+mutation(
+  $projectId: String
+  $memberIds: [String]
+  $authorId: String
+  $teamIds: [String]
+  $title: String
+  $content: String
+){
+  createProjectUpdate(fields:{
+    title: $title
+    content: $content
+    projectID: $projectId
+    memberID: $memberIds
+    authorID: $authorId
+    teamID: $teamIds
+  }){
+    _id   
+  }
+}
+`
+
 async function fetchProjects() {
     const { result, error } = await awaitWrap(client.request(GET_PROJECTS));
     if (error) return [null, error]
@@ -290,6 +341,12 @@ async function fetchUsers() {
   const { result, error } = await awaitWrap(client.request(GET_USERS));
   if (error) return [null, error];
   else return [result.findMembers, null];
+}
+
+async function fetchTeams(){
+  const { result, error } = await awaitWrap(client.request(GET_TEAMS));
+  if (error) return [null, error];
+  else return [result.findTeams, null];
 }
 
 async function updateUser(userJSON) {
@@ -328,6 +385,12 @@ async function fetchUserDetail(userIdJSON){
     else return [result.findMember, null];
 }
 
+async function fetchTeamDetail(teamIdsJSON){
+    const { result, error } = await awaitWrap(client.request(FETCH_TEAM_DETAIL, teamIdsJSON));
+    if (error) return [null, error]
+    else return [result.findTeams, null];
+}
+
 async function fetchSkillDetail(skillJSON){
     const { result, error } = await awaitWrap(client.request(FETCH_SKILL_DETAIL, skillJSON));
     if (error) return [null, error]
@@ -358,11 +421,18 @@ async function endorseAttribute(attributeJSON){
     else return [result.endorseAttribute, null];
 }
 
+async function createProjectUpdate(projectUpdateJSON){
+    const { result, error } = await awaitWrap(client.request(CREATE_PROJECT_UPDATE, projectUpdateJSON));
+    if (error) return [null, error]
+    else return [result.createProjectUpdate, null];
+}
+
 
 module.exports = { 
   fetchProjects, 
   fetchSkills, 
   fetchUsers, 
+  fetchTeams,
   fetchUnverifiedSkills, 
   updateUser, 
   addSkillToMember, 
@@ -371,8 +441,10 @@ module.exports = {
   fetchProjectDetail, 
   addSkill, 
   fetchUserDetail, 
+  fetchTeamDetail,
   fetchSkillDetail,
   matchMemberToUser,
   matchMemberToSkill,
-  endorseAttribute
+  endorseAttribute,
+  createProjectUpdate
 };

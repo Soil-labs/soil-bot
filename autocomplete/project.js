@@ -13,15 +13,19 @@ module.exports = {
     async execute(interaction){
         const focusedOption = interaction.options.getFocused(true);
         if (this.options.includes(focusedOption.name)){
-            const choices = myCache.get("projects").filter(value => value.title)
-            const filtered = choices.filter(value => value.title.startsWith(focusedOption.value))
-                .splice(0, CONSTANT.NUMERICAL_VALUE.AUTOCOMPLETE_OPTION_LENGTH);
-            if (filtered.length == 0) {
+            if (myCache.has("projects")){
+                const choices = myCache.get("projects").filter(value => value.title)
+                const filtered = choices.filter(value => value.title.startsWith(focusedOption.value))
+                    .splice(0, CONSTANT.NUMERICAL_VALUE.AUTOCOMPLETE_OPTION_LENGTH);
+                if (filtered.length == 0) {
+                    return interaction.respond([])
+                } else {
+                    return interaction.respond(
+                        filtered.map(value => ({ name: value.title, value: value._id }))
+                    )
+                }
+            }else{
                 return interaction.respond([])
-            } else {
-                return interaction.respond(
-                    filtered.map(value => ({ name: value.title, value: value._id }))
-                )
             }
         }
     }

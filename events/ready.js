@@ -1,7 +1,7 @@
 const { REST } = require('@discordjs/rest');
 const { Routes } = require('discord-api-types/v9');
 const {Client} = require("discord.js");
-const {fetchProjects, fetchSkills, fetchUsers, fetchUnverifiedSkills} = require("../helper/graphql");
+const {fetchProjects, fetchSkills, fetchUsers, fetchUnverifiedSkills, fetchTeams} = require("../helper/graphql");
 const myCache = require("../helper/cache")
 const logger = require("../helper/logger");
 const AsciiTable = require('ascii-table/ascii-table');
@@ -34,6 +34,7 @@ module.exports = {
             const [skills, skillsError] = await fetchSkills();
             const [unverifiedSkills, unverifiedSkillsError] = await fetchUnverifiedSkills();
             const [users, usersError] = await fetchUsers();
+            const [teams, teamError] = await fetchTeams();
             const table = new AsciiTable("Cache Loading ...");
             table.setHeading("Data", "Status")
             if (projects) {
@@ -51,7 +52,11 @@ module.exports = {
             if (users){
                 myCache.set("users", users);
                 table.addRow("Users", "✅ Fetched and cached");
-            } else table.addRow("Users", "❌ Error")
+            } else table.addRow("Users", "❌ Error");
+            if (teams){
+                myCache.set("teams", teams);
+                table.addRow("Teams", "✅ Fetched and cached");
+            }else table.addRow("Teams", "❌ Error");
             logger.info(`\n${table.toString()}`);
         }
 
@@ -72,8 +77,13 @@ module.exports = {
                 const [users, usersError] = await fetchUsers();
                 if (users) myCache.set("users", users)
             }
+
+            if (key == "teams"){
+                const [teams, teamError] = await fetchTeams();
+                myCache.set("teams", teams);
+            }
         })
-        
+
         try{
             if (process.env.ENV == "production"){
                 await rest.put(Routes.applicationCommands(clientId), {

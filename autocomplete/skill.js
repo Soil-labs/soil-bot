@@ -13,16 +13,18 @@ module.exports = {
         const focusedOption = interaction.options.getFocused(true);
         if (this.options.includes(focusedOption.name)) {
             //Remove null title
-            const choices = myCache.get("skills").filter(value => value.name)
+            if (myCache.has("skills")){
+                const choices = myCache.get("skills").filter(value => value.name)
 
-            const filtered = choices.filter(value => value.name.startsWith(focusedOption.value))
-                .splice(0, CONSTANT.NUMERICAL_VALUE.AUTOCOMPLETE_OPTION_LENGTH);
-            if (filtered.length == 0) {
-                return interaction.respond([])
-            } else {
-                return interaction.respond(
-                    filtered.map(value => ({ name: value.name, value: value._id}))
-                )
+                const filtered = choices.filter(value => value.name.startsWith(focusedOption.value))
+                    .splice(0, CONSTANT.NUMERICAL_VALUE.AUTOCOMPLETE_OPTION_LENGTH);
+                if (filtered.length == 0) {
+                    return interaction.respond([])
+                } else {
+                    return interaction.respond(
+                        filtered.map(value => ({ name: value.name, value: value._id}))
+                    )
+                }
             }
         }
     }
