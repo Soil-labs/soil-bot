@@ -5,7 +5,7 @@ const CONSTANT = require("../helper/const");
 
 module.exports = {
     attachedCommand: ["project", "update", "search"],
-    options: ["project_name", "project"],
+    options: ["project"],
 
     /**
      * @param  {AutocompleteInteraction} interaction

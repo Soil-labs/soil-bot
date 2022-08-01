@@ -1,5 +1,5 @@
 const { SlashCommandBuilder } = require('@discordjs/builders');
-const { CommandInteraction } = require("discord.js");
+const { CommandInteraction, MessageEmbed } = require("discord.js");
 const { updateUser } = require("../helper/graphql");
 const { validUser, awaitWrap } = require('../helper/util');
 const { sprintf } = require('sprintf-js');
@@ -69,20 +69,20 @@ module.exports = {
         myCache.set("users", [ ...myCache.get("users"), userInform ])
 
         const onboardLink = sprintf(CONSTANT.LINK.ONBOARD, user.id);
+        let embedContent = new MessageEmbed()
+            .setAuthor({ name: author.username, url: sprintf(CONSTANT.LINK.USER, author.id), iconURL: author.avatarURL() });
         const DMchannel = await user.createDM();
         const { DMResult, DMError } = await awaitWrap(DMchannel.send({
-            content: sprintf(CONSTANT.CONTENT.INVITE_DM, {
-                inviterName: interaction.member.displayName,
-                onboardLink: onboardLink
-            })
-        }), "DMResult", "DMError")
+            embeds: [
+                embedContent.setDescription(sprintf(CONSTANT.CONTENT.INVITE_DM, { onboardLink: onboardLink }))
+            ]
+        }))
         if (DMError) {
             interaction.channel.send({
-                content: sprintf(CONSTANT.CONTENT.INVITE_DM_FAIL, {
-                    inviteeId: user.id,
-                    inviterId: author.id,
-                    onboardLink: onboardLink
-                })
+                content: `<@${user.id}>`,
+                embeds: [
+                    embedContent.setDescription(sprintf(CONSTANT.CONTENT.INVITE_DM_FAIL, { onboardLink: onboardLink }))
+                ]
             })
             return interaction.followUp({
                 content: sprintf("Invite message has been sent to <#%s>", interaction.channel.id)

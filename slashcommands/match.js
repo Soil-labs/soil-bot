@@ -10,7 +10,7 @@ require("dotenv").config()
 
 module.exports = {
     commandName: "match",
-    description: "Find a potential member matching your skills or check others matching cases",
+    description: "Find all the people in the DAO that match your skillset",
 
     data: null,
 
@@ -20,14 +20,14 @@ module.exports = {
             .setDescription(this.description)
             .addSubcommand(command =>
                 command.setName("user")
-                    .setDescription("Find a potential member matching your skills or check others matching cases")
+                    .setDescription("Find matches for a person with similar skillsets")
                     .addUserOption(option =>
                         option.setName("user")
                         .setDescription("Choose a user you'd like to know his/her cases")))
 
             .addSubcommand(command =>
                 command.setName("skill")
-                    .setDescription("Find members with skills")
+                    .setDescription("Find all people matching a set of skills")
                     .addStringOption(option =>
                         option.setName("skill_1")
                         .setDescription("Choose a skill")
@@ -103,7 +103,7 @@ module.exports = {
                 })
             }
             matchResult = tmpResult;
-            authorName = `@${targetUser.username} - Member Matching Results`;
+            authorName = `@${targetUser.username} - Fellow DAOists who match your skillset`;
             avatarURL = targetUser.avatarURL();
             userId = targetUser.id
         }else{
@@ -157,7 +157,7 @@ module.exports = {
         });
 
         let embedDescription
-        if (top3Match.length == 0) embedDescription = CONSTANT.CONTENT.MATCH_SKILL_FALL;
+        if (top3Match.length == 0) embedDescription = CONSTANT.CONTENT.MATCH_SKILL_FAIL;
         else {
             embedDescription = sprintf(CONSTANT.CONTENT.MATCH_SKILL, { matchNum: top3Match.length });
             fields.push(

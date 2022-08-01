@@ -34,7 +34,7 @@ module.exports = {
 
         const replyEmbed = new MessageEmbed()
             .setTitle("🥰Planting seeds for yourself & others how WAGMI🥰")
-            .setDescription(sprintf("**Click the [link](<%s>) to endorse**", onboardLink));
+            .setDescription(sprintf(CONSTANT.CONTENT.ONBOARD, { onboardLink: onboardLink }));
 
         if (searchResult) return interaction.reply({
             embeds: [replyEmbed],

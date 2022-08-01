@@ -1,5 +1,5 @@
 const { SlashCommandBuilder } = require('@discordjs/builders');
-const { CommandInteraction, MessageActionRow, MessageButton, MessageEmbed } = require("discord.js");
+const { CommandInteraction, MessageEmbed } = require("discord.js");
 const { newTweetProject, fetchProjectDetail, createProjectUpdate } = require('../helper/graphql');
 const { validUser, validProject, awaitWrap } = require('../helper/util');
 const CONSTANT = require("../helper/const");
@@ -19,16 +19,16 @@ module.exports = {
                 commnad.setName("project")
                     .setDescription("Update your project milestone")
                         .addStringOption(option =>
-                            option.setName("project_name")
+                            option.setName("project")
                                 .setDescription("Choose a project from the list")
                                 .setRequired(true)
                                 .setAutocomplete(true))
                         .addStringOption(option =>
-                            option.setName("title")
+                            option.setName("announcement_title")
                                 .setDescription("Title of News or announcement you'd like to report")
                                 .setRequired(true))
                         .addStringOption(option =>
-                            option.setName("content")
+                            option.setName("announcement_content")
                                 .setDescription("Content of News or announcement you'd like to report")))
             .addSubcommand(command =>
                 command.setName("garden")
@@ -62,10 +62,10 @@ module.exports = {
      */
     async execute(interaction) {
         if (interaction.options.getSubcommand() == "project"){
-            const updateProjectId = interaction.options.getString("project_name");
+            const updateProjectId = interaction.options.getString("project");
             const userId = interaction.user.id;
-            const updateNewsTitle = interaction.options.getString("title");
-            const updateNewsContent = interaction.options.getString("content");
+            const updateNewsTitle = interaction.options.getString("announcement_title");
+            const updateNewsContent = interaction.options.getString("announcement_content");
 
             if (!updateNewsTitle && !updateNewsContent) return interaction.reply({
                 content: "Sorry, you have to upload either \`title\` or \`content\`, or both.",
@@ -123,11 +123,11 @@ module.exports = {
                 });
 
                 if (result.error) return interaction.followUp({
-                    content: `Error occured when updating this tweet: \`${result.message}\``
+                    content: `Error occured when updating this announcement: \`${result.message}\``
                 })
 
                 return interaction.followUp({
-                    content: "New tweet to this project has been uploaded successfully.",
+                    content: "New announcement to this project has been uploaded successfully.",
                     embeds: [
                         embedMessage.setDescription(
                             sprintf(CONSTANT.CONTENT.NEW_TWEET_PROJECT_NO_CHAMPION, embedInform))
@@ -142,11 +142,11 @@ module.exports = {
                     });
 
                     if (result.error) return interaction.followUp({
-                        content: `Error occured when updating your tweet: \`${result.message}\``
+                        content: `Error occured when updating your announcement: \`${result.message}\``
                     })
 
                     return interaction.followUp({
-                        content: "New tweet to your project has been uploaded successfully.",
+                        content: "New announcement to your project has been uploaded successfully.",
                         embeds: [
                             embedMessage.setDescription(
                                 sprintf(CONSTANT.CONTENT.NEW_TWEET_PROJECT_CHAMPION_ME, embedInform))
@@ -160,12 +160,12 @@ module.exports = {
                 });
 
                 if (result.error) return interaction.followUp({
-                    content: `Error occured when updating your tweet: \`${result.message}\``
+                    content: `Error occured when updating your announcement: \`${result.message}\``
                 })
 
                 const champion = interaction.guild.members.cache.get(championId);
                 if (!champion) return interaction.followUp({
-                    content: "New tweet to this project has been uploaded successfully but I cannot access this champion now."
+                    content: "New announcement to this project has been uploaded successfully but I cannot access this champion now."
                 })
 
                 const dmChannel = await champion.createDM();
@@ -186,12 +186,12 @@ module.exports = {
                     });
 
                     return interaction.followUp({
-                        content: "New tweet to this project has been uploaded successfully."
+                        content: "New announcement to this project has been uploaded successfully."
                     })
                 }
 
                 return interaction.followUp({
-                    content: `New tweet to this project has been uploaded successfully. DM has been sent to \`${champion.displayName}\`.`
+                    content: `New announcement is now live on the project activity feed. DM has been sent to the champion for review.`
                 })
             }
         }else{

@@ -170,12 +170,13 @@ const FETCH_USER_DETAIL = gql`
             _id: $userID
         }){
             skills{
-                _id
+              skillInfo{
                 name
                 authors{
-                    discordName
+                  discordName
                 }
                 registeredAt
+              }
             }
             projects{
                 info{
@@ -438,8 +439,8 @@ module.exports = {
   addSkillToMember, 
   newTweetProject, 
   approveTweet,
-  fetchProjectDetail, 
   addSkill, 
+  fetchProjectDetail, 
   fetchUserDetail, 
   fetchTeamDetail,
   fetchSkillDetail,

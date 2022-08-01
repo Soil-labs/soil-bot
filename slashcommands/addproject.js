@@ -17,7 +17,7 @@ module.exports = {
             .setName(this.commandName)
             .setDescription(this.description)
             .addStringOption(option =>
-                option.setName("project_name")
+                option.setName("project")
                     .setDescription("Choose a project from the list or create a new one")
                     .setRequired(true)
                     .setAutocomplete(true))
@@ -27,7 +27,7 @@ module.exports = {
      * @param  {CommandInteraction} interaction
      */
     async execute(interaction) {
-        const projectId = interaction.options.getString("project_name");
+        const projectId = interaction.options.getString("project");
         let link;
         const result = validProject(projectId);
         if (result){
