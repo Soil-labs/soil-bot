@@ -44,6 +44,25 @@ const GET_TEAMS = gql`
     }
   }
 `
+const ADD_MEMBER = gql`
+  mutation(
+    $_id: ID,
+    $discordName: String
+    $discordAvatar: String
+    $discriminator: String
+    $invitedBy: String
+  ){
+  addNewMember(fields:{
+    _id: $_id
+    discordName: $discordName
+    discordAvatar: $discordAvatar
+    discriminator: $discriminator
+    invitedBy: $invitedBy
+  }){
+    _id
+  }
+}
+`;
 
 const UPDATE_USER = gql`
   mutation (
@@ -61,9 +80,6 @@ const UPDATE_USER = gql`
       }
     ) {
       _id
-      discriminator
-      discordName
-      discordAvatar
     }
   }
 `;
@@ -350,6 +366,12 @@ async function fetchTeams(){
   else return [result.findTeams, null];
 }
 
+async function addNewMember(userJSON) {
+    const { result, error } = await awaitWrap(client.request(ADD_MEMBER, userJSON));
+    if (error) return [null, error]
+    else return [result.addNewMember, null];
+}
+
 async function updateUser(userJSON) {
     const { result, error } = await awaitWrap(client.request(UPDATE_USER, userJSON));
     if (error) return [null, error]
@@ -435,6 +457,7 @@ module.exports = {
   fetchUsers, 
   fetchTeams,
   fetchUnverifiedSkills, 
+  addNewMember,
   updateUser, 
   addSkillToMember, 
   newTweetProject, 

@@ -1,6 +1,6 @@
 const { SlashCommandBuilder } = require('@discordjs/builders');
 const { CommandInteraction, MessageEmbed } = require("discord.js");
-const { updateUser } = require("../helper/graphql");
+const { addNewMember } = require("../helper/graphql");
 const { validUser, awaitWrap } = require('../helper/util');
 const { sprintf } = require('sprintf-js');
 const myCache = require("../helper/cache");
@@ -30,6 +30,7 @@ module.exports = {
     async execute(interaction) {
         const user = interaction.options.getUser('user');
         const author = interaction.user
+        
         if (user.id == author.id) return interaction.reply({
             content: "Sorry, you cannot invite yourself.",
             ephemeral: true
@@ -53,13 +54,14 @@ module.exports = {
             _id: user.id,
             discordName: user.username,
             discriminator: user.discriminator,
-            discordAvatar: user.displayAvatarURL({ format: 'jpg' })
+            discordAvatar: user.displayAvatarURL({ format: 'jpg' }),
+            invitedBy: author.id
         }
 
         await interaction.deferReply({
             ephemeral: true
         })
-        const [result, error] = await updateUser(userInform);
+        const [result, error] = await addNewMember(userInform);
 
         if (error) return interaction.followUp({
             content: `Error occured: \`${error.response.errors[0].message}\``

@@ -41,10 +41,10 @@ module.exports = {
             ephemeral: true
         })
 
-        if (user.id == interaction.user.id) return interaction.reply({
-            content: "Sorry, you cannot endorse yourself.",
-            ephemeral: true
-        })
+        // if (user.id == interaction.user.id) return interaction.reply({
+        //     content: "Sorry, you cannot endorse yourself.",
+        //     ephemeral: true
+        // })
 
         await interaction.deferReply({
             ephemeral: true
@@ -153,8 +153,6 @@ module.exports = {
             endorseeName: user.username,
             endorseeId: user.id,
             endorserName: interaction.user.username,
-            endorserId: interaction.user.id,
-            skillName: skillName,
             claimEndorsementLink: sprintf(CONSTANT.LINK.CLAIM_ENDORSEMENT, user.id),
             onboardLink: sprintf(CONSTANT.LINK.ONBOARD, user.id),
             endorserEndorsementLink: sprintf(CONSTANT.LINK.ENDORSEMENTS, interaction.user.id)
@@ -163,28 +161,27 @@ module.exports = {
             condition.isNewMember == isNewMember && condition.isVerifiedSkill == (skillState == CONSTANT.SKILL_STATE.APPROVED)
         ))
         const { dmContent, dmErrorContent } = contents[0][1](infor);
-
         const endorserReply = isNewMember ? sprintf(CONSTANT.CONTENT.ENDORSE_NEW_MEMBER_CASE_ENDORSER_REPLY, infor) 
             : sprintf(CONSTANT.CONTENT.ENDORSE_OLD_MEMBER_CASE_ENDORSER_REPLY, infor);
 
         const DMchannel = await user.createDM();
-        const {DMresult ,DMerror} = await awaitWrap(DMchannel.send({
+        const { DMresult ,DMerror } = await awaitWrap(DMchannel.send({
             embeds: [
                 new MessageEmbed()
-                    .setAuthor({ name: `@${interaction.user.username} endorse you 👍!`, url: sprintf(CONSTANT.LINK.ENDORSEMENTS, interaction.user.id), iconURL: interaction.user.avatarURL() })
-                    .setTitle(`Congrates ${user.username} 🎉`)
-                    .setDescription(dmContent)
+                    .setAuthor({ name: sprintf(dmContent.authorContent, infor), url: infor.endorserEndorsementLink, iconURL: interaction.user.avatarURL() })
+                    .setTitle(sprintf(dmContent.title, infor))
+                    .setDescription(sprintf(dmContent.description, infor))
                     .setThumbnail(user.avatarURL())
             ]
         }), "DMresult", "DMerror");
         if (DMerror){
             interaction.channel.send({
-                content: `<@${user.id}>`,
+                content: `<@${interaction.user.id}> <@${user.id}>`,
                 embeds: [
                     new MessageEmbed()
-                        .setAuthor({ name: `@${interaction.user.username} endorse you 👍!`, url: sprintf(CONSTANT.LINK.ENDORSEMENTS, interaction.user.id), iconURL: interaction.user.avatarURL() })
-                        .setTitle(`Congrates ${user.username} 🎉`)
-                        .setDescription(dmErrorContent)
+                        .setAuthor({ name: sprintf(dmErrorContent.authorContent, infor), url: infor.endorserEndorsementLink, iconURL: interaction.user.avatarURL() })
+                        .setTitle(sprintf(dmErrorContent.title, infor))
+                        .setDescription(sprintf(dmErrorContent.description, infor))
                         .setThumbnail(user.avatarURL())
                 ]
             })
@@ -221,21 +218,21 @@ module.exports = {
     },
 
     _contents: new Map([
-        [{ isNewMember: true, isVerifiedSkill: true} , (infor) => ({
-            dmContent: sprintf(CONSTANT.CONTENT.ENDORSE_NEW_MEMBER_CASE_ENDORSEE_DM, infor),
-            dmErrorContent: sprintf(CONSTANT.CONTENT.ENDORSE_NEW_MEMBER_CASE_ENDORSEE_DM_FAIL,infor)
+        [{ isNewMember: true, isVerifiedSkill: true} , () => ({
+            dmContent: CONSTANT.CONTENT.ENDORSE_NEW_MEMBER_CASE_ENDORSEE_DM,
+            dmErrorContent: CONSTANT.CONTENT.ENDORSE_NEW_MEMBER_CASE_ENDORSEE_DM_FAIL
         })],
-        [{ isNewMember: true, isVerifiedSkill: false} , (infor) => ({
-            dmContent: sprintf(CONSTANT.CONTENT.ENDORSE_NEW_MEMBER_CASE_ENDORSEE_DM_UNVERIFIED_SKILL, infor),
-            dmErrorContent: sprintf(CONSTANT.CONTENT.ENDORSE_NEW_MEMBER_CASE_ENDORSEE_DM_FAIL_UNVERIFIED_SKILL, infor)
+        [{ isNewMember: true, isVerifiedSkill: false} , () => ({
+            dmContent: CONSTANT.CONTENT.ENDORSE_NEW_MEMBER_CASE_ENDORSEE_DM_UNVERIFIED_SKILL,
+            dmErrorContent: CONSTANT.CONTENT.ENDORSE_NEW_MEMBER_CASE_ENDORSEE_DM_FAIL_UNVERIFIED_SKILL
         })],
-        [{ isNewMember: false, isVerifiedSkill: true} , (infor) => ({
-            dmContent: sprintf(CONSTANT.CONTENT.ENDORSE_OLD_MEMBER_CASE_ENDORSEE_DM, infor),
-            dmErrorContent: sprintf(CONSTANT.CONTENT.ENDORSE_OLD_MEMBER_CASE_ENDORSEE_DM_FAIL, infor)
+        [{ isNewMember: false, isVerifiedSkill: true} , () => ({
+            dmContent: CONSTANT.CONTENT.ENDORSE_OLD_MEMBER_CASE_ENDORSEE_DM,
+            dmErrorContent: CONSTANT.CONTENT.ENDORSE_OLD_MEMBER_CASE_ENDORSEE_DM_FAIL
         })],
-        [{ isNewMember: false, isVerifiedSkill: false} , (infor) => ({
-            dmContent: sprintf(CONSTANT.CONTENT.ENDORSE_OLD_MEMBER_CASE_ENDORSEE_DM_UNVERIFIED_SKILL, infor),
-            dmErrorContent: sprintf(CONSTANT.CONTENT.ENDORSE_OLD_MEMBER_CASE_ENDORSEE_DM_FAIL_UNVERIFIED_SKILL, infor)
+        [{ isNewMember: false, isVerifiedSkill: false} , () => ({
+            dmContent: CONSTANT.CONTENT.ENDORSE_OLD_MEMBER_CASE_ENDORSEE_DM_UNVERIFIED_SKILL,
+            dmErrorContent: CONSTANT.CONTENT.ENDORSE_OLD_MEMBER_CASE_ENDORSEE_DM_FAIL_UNVERIFIED_SKILL
         })]
     ])
 

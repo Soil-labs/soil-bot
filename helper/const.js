@@ -25,22 +25,53 @@ const LINK = Object.freeze({
 })
 
 const CONTENT = Object.freeze({
-    ONBOARD: "In order for you to access the full power of Soil🌱, the community needs to know about your skills. Click the [link](%(onboardLink)s) to make sure you can find & be found for opportunities in the DAO! ",
+    ONBOARD: "In order for Soil 🌱 to recommend the right projects for you, Soil needs to know about your skills. Add them [here](%(onboardLink)s).",
     INVITE_DM: "Soil🌱 is the DAO's magic ✨, AI-driven bot that helps you find opportunities to learn, earn, collaborate & contribute. Your personal onboarding [link](%(onboardLink)s)",
     INVITE_DM_FAIL: "Soil🌱 is the DAO's magic ✨, AI-driven bot that helps you find opportunities to learn, earn, collaborate & contribute. Your personal onboarding [link](%(onboardLink)s)",
     
-    ENDORSE_NEW_MEMBER_CASE_ENDORSER_REPLY: "By endorsing other community members, you increase their chance of finding magical opportunities✨.\n\nIn other words, you're awesome. On behalf of \`%(endorseeName)s\`, a heartfelt thank you 🙏 wagmi!\n\nWhile you're at it, feel free to check out your own [endorsements](%(endorserEndorsementLink)s) .",
+    ENDORSE_NEW_MEMBER_CASE_ENDORSER_REPLY: "By endorsing other community members, you increase their chance of finding magical opportunities✨.\n\nIn other words, you're awesome. On behalf of \`%(endorseeName)s\`, a heartfelt thank you 🙏 wagmi!\n\nWhile you're at it, feel free to check out your own [endorsements](%(endorserEndorsementLink)s).",
     ENDORSE_OLD_MEMBER_CASE_ENDORSER_REPLY: "On behalf of \`%(endorseeName)s\`, a heartfelt thank you - this is how wagmi ❤️",
 
-    ENDORSE_NEW_MEMBER_CASE_ENDORSEE_DM: `Looks like this is your first time using Soil 🌱 , \`%(endorseeName)s\`! Allow us to take this opportunity to welcome 👋  you to Soil 🌱, your magic ✨, AI-driven bot that helps you find & be found 🔎  for opportunities to collaborate, learn & earn across the DAO.\n\nWithout you knowing, someting amazing just happened. \`%(endorserName)s\` just endorsed your for \`%(skillName)s\` 🤩\n\nGo fill out your profile so you can [claim your endorsement](%(onboardLink)s) ! \n\nOr if you'd like to learn more about Soil 🌱, go to [here](${LINK.SOIL}) !`,
-    ENDORSE_NEW_MEMBER_CASE_ENDORSEE_DM_FAIL: `Looks like this is your first time using Soil 🌱! Allow us to take this opportunity to welcome 👋  you to Soil 🌱, your magic ✨, AI-driven bot that helps you find & be found 🔎  for opportunities to collaborate, learn & earn across the DAO.\n\nWithout you knowing, someting amazing just happened. <@%(endorserId)s> just endorsed your for \`%(skillName)s\` 🤩\n\nGo fill out your profile so you can [claim your endorsement](%(onboardLink)s) \n\nOr if you'd like to learn more about Soil 🌱, go to [here](${LINK.SOIL}) !`,
-    ENDORSE_OLD_MEMBER_CASE_ENDORSEE_DM: "Your skills are getting noticed, %(endorseeName)s! \`%(endorserName)s\` just endorsed you for \`%(skillName)s\`\n\nClaim your endorsements [here](%(claimEndorsementLink)s) !",
-    ENDORSE_OLD_MEMBER_CASE_ENDORSEE_DM_FAIL: "Your skills are getting noticed! <@%(endorserId)s> just endorsed you for \`%(skillName)s\`\n\nClaim your endorsements [here](%(claimEndorsementLink)s) !",
-    
-    ENDORSE_NEW_MEMBER_CASE_ENDORSEE_DM_UNVERIFIED_SKILL: `Looks like this is your first time using Soil 🌱 , \`%(endorseeName)s\`! Allow us to take this opportunity to welcome 👋  you to Soil 🌱, your magic ✨, AI-driven bot that helps you find & be found 🔎  for opportunities to collaborate, learn & earn across the DAO.\n\nWithout you knowing, someting amazing just happened. \`%(endorserName)s\` just endorsed your for **unverified** \`%(skillName)s\` 🤩\n\nThe skill is been send to the Moderators if its approved you will see it on your account\n\nOr if you'd like to learn more about Soil 🌱, go to [here](${LINK.SOIL}) !`,
-    ENDORSE_NEW_MEMBER_CASE_ENDORSEE_DM_FAIL_UNVERIFIED_SKILL: `Looks like this is your first time using Soil 🌱 ! Allow us to take this opportunity to welcome 👋  you to Soil 🌱, your magic ✨, AI-driven bot that helps you find & be found 🔎  for opportunities to collaborate, learn & earn across the DAO.\n\nWithout you knowing, someting amazing just happened. <@%(endorserId)s> just endorsed your for **unverified** \`%(skillName)s\` 🤩\n\nThe skill is been send to the Moderators if its approved you will see it on your account\n\nOr if you'd like to learn more about Soil 🌱, go to [here](${LINK.SOIL}) !`,
-    ENDORSE_OLD_MEMBER_CASE_ENDORSEE_DM_UNVERIFIED_SKILL: "Your skills are getting noticed, %(endorseeName)s! \`%(endorserName)s\` just endorsed you for **unverified** \`%(skillName)s\`\n\nThe skill is been send to the Moderators if its approved you will see it on your account!",
-    ENDORSE_OLD_MEMBER_CASE_ENDORSEE_DM_FAIL_UNVERIFIED_SKILL: "Your skills are getting noticed! <@%(endorserId)s> just endorsed you for **unverified** \`%(skillName)s\`\n\nThe skill is been send to the Moderators if its approved you will see it on your account!",
+    ENDORSE_NEW_MEMBER_CASE_ENDORSEE_DM: Object.freeze({
+        authorContent: "🤩 @%(endorserName)s endorsed you for SKILL on Soil 🌱!",
+        title: "Congrats @%(endorseeName)s 🎉 - that means your skills are getting noticed in the community!",
+        description: "We see that this is your very first time getting endorsed through Soil! We went ahead & made you a temporary 1-day profile to keep the endorsement in your name.\n\nClaim the endorsement forever & get access to amazing opportunities across the DAO by creating a full profile [here](%(claimEndorsementLink)s)."
+    }),
+    ENDORSE_NEW_MEMBER_CASE_ENDORSEE_DM_FAIL: Object.freeze({
+        authorContent: "🤩 @%(endorserName)s endorsed @%(endorseeName)s for SKILL on Soil 🌱!",
+        title: "Be quick to claim your endorsement, %(endorseeName)s!",
+        description: "Claim your full profile & endorsement [here](%(claimEndorsementLink)s) to get access to all the amazing projects happening in the DAO!"
+    }),
+    ENDORSE_OLD_MEMBER_CASE_ENDORSEE_DM: Object.freeze({
+        authorContent: "🤩 @%(endorserName)s endorsed you for SKILL on Soil 🌱! ",
+        title: "Way to go, @%(endorseeName)s 🎉",
+        description: "Claim the endorsement [here](%(claimEndorsementLink)s)."
+    }),
+    ENDORSE_OLD_MEMBER_CASE_ENDORSEE_DM_FAIL: Object.freeze({
+        authorContent: "🤩 @%(endorserName)s endorsed @%(endorseeName)s for SKILL on Soil 🌱!",
+        title: "Yay for that WAGMI-energy, people 👏",
+        description: "<@%(endorseeId)s>, Claim your endorsement [here](%(claimEndorsementLink)s)."
+    }),
+    ENDORSE_NEW_MEMBER_CASE_ENDORSEE_DM_UNVERIFIED_SKILL: Object.freeze({
+        authorContent: "🤩 @%(endorserName)s endorsed you for SKILL on Soil 🌱! ",
+        title: "Congrats @%(endorseeName)s 🎉 - that means your skills are getting noticed in the community!",
+        description: "We see that this is your very first time getting endorsed through Soil! We went ahead & made you a temporary 1-day profile to keep the endorsement in your name.\n\nClaim the endorsement forever & get access to amazing opportunities across the DAO by creating a full profile [here](%(endorserEndorsementLink)s)."
+    }),
+    ENDORSE_NEW_MEMBER_CASE_ENDORSEE_DM_FAIL_UNVERIFIED_SKILL: Object.freeze({
+        authorContent: "🤩 @%(endorserName)s endorsed @%(endorseeName)s for SKILL on Soil 🌱!",
+        title: "Be quick to claim your endorsement, %(endorseeName)s!",
+        description: "Claim your full profile & endorsement [here](%(endorserEndorsementLink)s) to get access to all the amazing projects happening in the DAO!"
+    }),
+    ENDORSE_OLD_MEMBER_CASE_ENDORSEE_DM_UNVERIFIED_SKILL: Object.freeze({
+        authorContent: "🤩 @%(endorserName)s endorsed you for SKILL on Soil 🌱! ",
+        title: "Congrats @%(endorseeName)s 🎉 - your skills are getting noticed! We didn't know you had this skill yet.",
+        description: "To add  SKILL to your profile together with the endorsement, click [here](%(endorserEndorsementLink)s)."
+    }),
+    ENDORSE_OLD_MEMBER_CASE_ENDORSEE_DM_FAIL_UNVERIFIED_SKILL: Object.freeze({
+        authorContent: "🤩 @%(endorserName)s endorsed @%(endorseeName)s for SKILL on Soil 🌱!",
+        title: "Congrats @%(endorseeName)s 🎉 - that means your skills are getting noticed by the community! We didn't know you had this skill yet.",
+        description: "To add SKILL to your profile together with the endorsement, click [here](%(endorserEndorsementLink)s)."
+    }),
 
     NEW_TWEET_PROJECT_NO_CHAMPION: "A key milestone update to this project:\n\n%(newTweetContent)s\n\nClick [here](%(tweetLink)s) to get this change.",
     NEW_TWEET_PROJECT_CHAMPION_ME: "A key milestone update to your project:\n\n%(newTweetContent)s\n\nClick [here](%(tweetLink)s) to get this change.",
