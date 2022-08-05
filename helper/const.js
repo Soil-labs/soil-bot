@@ -18,6 +18,7 @@ const LINK = Object.freeze({
     USER: "https://www.soil.xyz/profile/%s/",
     SKILL: "https://www.soil.xyz/member/%s/",
     ONBOARD: "https://www.soil.xyz/onboard/%s/",
+    STAGING_ONBOARD: "https://soil-app-front-end-ruddy.vercel.app/onboard%s",
     ENDORSEMENTS: "https://www.soil.xyz/member/%s/endorsements/",
     CLAIM_ENDORSEMENT: "https://www.soil.xyz/endorsment/%s/",
     AIRTABLE_ONBOARDING: "https://airtable.com/shrLeYlIfsS7r4ZOi?prefill_discord+Name=@%(discordName)s&prefill_ID=%(discordId)s&prefill_AuthorName=@%(discordName)s&hide_Parent+Record+ID=true&hide_AuthorName=true&hide_ID=true&hide_AuthorID=true",
@@ -25,7 +26,8 @@ const LINK = Object.freeze({
 })
 
 const CONTENT = Object.freeze({
-    ONBOARD: "In order for Soil 🌱 to recommend the right projects for you, Soil needs to know about your skills. Add them [here](%(onboardLink)s).",
+    ONBOARD: "You're about to onboard another member into Soil 🌳. Click [here](%(onboardLink)s) to continue!",
+    ONBOARD_SELF: "In order for Soil 🌱 to recommend the right projects for you, Soil needs to know about your skills. Add them [here](%(onboardLink)s)",
     INVITE_DM: "Soil🌱 is the DAO's magic ✨, AI-driven bot that helps you find opportunities to learn, earn, collaborate & contribute. Your personal onboarding [link](%(onboardLink)s)",
     INVITE_DM_FAIL: "Soil🌱 is the DAO's magic ✨, AI-driven bot that helps you find opportunities to learn, earn, collaborate & contribute. Your personal onboarding [link](%(onboardLink)s)",
     
