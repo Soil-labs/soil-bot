@@ -10,7 +10,7 @@ require("dotenv").config()
 
 module.exports = {
     commandName: "match",
-    description: "Find all the people in the DAO that match your skillset",
+    description: "Find matches for a person with similar skillsets",
 
     data: null,
 
@@ -19,11 +19,16 @@ module.exports = {
             .setName(this.commandName)
             .setDescription(this.description)
             .addSubcommand(command =>
+                command.setName("self")
+                    .setDescription("Find all the people in the DAO that match your skillset"))
+
+            .addSubcommand(command =>
                 command.setName("user")
                     .setDescription("Find matches for a person with similar skillsets")
                     .addUserOption(option =>
                         option.setName("user")
-                        .setDescription("Choose a user you'd like to know his/her cases")))
+                            .setDescription("Choose a user you'd like to know his/her cases")
+                            .setRequired(true)))
 
             .addSubcommand(command =>
                 command.setName("skill")
@@ -52,7 +57,8 @@ module.exports = {
      */
     async execute(interaction) {
         let matchResult, authorName, userId, avatarURL;
-        if (interaction.options.getSubcommand() == "user"){
+
+        if (interaction.options.getSubcommand() == "user" || interaction.options.getSubcommand() == "self"){
             let targetUser;
             let userDetailErrorContent, noSkillContent;
 
