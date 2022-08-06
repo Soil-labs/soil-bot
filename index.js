@@ -1,7 +1,6 @@
 const discord = require('discord.js');
 const fs = require("fs");
 const path = require('path')
-require("dotenv").config()
 
 //Intents mean the functionality of your bot
 const client = new discord.Client({ intents: [
