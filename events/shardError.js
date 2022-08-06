@@ -1,5 +1,4 @@
 const logger = require("../helper/logger");
-require("dotenv").config()
 
 module.exports = {
     name: "shardError",

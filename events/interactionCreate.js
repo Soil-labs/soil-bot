@@ -1,6 +1,5 @@
 const {MessageComponentInteraction, CommandInteraction} = require("discord.js");
 const logger = require("../helper/logger");
-require("dotenv").config();
 
 module.exports = {
     name: "interactionCreate",
@@ -10,18 +9,14 @@ module.exports = {
      * @param  {CommandInteraction | MessageComponentInteraction} interaction
      */
     async execute (interaction){
-        //interaction => CommandInteraction
+
         if (interaction.isCommand()){
-            //Get command object through the property of interaction, coomandName
+
             const command = interaction.client.commands.get(interaction.commandName);
         
             //TODO Need to handle this error
             if (!command) return;
-            // const userCheck = ["908392557258604544", "812526237074456577"]
-            // if (!userCheck.includes(interaction.user.id)) return interaction.reply({
-            //     content: "Sorry, the bot is under construction.",
-            //     ephemeral: true
-            // })
+
             try{
                 await command.execute(interaction);
             }catch (err){

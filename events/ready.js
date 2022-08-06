@@ -5,7 +5,6 @@ const {fetchProjects, fetchSkills, fetchUsers, fetchUnverifiedSkills, fetchTeams
 const myCache = require("../helper/cache")
 const logger = require("../helper/logger");
 const AsciiTable = require('ascii-table/ascii-table');
-require("dotenv").config()
 
 module.exports = {
     //event name
@@ -40,23 +39,23 @@ module.exports = {
             if (projects) {
                 myCache.set("projects", projects);
                 table.addRow("Projects", "✅ Fetched and cached");
-            }else table.addRow("Projects", "❌ Error")
+            }else table.addRow("Projects", `❌ Error: ${projectsError}`);
             if (skills){
                 myCache.set("skills", skills);
                 table.addRow("Skills", "✅ Fetched and cached");
-            }else table.addRow("Skills", "❌ Error")
+            }else table.addRow("Skills", `❌ Error: ${skillsError}`)
             if (unverifiedSkills){
                 myCache.set("unverifiedSkills", unverifiedSkills);
                 table.addRow("Unverified Skills", "✅ Fetched and cached");
-            }else table.addRow("Unverified Skills", "❌ Error")            
+            }else table.addRow("Unverified Skills", `❌ Error: ${unverifiedSkillsError}`)            
             if (users){
                 myCache.set("users", users);
                 table.addRow("Users", "✅ Fetched and cached");
-            } else table.addRow("Users", "❌ Error");
+            } else table.addRow("Users", `❌ Error: ${usersError}`);
             if (teams){
                 myCache.set("teams", teams);
                 table.addRow("Teams", "✅ Fetched and cached");
-            }else table.addRow("Teams", "❌ Error");
+            }else table.addRow("Teams", `❌ Error: ${teamError}`);
             logger.info(`\n${table.toString()}`);
         }
 
@@ -85,7 +84,7 @@ module.exports = {
         })
 
         try{
-            if (process.env.ENV == "production"){
+            if (process.env.SLASH_CMD_ENV == "production"){
                 await rest.put(Routes.applicationCommands(clientId), {
                     //JSON Format
                     body: commands 

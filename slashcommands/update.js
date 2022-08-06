@@ -94,7 +94,7 @@ module.exports = {
             const [ projectDetail, projectError ] = await fetchProjectDetail({ projectID: updateProjectId });
 
             if (projectError) return interaction.followUp({
-                content: `Error occured when fetching project details: \`${projectError.response.errors[0].message}\``
+                content: `Error occured when fetching project details: \`${projectError}\``
             })
 
             const projectUpdateInform = {
@@ -255,7 +255,7 @@ module.exports = {
             const [result, error] = await createProjectUpdate(updateInform);
             
             if (error) return interaction.followUp({
-                content: `Error occured when fetching project details: \`${error.response.errors[0].message}\``
+                content: `Error occured when fetching project details: \`${error}\``
             })
 
             return interaction.followUp({
@@ -271,7 +271,7 @@ module.exports = {
 
         if (error) return {
             error: true,
-            message: error.response.errors[0].message
+            message: error
         }
 
         return {

@@ -6,7 +6,6 @@ const { sprintf } = require('sprintf-js');
 const CONSTANT = require("../helper/const");
 const myCache = require('../helper/cache');
 
-require("dotenv").config()
 
 module.exports = {
     commandName: "personality",
@@ -63,7 +62,7 @@ module.exports = {
         });
 
         if (error) return interaction.followUp({
-            content: `Error occured when uploading your endorsement: \`${error.response.errors[0].message}\``
+            content: `Error occured when uploading your endorsement: \`${error}\``
         });
 
         return interaction.followUp({
