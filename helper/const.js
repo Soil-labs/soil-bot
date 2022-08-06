@@ -8,10 +8,13 @@ const SKILL_STATE = Object.freeze({
     APPROVED: "approved"
 })
 
+const ERROR = Object.freeze({
+    TIMEOUT: "TimeOut"
+})
+
 const LINK = Object.freeze({
     NEW_PROJECT: "https://soil-app-front-p7kor7uzy-msaratzidis-gmailcom.vercel.app/form",
     PROJECT_TWEET: "https://soil-app-front-end-ruddy.vercel.app/projects/%s/feed",
-    GRAPHQL: "https://oasis-bot-test-deploy.herokuapp.com/graphql",
     SOIL: "https://www.Soil.xyz",
     PROJECT: "https://www.soil.xyz/project/%s",
     PROJECT_GATEWAY: "https://www.soil.xyz/project/",
@@ -92,7 +95,9 @@ const NUMERICAL_VALUE = Object.freeze({
     BUTTON_COLLECTOR_INTERVAL: 20,
     DB_ID_LENGTH: 24,
     DISCORD_ID_LENGTH: 18,
-    AUTOCOMPLETE_OPTION_LENGTH: 25
+    AUTOCOMPLETE_OPTION_LENGTH: 25,
+    GRAPHQL_TIMEOUT_SHORT: 2 * 1000,
+    GRAPHQL_TIMEOUT_LONG: 10 * 1000,
 })
 
 const MESSAGE_SETTING = Object.freeze({
@@ -113,6 +118,7 @@ const ATTRIBUTES = Object.freeze([
 module.exports = { 
     GRAPHQL_ERROR, 
     SKILL_STATE, 
+    ERROR,
     LINK, 
     CONTENT,
     NUMERICAL_VALUE,

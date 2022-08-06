@@ -6,7 +6,6 @@ const { sprintf } = require('sprintf-js');
 const CONSTANT = require("../helper/const");
 const _ = require("lodash")
 
-require("dotenv").config()
 
 module.exports = {
     commandName: "match",
@@ -90,7 +89,7 @@ module.exports = {
             const [tmpResult, matchError] = await matchMemberToUser({ memberId: targetUser.id });
 
             if (matchError) return interaction.followUp({
-                content: `Error occured when matching: \`${matchError.response.errors[0].message}\``
+                content: `Error occured when matching: \`${matchError}\``
             })
 
             if (tmpResult.length == 0) {
@@ -132,7 +131,7 @@ module.exports = {
             const [tmpResult, matchError] = await matchMemberToSkill({ skillsID: skills });
 
             if (matchError) return interaction.followUp({
-                content: `Error occured when matching: \`${matchError.response.errors[0].message}\``
+                content: `Error occured when matching: \`${matchError}\``
             })
 
             if (tmpResult.length == 0) return interaction.followUp({

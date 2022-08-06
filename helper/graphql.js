@@ -1,8 +1,25 @@
 const { gql, GraphQLClient } = require("graphql-request")
-const { awaitWrap } = require("./util");
+const { awaitWrapTimeout } = require("./util");
 const CONSTANT = require("./const");
+const logger = require("./logger");
 
-const client = new GraphQLClient(CONSTANT.LINK.GRAPHQL, { headers: {} })
+let _endPoint = ''
+switch(process.env.VERSION){
+  case "Test":
+    _endPoint = "https://soil-test-backend.herokuapp.com/graphql";
+    break;
+  case "Develop":
+    _endPoint = "http://oasis-bot-test-deploy.herokuapp.com/graphql";
+    break;
+  case "Production":
+    _endPoint = "https://eden-deploy.herokuapp.com/graphql";
+    break;
+  default:
+    logger.error("Please check the bot version in .env");
+    process.exit(1)
+}
+
+const _client = new GraphQLClient(_endPoint, { headers: {} })
 
 const GET_PROJECTS = gql`
     query{
@@ -337,117 +354,122 @@ mutation(
 `
 
 async function fetchProjects() {
-    const { result, error } = await awaitWrap(client.request(GET_PROJECTS));
-    if (error) return [null, error]
+    const { result, error } = await awaitWrapTimeout(_client.request(GET_PROJECTS), CONSTANT.NUMERICAL_VALUE.GRAPHQL_TIMEOUT_LONG);
+    if (error) return [null, _graphqlErrorHandler(error)]
     else return [result.findProjects, null]
 }
 
 async function fetchSkills() {
-    const { result, error } = await awaitWrap(client.request(GET_SKILLS));
-    if (error) return [null, error]
+    const { result, error } = await awaitWrapTimeout(_client.request(GET_SKILLS), CONSTANT.NUMERICAL_VALUE.GRAPHQL_TIMEOUT_LONG);
+    if (error) return [null, _graphqlErrorHandler(error)]
     else return [result.findSkills, null]
 }
 
 async function fetchUnverifiedSkills(){
-    const { result, error } = await awaitWrap(client.request(GET_UNVERIFIED_SKILL));
-    if (error) return [null, error]
+    const { result, error } = await awaitWrapTimeout(_client.request(GET_UNVERIFIED_SKILL), CONSTANT.NUMERICAL_VALUE.GRAPHQL_TIMEOUT_LONG);
+    if (error) return [null, _graphqlErrorHandler(error)]
     else return [result.waitingToAproveSkills, null]
 }
 
 async function fetchUsers() {
-  const { result, error } = await awaitWrap(client.request(GET_USERS));
-  if (error) return [null, error];
+  const { result, error } = await awaitWrapTimeout(_client.request(GET_USERS), CONSTANT.NUMERICAL_VALUE.GRAPHQL_TIMEOUT_LONG);
+  if (error) return [null, _graphqlErrorHandler(error)];
   else return [result.findMembers, null];
 }
 
 async function fetchTeams(){
-  const { result, error } = await awaitWrap(client.request(GET_TEAMS));
-  if (error) return [null, error];
+  const { result, error } = await awaitWrapTimeout(_client.request(GET_TEAMS), CONSTANT.NUMERICAL_VALUE.GRAPHQL_TIMEOUT_LONG);
+  if (error) return [null, _graphqlErrorHandler(error)];
   else return [result.findTeams, null];
 }
 
 async function addNewMember(userJSON) {
-    const { result, error } = await awaitWrap(client.request(ADD_MEMBER, userJSON));
-    if (error) return [null, error]
+    const { result, error } = await awaitWrapTimeout(_client.request(ADD_MEMBER, userJSON));
+    if (error) return [null, _graphqlErrorHandler(error)]
     else return [result.addNewMember, null];
 }
 
 async function updateUser(userJSON) {
-    const { result, error } = await awaitWrap(client.request(UPDATE_USER, userJSON));
-    if (error) return [null, error]
+    const { result, error } = await awaitWrapTimeout(_client.request(UPDATE_USER, userJSON));
+    if (error) return [null, _graphqlErrorHandler(error)]
     else return [result.updateMember, null];
 }
 
 async function addSkillToMember(addSkillJSON){
-    const { result, error } = await awaitWrap(client.request(ADD_SKILL_TO_MEMBER, addSkillJSON));
-    if (error) return [null, error]
+    const { result, error } = await awaitWrapTimeout(_client.request(ADD_SKILL_TO_MEMBER, addSkillJSON));
+    if (error) return [null, _graphqlErrorHandler(error)]
     else return [result.addSkillToMember, null];
 }
 
 async function newTweetProject(tweetJSON){
-    const { result, error } = await awaitWrap(client.request(NEW_TWEET_PROJECT, tweetJSON));
-    if (error) return [null, error]
+    const { result, error } = await awaitWrapTimeout(_client.request(NEW_TWEET_PROJECT, tweetJSON));
+    if (error) return [null, _graphqlErrorHandler(error)]
     else return [result.newTweetProject, null];
 }
 
 async function approveTweet(tweetJSON){
-    const { result, error } = await awaitWrap(client.request(APPROVE_TWEET, tweetJSON));
-    if (error) return [null, error]
+    const { result, error } = await awaitWrapTimeout(_client.request(APPROVE_TWEET, tweetJSON));
+    if (error) return [null, _graphqlErrorHandler(error)]
     else return [result.approveTweet, null];
 }
 
 async function fetchProjectDetail(projectIdJSON){
-    const { result, error } = await awaitWrap(client.request(FETCH_PROJECT_DETAIL, projectIdJSON));
-    if (error) return [null, error]
+    const { result, error } = await awaitWrapTimeout(_client.request(FETCH_PROJECT_DETAIL, projectIdJSON));
+    if (error) return [null, _graphqlErrorHandler(error)]
     else return [result.findProject, null];
 }
 
 async function fetchUserDetail(userIdJSON){
-    const { result, error } = await awaitWrap(client.request(FETCH_USER_DETAIL, userIdJSON));
-    if (error) return [null, error]
+    const { result, error } = await awaitWrapTimeout(_client.request(FETCH_USER_DETAIL, userIdJSON));
+    if (error) return [null, _graphqlErrorHandler(error)]
     else return [result.findMember, null];
 }
 
 async function fetchTeamDetail(teamIdsJSON){
-    const { result, error } = await awaitWrap(client.request(FETCH_TEAM_DETAIL, teamIdsJSON));
-    if (error) return [null, error]
+    const { result, error } = await awaitWrapTimeout(_client.request(FETCH_TEAM_DETAIL, teamIdsJSON));
+    if (error) return [null, _graphqlErrorHandler(error)]
     else return [result.findTeams, null];
 }
 
 async function fetchSkillDetail(skillJSON){
-    const { result, error } = await awaitWrap(client.request(FETCH_SKILL_DETAIL, skillJSON));
-    if (error) return [null, error]
+    const { result, error } = await awaitWrapTimeout(_client.request(FETCH_SKILL_DETAIL, skillJSON));
+    if (error) return [null, _graphqlErrorHandler(error)]
     else return [result.findSkill, null];
 }
 
 async function addSkill(skillNameJSON){
-    const { result, error } = await awaitWrap(client.request(ADD_SKILL, skillNameJSON));
-    if (error) return [null, error]
+    const { result, error } = await awaitWrapTimeout(_client.request(ADD_SKILL, skillNameJSON));
+    if (error) return [null, _graphqlErrorHandler(error)]
     else return [result.createSkill, null];
 }
 
 async function matchMemberToUser(memberJSON){
-    const { result, error } = await awaitWrap(client.request(MATCH_MEMBER_TO_USER, memberJSON));
-    if (error) return [null, error]
+    const { result, error } = await awaitWrapTimeout(_client.request(MATCH_MEMBER_TO_USER, memberJSON));
+    if (error) return [null, _graphqlErrorHandler(error)]
     else return [result.matchMembersToUser, null];
 }
 
 async function matchMemberToSkill(skillsJSON){
-    const { result, error } = await awaitWrap(client.request(MATCH_MEMBER_TO_SKILL, skillsJSON));
-    if (error) return [null, error]
+    const { result, error } = await awaitWrapTimeout(_client.request(MATCH_MEMBER_TO_SKILL, skillsJSON));
+    if (error) return [null, _graphqlErrorHandler(error)]
     else return [result.matchMembersToSkills, null];
 }
 
 async function endorseAttribute(attributeJSON){
-    const { result, error } = await awaitWrap(client.request(ENDORSE_ATTRIBUTE, attributeJSON));
-    if (error) return [null, error]
+    const { result, error } = await awaitWrapTimeout(_client.request(ENDORSE_ATTRIBUTE, attributeJSON));
+    if (error) return [null, _graphqlErrorHandler(error)]
     else return [result.endorseAttribute, null];
 }
 
 async function createProjectUpdate(projectUpdateJSON){
-    const { result, error } = await awaitWrap(client.request(CREATE_PROJECT_UPDATE, projectUpdateJSON));
-    if (error) return [null, error]
+    const { result, error } = await awaitWrapTimeout(_client.request(CREATE_PROJECT_UPDATE, projectUpdateJSON));
+    if (error) return [null, _graphqlErrorHandler(error)]
     else return [result.createProjectUpdate, null];
+}
+
+function _graphqlErrorHandler(error){
+  if (error.message == CONSTANT.ERROR.TIMEOUT) return CONSTANT.ERROR.TIMEOUT;
+  else return error.response.errors[0].message;
 }
 
 
@@ -470,5 +492,5 @@ module.exports = {
   matchMemberToUser,
   matchMemberToSkill,
   endorseAttribute,
-  createProjectUpdate
+  createProjectUpdate,
 };

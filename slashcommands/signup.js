@@ -1,13 +1,12 @@
 const { SlashCommandBuilder } = require('@discordjs/builders');
 const { CommandInteraction, MessageEmbed } = require("discord.js");
 const { validUser } = require('../helper/util');
-const { addNewMember } = require('../helper/graphql');
+const { addNewMember, updateUser } = require('../helper/graphql');
 const { sprintf } = require('sprintf-js');
 const myCache = require("../helper/cache");
 const CONSTANT = require("../helper/const");
 const _ = require("lodash");
 
-require("dotenv").config()
 
 module.exports = {
     commandName: "signup",
@@ -35,19 +34,31 @@ module.exports = {
             discordAvatar: user.displayAvatarURL()
         };
 
-        const [result, error] = await addNewMember(inform);
-
-        if (error) return interaction.reply({
-            content: `Error occured when onboarding yourself: \`${error.response.errors[0].message}\``,
-            ephemeral: true
-        })
-
         let cached = myCache.get("users");
         
         if (validResult){
+            const [result, error] = await updateUser(inform);
+
+            if (error) return interaction.reply({
+                content: `Error occured when onboarding yourself: \`${error}\``,
+                ephemeral: true
+            })
+
             const index = _.findIndex(cached, (value) => { return value._id == user.id });
             cached.splice(index, 1, inform);
+
         }else{ 
+
+            const [result, error] = await addNewMember({
+                ...inform,
+                invitedBy: user.id
+            });
+            
+            if (error) return interaction.reply({
+                content: `Error occured when onboarding yourself: \`${error}\``,
+                ephemeral: true
+            })
+
             cached.push(inform);
         }
 

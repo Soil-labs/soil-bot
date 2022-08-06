@@ -6,7 +6,6 @@ const CONSTANT = require("../helper/const");
 const myCache = require('../helper/cache');
 const sprintf = require('sprintf-js').sprintf;
 
-require("dotenv").config()
 
 module.exports = {
     commandName: "search",
@@ -89,7 +88,7 @@ module.exports = {
                 await interaction.deferReply({ ephemeral: true });
                 const [userDetail, error] = await fetchUserDetail({ userID: user.id });
                 if (error) return interaction.followUp({
-                    content: `Error occured: \`${error.response.errors[0].message}\``,
+                    content: `Error occured: \`${error}\``,
                 });
 
                 const userLink = sprintf(CONSTANT.LINK.USER, user.id)
@@ -131,7 +130,7 @@ module.exports = {
                 await interaction.deferReply({ ephemeral: true });
                 const [result, error] = await fetchProjectDetail({ projectID: projectId });
                 if (error) return interaction.followUp({
-                    content: `Error occured: \`${error.response.errors[0].message}\``
+                    content: `Error occured: \`${error}\``
                 })
 
                 const projectLink = sprintf(CONSTANT.LINK.PROJECT, projectId)
@@ -176,7 +175,7 @@ module.exports = {
                 await interaction.deferReply({ ephemeral: true });
                 const [result, error] = await fetchSkillDetail({ skillID: skillId });
                 if (error) return interaction.followUp({
-                    content: `Error occured: \`${error.response.errors[0].message}\``
+                    content: `Error occured: \`${error}\``
                 })
                 const skillLink = sprintf(CONSTANT.LINK.SKILL, skillId);
 

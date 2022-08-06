@@ -1,4 +1,6 @@
 const myCache = require("./cache");
+const CONSTANT = require("../helper/const");
+
 /**
  * @param  {Promise} promise
  * @param  {string} renamedObject="result"
@@ -18,6 +20,28 @@ async function awaitWrap(promise, renamedObject = "result", renamedError = "erro
                 [renamedError]: err
             }
         });
+}
+/**
+ * @param  {Promise} promise
+ * @param  {number} timeout=CONSTANT.NUMERICAL_VALUE.GRAPHQL_TIMEOUT_SHORT
+ * @param  {string} renamedObject="result"
+ * @param  {string} renamedError="error"
+ */
+async function awaitWrapTimeout(promise, timeout = CONSTANT.NUMERICAL_VALUE.GRAPHQL_TIMEOUT_SHORT, renamedObject = "result", renamedError = "error"){
+    return Promise.race([
+        promise,
+        new Promise((_, rej) => setTimeout(() => rej(new Error(CONSTANT.ERROR.TIMEOUT)), timeout))
+    ]).then((data) => {
+        return {
+            [renamedObject]: data,
+            [renamedError]: null
+        }
+    }).catch((err) => {
+        return {
+            [renamedObject]: null,
+            [renamedError]: err
+        }
+    });
 }
 
 function validUser(userId){
@@ -49,4 +73,4 @@ function insertVerticalBar(array){
     return tmp.toString()
 }
 
-module.exports = { awaitWrap, validProject, validSkill, validUser, insertVerticalBar }
+module.exports = { awaitWrap, awaitWrapTimeout, validProject, validSkill, validUser, insertVerticalBar }

@@ -1,13 +1,11 @@
 const { SlashCommandBuilder } = require('@discordjs/builders');
 const { CommandInteraction, MessageEmbed } = require("discord.js");
-const { validUser } = require('../helper/util');
 const { addNewMember } = require('../helper/graphql');
 const { sprintf } = require('sprintf-js');
 const myCache = require("../helper/cache");
 const CONSTANT = require("../helper/const");
 const _ = require("lodash");
 
-require("dotenv").config()
 
 module.exports = {
     commandName: "onboard",
@@ -87,32 +85,10 @@ module.exports = {
         const onboardLink = sprintf(CONSTANT.LINK.STAGING_ONBOARD, prefix);
 
         await Promise.all(updatePromise);
-        // const onboardLink = sprintf(CONSTANT.LINK.AIRTABLE_ONBOARDING, {
-        //     discordName: encodeURIComponent(interaction.user.username),
-        //     discordId: interaction.user.id
-        // })
 
         const replyEmbed = new MessageEmbed()
             .setTitle("🥰Planting seeds for yourself & others how WAGMI🥰")
             .setDescription(sprintf(CONSTANT.CONTENT.ONBOARD, { onboardLink: onboardLink }));
-
-        // if (searchResult) {
-        //     const [result, error] = await updateUser(userInform);
-
-        //     if (error) return interaction.reply({
-        //         content: `Error occured when onboarding yourself: \`${error.response.errors[0].message}\``,
-        //         ephemeral: true
-        //     });
-
-        //     const index = _.findIndex(myCache.get("users"), (element) => {
-        //         element._id == user.id
-        //     })
-
-        //     const tmp = myCache.get("users");
-        //     tmp.splice(index, 1, userInform);
-        //     myCache.set("users", tmp);
-            
-        // }else{
 
         myCache.set("users", cached);
 

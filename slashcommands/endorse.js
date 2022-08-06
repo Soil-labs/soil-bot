@@ -5,7 +5,6 @@ const { awaitWrap, validSkill, validUser } = require("../helper/util");
 const myCache = require('../helper/cache');
 const CONSTANT = require("../helper/const");
 const { sprintf } = require('sprintf-js');
-require("dotenv").config()
 
 module.exports = {
     commandName: "endorse",
@@ -41,10 +40,10 @@ module.exports = {
             ephemeral: true
         })
 
-        // if (user.id == interaction.user.id) return interaction.reply({
-        //     content: "Sorry, you cannot endorse yourself.",
-        //     ephemeral: true
-        // })
+        if (user.id == interaction.user.id) return interaction.reply({
+            content: "Sorry, you cannot endorse yourself.",
+            ephemeral: true
+        })
 
         await interaction.deferReply({
             ephemeral: true
@@ -52,6 +51,7 @@ module.exports = {
 
         if (!validUser(interaction.user.id)) {
             const authorOnboardResult = await this._onboardNewUser(interaction.user);
+
             if (authorOnboardResult.error) return interaction.followUp({
                 content: `Error occured when onboarding you: \`${authorOnboardResult.message}\``,
                 ephemeral: true
@@ -106,7 +106,7 @@ module.exports = {
 
             const [unverifiedSkill, unverifiedSkillError] = await addSkill({ name: skill });
             if (unverifiedSkillError) return interaction.editReply({
-                content: `Error occured when creating a new unverified skill \`${skill}\`: \`${unverifiedSkillError.response.errors[0].message}\``,
+                content: `Error occured when creating a new unverified skill \`${skill}\`: \`${unverifiedSkillError}\``,
                 ephemeral: true
             })
 
@@ -125,6 +125,7 @@ module.exports = {
             skill = unverifiedSkill._id;
             skillState = CONSTANT.SKILL_STATE.WAITING;
         }else{
+            //Allow endorse exist skill
             skillName = validResult.name
             // const [userDetail, userDetailError] = await fetchUserDetail({ userID: user.id });
             // if (userDetailError) return interaction.followUp({
@@ -145,7 +146,7 @@ module.exports = {
         );
 
         if (error) return interaction.followUp({
-            content: `Error occured when add skill to ${user.username}: \`${error.response.errors[0].message}\``,
+            content: `Error occured when add skill to ${user.username}: \`${error}\``,
             ephemeral: true
         })
 
@@ -207,7 +208,7 @@ module.exports = {
 
         if (error) return {
             error: true,
-            message: error.response.errors[0].message
+            message: error
         }
 
         myCache.set("users", [ ...myCache.get("users"), userInform ])

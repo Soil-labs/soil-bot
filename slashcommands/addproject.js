@@ -4,7 +4,6 @@ const { sprintf } = require('sprintf-js');
 const CONSTANT = require("../helper/const");
 const { validProject } = require('../helper/util');
 
-require("dotenv").config()
 
 module.exports = {
     commandName: "project",

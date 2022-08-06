@@ -6,7 +6,6 @@ const { sprintf } = require('sprintf-js');
 const myCache = require("../helper/cache");
 const CONSTANT = require("../helper/const");
 
-require("dotenv").config()
 
 module.exports = {
     commandName: "invite",
@@ -64,7 +63,7 @@ module.exports = {
         const [result, error] = await addNewMember(userInform);
 
         if (error) return interaction.followUp({
-            content: `Error occured: \`${error.response.errors[0].message}\``
+            content: `Error occured: \`${error}\``
         })
 
         //Add newcomer into the cache

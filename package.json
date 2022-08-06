@@ -4,7 +4,7 @@
   "description": "Soli Bot Only for Demo",
   "main": "index.js",
   "scripts": {
-    "dev": "node index.js",
+    "dev": "node -r dotenv/config index.js",
     "nodemon": "nodemon index.js"
   },
   "repository": {
