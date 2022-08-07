@@ -1,7 +1,7 @@
 const discord = require('discord.js');
 const fs = require("fs");
-const path = require('path')
-require("dotenv").config()
+const path = require('path');
+const logger = require('./helper/logger');
 
 //Intents mean the functionality of your bot
 const client = new discord.Client({ intents: [
@@ -18,7 +18,7 @@ client.buttons = new discord.Collection();
 
 const slashCommandFilesPath = path.join(process.cwd(), "slashcommands");
 const slashCommandFiles = fs.readdirSync(slashCommandFilesPath).filter((file) => file.endsWith(".js"));
-const slashCommands = [];
+let slashCommands = [];
 
 //Load command
 for (const file of slashCommandFiles){
@@ -57,6 +57,17 @@ for (const file of autoCompleteFiles){
 
 const eventsFilesPath = path.join(process.cwd(), "events");
 const eventsFiles = fs.readdirSync(eventsFilesPath).filter((file) => file.endsWith(".js"));
+
+
+if (process.env.SLASH_CMD_ENV == "production"){
+    const filtedCommands = process.env.ALLOW_COMMAND.split(',').filter((value) => value != '');
+    if (filtedCommands.length == 0){
+        logger.error("Please set ALLOW_COMMAND in .env or check its format");
+        process.exit(1);
+    }else{
+        slashCommands = slashCommands.filter((value) => filtedCommands.includes(value.name))
+    }
+}
 
 //Loop event
 for (const file of eventsFiles){

@@ -1,7 +1,7 @@
 const { SlashCommandBuilder } = require('@discordjs/builders');
 const { CommandInteraction, MessageEmbed } = require("discord.js");
 const { validUser, insertVerticalBar, validSkill } = require('../helper/util');
-const { matchMemberToUser, matchMemberToSkill, fetchUserDetail } = require('../helper/graphql');
+const { matchMemberToUser, matchMemberToSkill, matchMemberToProject, fetchUserDetail } = require('../helper/graphql');
 const { sprintf } = require('sprintf-js');
 const CONSTANT = require("../helper/const");
 const _ = require("lodash")
@@ -30,6 +30,10 @@ module.exports = {
                             .setRequired(true)))
 
             .addSubcommand(command =>
+                command.setName("project")
+                    .setDescription("Find projects for a person with similar skillsets"))
+
+            .addSubcommand(command =>
                 command.setName("skill")
                     .setDescription("Find all people matching a set of skills")
                     .addStringOption(option =>
@@ -55,6 +59,60 @@ module.exports = {
      * @param  {CommandInteraction} interaction
      */
     async execute(interaction) {
+        if (interaction.options.getSubcommand() == "project"){
+            await interaction.deferReply({ ephemeral: true })
+            const [ matchResult, error ] = await matchMemberToProject({ memberId: interaction.user.id });
+            if (error) return interaction.followUp({
+                content: `Error occured when fetching his/her profile: \`${error}\`.`
+            })
+
+            let matchField = '', projectField = '', roleField = '';
+            const top3Match = matchResult.sort((first, second) => {
+                return second.matchPercentage - first.matchPercentage
+            }).slice(0, 3);
+
+            top3Match.forEach((value) => {
+                matchField += sprintf("%d%%\n", value.matchPercentage);
+                projectField += `${value.projectData.title}\n`;
+                const skillNames = insertVerticalBar(value.role.skills.slice(0, 3).map((value) => value.skillData.name));
+                roleField += sprintf("%s: %s", value.role.title, skillNames);
+            });
+
+            let embedDescription, fields = [];
+            if (top3Match.length == 0) embedDescription = CONSTANT.CONTENT.MATCH_PROJECT_FAIL;
+            else {
+                embedDescription = CONSTANT.CONTENT.MATCH_PROJECT;
+                fields.push(
+                    {
+                        name: "⚙️MATCH",
+                        value: matchField,
+                        inline: true
+                    },
+                    {
+                        name: "📚PROJECT",
+                        value: projectField,
+                        inline: true
+                    },
+                    {
+                        name: "💻SKILL",
+                        value: roleField,
+                        inline: true
+                    }
+                )
+            }
+            const authorName = `@${interaction.user.username} - Project Matching Results`;
+            return interaction.followUp({
+                embeds: [
+                    new MessageEmbed()
+                    .setDescription(embedDescription)
+                    .setAuthor({ name: authorName, iconURL: interaction.user.avatarURL(), url: sprintf(CONSTANT.LINK.USER, interaction.user.id) })
+                    .setColor(CONSTANT.MESSAGE_SETTING.EMBED_COLOR)
+                    .addFields(fields)
+                ]
+            })
+        }
+
+
         let matchResult, authorName, userId, avatarURL;
 
         if (interaction.options.getSubcommand() == "user" || interaction.options.getSubcommand() == "self"){
@@ -96,7 +154,7 @@ module.exports = {
                 const [userDetail, userDetailError] = await fetchUserDetail({ userID: targetUser.id });
 
                 if (userDetailError) return interaction.followUp({
-                    content: sprintf(userDetailErrorContent, error.response.errors[0].message)
+                    content: sprintf(userDetailErrorContent, userDetailError)
                 })
 
                 if (!userDetail.skills.length) return interaction.followUp({
@@ -164,7 +222,7 @@ module.exports = {
         let embedDescription
         if (top3Match.length == 0) embedDescription = CONSTANT.CONTENT.MATCH_SKILL_FAIL;
         else {
-            embedDescription = sprintf(CONSTANT.CONTENT.MATCH_SKILL, { matchNum: top3Match.length });
+            embedDescription = CONSTANT.CONTENT.MATCH_SKILL;
             fields.push(
                 {
                     name: "⚙️MATCH",

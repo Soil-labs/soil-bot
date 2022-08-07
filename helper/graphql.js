@@ -3,23 +3,23 @@ const { awaitWrapTimeout } = require("./util");
 const CONSTANT = require("./const");
 const logger = require("./logger");
 
-let _endPoint = ''
-switch(process.env.VERSION){
-  case "Test":
-    _endPoint = "https://soil-test-backend.herokuapp.com/graphql";
-    break;
-  case "Develop":
-    _endPoint = "http://oasis-bot-test-deploy.herokuapp.com/graphql";
-    break;
-  case "Production":
-    _endPoint = "https://eden-deploy.herokuapp.com/graphql";
-    break;
-  default:
-    logger.error("Please check the bot version in .env");
-    process.exit(1)
-}
+// let _endPoint = ''
+// switch(process.env.VERSION){
+//   case "Test":
+//     _endPoint = "https://soil-test-backend.herokuapp.com/graphql";
+//     break;
+//   case "Develop":
+//     _endPoint = "http://oasis-bot-test-deploy.herokuapp.com/graphql";
+//     break;
+//   case "Production":
+//     _endPoint = "https://eden-deploy.herokuapp.com/graphql";
+//     break;
+//   default:
+//     logger.error("Please check the bot version in .env");
+//     process.exit(1)
+// }
 
-const _client = new GraphQLClient(_endPoint, { headers: {} })
+const _client = new GraphQLClient(CONSTANT.LINK.GRAPHQL_ENDPOINT, { headers: {} })
 
 const GET_PROJECTS = gql`
     query{
@@ -317,6 +317,31 @@ const MATCH_MEMBER_TO_SKILL = gql`
 }
 `;
 
+const MATCH_MEMBER_TO_PROJECT = gql`
+  query(
+    $memberId: ID
+  ){
+  findProjects_RecommendedToUser(fields:{
+    memberID: $memberId
+  }){
+      matchPercentage
+      projectData{
+        _id
+        title
+      }
+      role{
+        _id
+        title
+        skills{
+          skillData{
+            name
+          }
+        }
+      }
+    }
+  }
+`
+
 const ENDORSE_ATTRIBUTE = gql`
   mutation(
     $memberId: ID,
@@ -455,6 +480,12 @@ async function matchMemberToSkill(skillsJSON){
     else return [result.matchMembersToSkills, null];
 }
 
+async function matchMemberToProject(memberJSON){
+    const { result, error } = await awaitWrapTimeout(_client.request(MATCH_MEMBER_TO_PROJECT, memberJSON));
+    if (error) return [null, _graphqlErrorHandler(error)]
+    else return [result.findProjects_RecommendedToUser, null];
+}
+
 async function endorseAttribute(attributeJSON){
     const { result, error } = await awaitWrapTimeout(_client.request(ENDORSE_ATTRIBUTE, attributeJSON));
     if (error) return [null, _graphqlErrorHandler(error)]
@@ -467,9 +498,13 @@ async function createProjectUpdate(projectUpdateJSON){
     else return [result.createProjectUpdate, null];
 }
 
+//to-do GraphQL Error Handling
 function _graphqlErrorHandler(error){
   if (error.message == CONSTANT.ERROR.TIMEOUT) return CONSTANT.ERROR.TIMEOUT;
-  else return error.response.errors[0].message;
+  else {
+    if (error.response) return error.response.errors[0].message;
+    else return error.message
+  }
 }
 
 
@@ -491,6 +526,7 @@ module.exports = {
   fetchSkillDetail,
   matchMemberToUser,
   matchMemberToSkill,
+  matchMemberToProject,
   endorseAttribute,
   createProjectUpdate,
 };

@@ -23,11 +23,6 @@ module.exports = {
         const clientId = client.user.id;
         const rest = new REST({ version: '9' }).setToken(process.env.TOKEN);
 
-        const guild = client.guilds.cache.get(process.env.GUILDID);
-        //Cache guild members and channels
-        await guild.members.fetch();
-        await guild.channels.fetch();
-
         const loadCache = async() =>{
             const [projects , projectsError] = await fetchProjects();
             const [skills, skillsError] = await fetchSkills();
@@ -91,6 +86,9 @@ module.exports = {
                 });
                 logger.info("Commands are set globally");
             }else{
+                const guild = client.guilds.cache.get(process.env.GUILDID);
+                await guild.members.fetch();
+                await guild.channels.fetch();
                 //Set commands only available in this guild 
                 await rest.put(Routes.applicationGuildCommands(clientId, process.env.GUILDID), {
                     //JSON Format
