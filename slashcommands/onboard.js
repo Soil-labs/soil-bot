@@ -62,9 +62,10 @@ module.exports = {
 
                 const inform = {
                     _id: member.id,
-                    discordName: member.username,
-                    discriminator: member.discriminator,
-                    discordAvatar: member.displayAvatarURL()
+                    discordName: member.user.username,
+                    discriminator: member.user.discriminator,
+                    discordAvatar: member.user.avatarURL(),
+                    invitedBy: interaction.user.id
                 }
 
                 if (index == -1) cached.push(inform);

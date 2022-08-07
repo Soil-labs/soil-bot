@@ -1,3 +1,23 @@
+
+let _endPoint, _frontEnd;
+switch(process.env.VERSION){
+  case "Test":
+    _endPoint = "https://soil-test-backend.herokuapp.com/graphql";
+    _frontEnd = "https://oasis-app-front-end-zeta.vercel.app/"
+    break;
+  case "Develop":
+    _endPoint = "http://oasis-bot-test-deploy.herokuapp.com/graphql";
+    _frontEnd = "https://oasis-app-front-end-zeta.vercel.app/"
+    break;
+  case "Production":
+    _endPoint = "https://eden-deploy.herokuapp.com/graphql";
+    _frontEnd = "https://eden-app-front-end-zeta.vercel.app/"
+    break;
+  default:
+    logger.error("Please check the bot version in .env");
+    process.exit(1)
+}
+
 const GRAPHQL_ERROR = Object.freeze({
     KEY_ERROR: "Key Error."
 })
@@ -13,6 +33,7 @@ const ERROR = Object.freeze({
 })
 
 const LINK = Object.freeze({
+    GRAPHQL_ENDPOINT: _endPoint,
     NEW_PROJECT: "https://soil-app-front-p7kor7uzy-msaratzidis-gmailcom.vercel.app/form",
     PROJECT_TWEET: "https://soil-app-front-end-ruddy.vercel.app/projects/%s/feed",
     SOIL: "https://www.Soil.xyz",
@@ -21,7 +42,7 @@ const LINK = Object.freeze({
     USER: "https://www.soil.xyz/profile/%s/",
     SKILL: "https://www.soil.xyz/member/%s/",
     ONBOARD: "https://www.soil.xyz/onboard/%s/",
-    STAGING_ONBOARD: "https://soil-app-front-end-ruddy.vercel.app/onboard%s",
+    STAGING_ONBOARD: _frontEnd + "onboard%s",
     ENDORSEMENTS: "https://www.soil.xyz/member/%s/endorsements/",
     CLAIM_ENDORSEMENT: "https://www.soil.xyz/endorsment/%s/",
     AIRTABLE_ONBOARDING: "https://airtable.com/shrLeYlIfsS7r4ZOi?prefill_discord+Name=@%(discordName)s&prefill_ID=%(discordId)s&prefill_AuthorName=@%(discordName)s&hide_Parent+Record+ID=true&hide_AuthorName=true&hide_ID=true&hide_AuthorID=true",
@@ -87,6 +108,9 @@ const CONTENT = Object.freeze({
     // MATCH_USER_FAIL: "Wow, your skill is so special that no matching result is for you. You are unique!\n\u200B\n",
     MATCH_SKILL: "Here are the people that have a similar skillset to yours! Why not reach out & talk about what you have in common?\n\u200B\n",
     MATCH_SKILL_FAIL: "Wow, your skill is so special that no matching result is for you. You are unique!\n\u200B\n",
+
+    MATCH_PROJECT: "This is the best projects and Roles for your skills 🥂\n\u200B\n",
+    MATCH_PROJECT_FAIL: "Wow, your skill is so special that no matching result is for you. You are unique!\n\u200B\n",
 
     ENDORSE_ATTRIBUTE: "You have successfully endorsed \`%(endorseeName)s\` with \`%(attributeName)s\` trait",
 })
