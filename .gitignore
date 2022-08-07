@@ -1,4 +1,7 @@
 .env
+.env.dev
+.env.main
+.env.d_d
 test.js
 node_modules/
 .DS_Store

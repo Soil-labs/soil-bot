@@ -92,14 +92,6 @@ module.exports = {
         return interaction.followUp({
             content: sprintf("DM is sent to \`%s\`", user.username)
         })
-
-
-        //Update Cache
-        // const tmp = myCache.get("users");
-        // const idArray = tmp.map(value => value._id);
-        // const index = idArray.indexOf(updateCache._id);
-        // tmp.splice(index, 1, userInform);
-        // myCache.set("users", tmp)
     }
 
 }
