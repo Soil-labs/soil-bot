@@ -44,10 +44,10 @@ module.exports = {
         const user = interaction.options.getUser("person");
         const trait = interaction.options.getString("trait");
 
-        if (user.id == interaction.user.id) return interaction.reply({
-            content: "Sorry, you cannot endorse yourself with a trait.",
-            ephemeral: true
-        })
+        // if (user.id == interaction.user.id) return interaction.reply({
+        //     content: "Sorry, you cannot endorse yourself with a trait.",
+        //     ephemeral: true
+        // })
         const validResult = validUser(user.id);
         if (!validResult) return interaction.reply({
             content: "Sorry, please use \`/onboard\` command to join in Soil🌱 first",

@@ -469,7 +469,10 @@ async function createProjectUpdate(projectUpdateJSON){
 
 function _graphqlErrorHandler(error){
   if (error.message == CONSTANT.ERROR.TIMEOUT) return CONSTANT.ERROR.TIMEOUT;
-  else return error.response.errors[0].message;
+  else {
+    logger.info(error)
+    return error.message;
+  }
 }
 
 

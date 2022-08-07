@@ -40,10 +40,10 @@ module.exports = {
             ephemeral: true
         })
 
-        if (user.id == interaction.user.id) return interaction.reply({
-            content: "Sorry, you cannot endorse yourself.",
-            ephemeral: true
-        })
+        // if (user.id == interaction.user.id) return interaction.reply({
+        //     content: "Sorry, you cannot endorse yourself.",
+        //     ephemeral: true
+        // })
 
         await interaction.deferReply({
             ephemeral: true

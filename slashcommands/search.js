@@ -59,7 +59,7 @@ module.exports = {
                 embeds: [
                     new MessageEmbed()
                         .setTitle(sprintf("🪄Total projects in DAO: %d", myCache.get("projects").length))
-                        .setDescription(sprintf("🔗Click [here](%s) to see all projects", CONSTANT.LINK.PROJECT_GATEWAY))
+                        .setDescription(sprintf("🔗Click [here](%s) to see all projects", "https://www.figma.com/proto/kilODLeVBrX7xyAzMBlXXy/soil-%F0%9F%8C%B1?page-id=349%3A6176&node-id=2215%3A3121&viewport=-14839%2C4106%2C0.95&scaling=scale-down"))
                 ],
                 ephemeral: true
             })
