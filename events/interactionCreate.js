@@ -1,5 +1,7 @@
 const {MessageComponentInteraction, CommandInteraction} = require("discord.js");
+const myCache = require("../helper/cache");
 const logger = require("../helper/logger");
+const _ = require("lodash")
 
 module.exports = {
     name: "interactionCreate",
@@ -9,7 +11,7 @@ module.exports = {
      * @param  {CommandInteraction | MessageComponentInteraction} interaction
      */
     async execute (interaction){
-
+        
         if (interaction.isCommand()){
 
             const command = interaction.client.commands.get(interaction.commandName);
@@ -17,6 +19,20 @@ module.exports = {
             //TODO Need to handle this error
             if (!command) return;
 
+            if (myCache.has("server")){
+                const { commandName, member } = interaction;
+                const { adminID, adminRoles, adminCommands } = myCache.get("server");
+                if (adminCommands.includes(commandName)){
+                    if (
+                        !adminID.includes(member.id)
+                        && _.intersection(Array.from(member.roles.cache.keys()), adminRoles).length == 0
+                    ) return interaction.reply({
+                        content: "Sorry, you don't have permission to run this command.",
+                        ephemeral: true
+                    })
+                }
+            }
+            
             try{
                 await command.execute(interaction);
             }catch (err){

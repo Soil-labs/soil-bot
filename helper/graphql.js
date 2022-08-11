@@ -174,7 +174,7 @@ const UPDATE_SERVER = gql`
   updateServer(fields:{
     	_id: $guildId
       name: $guildName
-      adminID: $adminIds
+      adminID: $adminID
       adminRoles: $adminRoles
       adminCommands: $adminCommands
   }){

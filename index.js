@@ -34,7 +34,7 @@ const choices = slashCommands.map(value => ({
     name: value.name,
     value: value.name
 }));
-const commandIndex = slashCommands.findIndex((value) => (value.name == "set"));
+const commandIndex = slashCommands.findIndex((value) => (value.name == "admin"));
 if (commandIndex != -1){
     //console.log(slashCommands[commandIndex].options[2].options[0].options[0])
     slashCommands[commandIndex].options[2].options[0].options[0].choices = choices

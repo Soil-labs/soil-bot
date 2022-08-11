@@ -88,6 +88,17 @@ module.exports = {
                 const [teams, teamError] = await fetchTeams();
                 myCache.set("teams", teams);
             }
+
+            if (key == "server"){
+                const [server, serverError] = await fetchServer({ guildId: process.env.GUILDID });
+                if (server.length == 0){
+                    myCache.set("server", {
+                        adminID: [],
+                        adminRoles: [],
+                        adminCommands: []
+                    });
+                }else  myCache.set("server", server[0]);
+            }
         })
 
         try{
