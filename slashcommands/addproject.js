@@ -19,7 +19,13 @@ module.exports = {
                 option.setName("project")
                     .setDescription("Choose a project from the list or create a new one")
                     .setRequired(true)
-                    .setAutocomplete(true))
+                    .addChoices(
+                        {
+                            name: "123",
+                            value: "123"
+                        }
+                    )
+                    )
     },
 
     /**

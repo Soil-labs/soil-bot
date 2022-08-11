@@ -29,6 +29,17 @@ for (const file of slashCommandFiles){
     client.commands.set(command.data.name, command);
 }
 
+//Stupid not flexible way to add choices to command `/set admin_command add`
+const choices = slashCommands.map(value => ({
+    name: value.name,
+    value: value.name
+}));
+const commandIndex = slashCommands.findIndex((value) => (value.name == "set"));
+if (commandIndex != -1){
+    //console.log(slashCommands[commandIndex].options[2].options[0].options[0])
+    slashCommands[commandIndex].options[2].options[0].options[0].choices = choices
+}
+
 //Load autoComplete
 const autoCompleteFilesPath = path.join(process.cwd(), 'autocomplete');
 const autoCompleteFiles = fs.readdirSync(autoCompleteFilesPath).filter((file) => file.endsWith(".js"))
@@ -46,7 +57,7 @@ for (const file of autoCompleteFiles){
 // const buttonFilesPath = path.join(process.cwd(), "button");
 // const buttonFiles = fs.readdirSync(buttonFilesPath).filter((file) => file.endsWith(".js"));
 
-//Load button
+// //Load button
 // for (const file of buttonFiles){
 //     const button = require(path.join(buttonFilesPath, file));
 //     //Our self-defined customId is an array

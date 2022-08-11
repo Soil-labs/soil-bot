@@ -1,25 +1,22 @@
 const { gql, GraphQLClient } = require("graphql-request")
 const { awaitWrapTimeout } = require("./util");
 const CONSTANT = require("./const");
-const logger = require("./logger");
-
-// let _endPoint = ''
-// switch(process.env.VERSION){
-//   case "Test":
-//     _endPoint = "https://soil-test-backend.herokuapp.com/graphql";
-//     break;
-//   case "Develop":
-//     _endPoint = "http://oasis-bot-test-deploy.herokuapp.com/graphql";
-//     break;
-//   case "Production":
-//     _endPoint = "https://eden-deploy.herokuapp.com/graphql";
-//     break;
-//   default:
-//     logger.error("Please check the bot version in .env");
-//     process.exit(1)
-// }
 
 const _client = new GraphQLClient(CONSTANT.LINK.GRAPHQL_ENDPOINT, { headers: {} })
+
+const GET_SERVER = gql`
+  query(
+    $guildId: ID
+  ){
+  findServers(fields:{
+    _id: $guildId
+  }){
+    adminID
+    adminRoles
+    adminCommands
+  }
+}
+`;
 
 const GET_PROJECTS = gql`
     query{
@@ -165,6 +162,26 @@ const APPROVE_TWEET = gql`
     }
   }
 `;
+
+const UPDATE_SERVER = gql`
+  mutation(
+    $guildId: ID
+    $guildName: String!
+    $adminID: [String]!
+    $adminRoles: [String]!
+    $adminCommands: [String]!
+  ){
+  updateServer(fields:{
+    	_id: $guildId
+      name: $guildName
+      adminID: $adminIds
+      adminRoles: $adminRoles
+      adminCommands: $adminCommands
+  }){
+    _id
+  }
+}
+`
 
 const FETCH_PROJECT_DETAIL = gql`
     query(
@@ -377,6 +394,12 @@ mutation(
   }
 }
 `
+async function fetchServer(guildJSON) {
+    const { result, error } = await awaitWrapTimeout(_client.request(GET_SERVER, guildJSON), CONSTANT.NUMERICAL_VALUE.GRAPHQL_TIMEOUT_LONG);
+    if (error) return [null, _graphqlErrorHandler(error)]
+    else return [result.findServers, null]
+}
+
 
 async function fetchProjects() {
     const { result, error } = await awaitWrapTimeout(_client.request(GET_PROJECTS), CONSTANT.NUMERICAL_VALUE.GRAPHQL_TIMEOUT_LONG);
@@ -418,6 +441,12 @@ async function updateUser(userJSON) {
     const { result, error } = await awaitWrapTimeout(_client.request(UPDATE_USER, userJSON));
     if (error) return [null, _graphqlErrorHandler(error)]
     else return [result.updateMember, null];
+}
+
+async function updateServer(serverJSON) {
+    const { result, error } = await awaitWrapTimeout(_client.request(UPDATE_SERVER, serverJSON));
+    if (error) return [null, _graphqlErrorHandler(error)]
+    else return [result.updateServer, null];
 }
 
 async function addSkillToMember(addSkillJSON){
@@ -509,6 +538,7 @@ function _graphqlErrorHandler(error){
 
 
 module.exports = { 
+  fetchServer,
   fetchProjects, 
   fetchSkills, 
   fetchUsers, 
@@ -516,6 +546,7 @@ module.exports = {
   fetchUnverifiedSkills, 
   addNewMember,
   updateUser, 
+  updateServer,
   addSkillToMember, 
   newTweetProject, 
   approveTweet,
