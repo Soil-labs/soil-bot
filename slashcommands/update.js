@@ -61,16 +61,12 @@ module.exports = {
      * @param  {CommandInteraction} interaction
      */
     async execute(interaction) {
+        const guildId = interaction.guild.id;
         if (interaction.options.getSubcommand() == "project"){
             const updateProjectId = interaction.options.getString("project");
             const userId = interaction.user.id;
             const updateNewsTitle = interaction.options.getString("announcement_title");
             const updateNewsContent = interaction.options.getString("announcement_content");
-
-            if (!updateNewsTitle && !updateNewsContent) return interaction.reply({
-                content: "Sorry, you have to upload either \`title\` or \`content\`, or both.",
-                ephemeral: true
-            })
 
             let updateContent;
             if (updateNewsContent) updateContent = sprintf("**Title:** %s\n\n**Content:** %s", updateNewsTitle, updateNewsContent);
@@ -80,13 +76,14 @@ module.exports = {
                 ephemeral: true
             })
             
-            const isValidProject = validProject(updateProjectId);
+            const isValidProject = validProject(updateProjectId, guildId);
 
             if (!isValidProject) return interaction.followUp({
                 content: "Sorry, we cannot find this project",
                 ephemeral: true
             })
-            if (!validUser(userId)) return interaction.followUp({
+
+            if (!validUser(userId, guildId)) return interaction.followUp({
                 content: "Sorry, you don't have access to update this project.",
                 ephemeral: true
             })
@@ -102,7 +99,8 @@ module.exports = {
                 title: updateNewsTitle,
                 content: updateNewsContent,
                 author: userId
-            }
+            };
+
             const championId = projectDetail.champion?._id;
             const embedAuthorName = `@${interaction.user.username} updated the project`;
             const tweetLink = sprintf(CONSTANT.LINK.PROJECT_TWEET, updateProjectId);
@@ -115,13 +113,15 @@ module.exports = {
             const embedInform = {
                 newTweetContent: updateContent,
                 tweetLink: tweetLink
-            }
-            if (!championId) {
-                const result = await this._updateProject({
-                    ...projectUpdateInform,
-                    approved: true
-                });
+            };
 
+            //to-do approve should be branched in the future.
+            //currently we approve all update
+            const result = await this._updateProject({
+                ...projectUpdateInform,
+                approved: true
+            });
+            if (!championId) {
                 if (result.error) return interaction.followUp({
                     content: `Error occured when updating this announcement: \`${result.message}\``
                 })
@@ -136,11 +136,6 @@ module.exports = {
             }else{
                 //Champion herself/himself update a tweet for the project
                 if (championId == interaction.user.id){
-                    const result = await this._updateProject({
-                        ...projectUpdateInform,
-                        approved: true
-                    });
-
                     if (result.error) return interaction.followUp({
                         content: `Error occured when updating your announcement: \`${result.message}\``
                     })
@@ -153,11 +148,6 @@ module.exports = {
                         ]
                     })
                 }
-                
-                const result = await this._updateProject({
-                    ...projectUpdateInform,
-                    approved: true
-                });
 
                 if (result.error) return interaction.followUp({
                     content: `Error occured when updating your announcement: \`${result.message}\``
@@ -250,7 +240,7 @@ module.exports = {
                 teamIds: [teamId],
                 title: title,
                 content: content,
-                serverId: [interaction.guild.id]
+                serverId: [guildId]
             }
 
             const [result, error] = await createProjectUpdate(updateInform);

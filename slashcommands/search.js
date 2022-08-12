@@ -74,7 +74,7 @@ module.exports = {
                     ephemeral: true
                 })
 
-                const member = validUser(user.id);
+                const member = validUser(user.id, interaction.guild.id);
                 if (!member && user.id == interaction.user.id) return interaction.reply({
                     content: "Sorry, we cannot find your information, use \`/onboard\` command to join.",
                     ephemeral: true
@@ -116,17 +116,19 @@ module.exports = {
                 
                 userEmbed.setDescription(sprintf("🛠**Top 3 Skills**: %s\n\n✅**Current Availability**: %f h/week\n\n🧠 **Attribute**: %s\n\n🌱**Current Projects**: %s\n\n🔗Click [here](%s) to see the profile",
                     top3Skills, userDetail.hoursPerWeek ?? 0, top3Attributes, projects, userLink))
-                return interaction.followUp({
+                
+                    return interaction.followUp({
                     embeds: [userEmbed]
                 })
             }
 
             if (interaction.options.getSubcommand() == "project"){
                 const projectId = interaction.options.getString("project");
-                if (!validProject(projectId)) return interaction.reply({
+                if (!validProject(projectId, interaction.guild.id)) return interaction.reply({
                     content: "Sorry, we cannot find information of this project.",
                     ephemeral: true
                 })
+
                 await interaction.deferReply({ ephemeral: true });
                 const [result, error] = await fetchProjectDetail({ projectID: projectId });
                 if (error) return interaction.followUp({
@@ -139,34 +141,14 @@ module.exports = {
                     .setTitle(sprintf("✨%s", result.title ?? "No title"))
                     .setDescription(sprintf("✅ **Status**: %s\n\n👨‍👩‍👧‍👦 **Open Roles**: %d\n\n🔗 Click [here](%s) to see its profile\n\n🔈**[Recent Announcement](%s)**", 
                         result.status ?? "⚙️pre-launch | 🚀launched | 📦archived", result.role.length, projectLink, projectTweetLink))
-                // let tweets = [];
-                // result.tweets.filter(value => value.approved).forEach((value) => {
-                //     tweets.push(
-                //         {
-                //             name: "Content",
-                //             value: sprintf("%s\n%s", value.title ?? "No title", value.content ?? "No content"),
-                //             inline: true
-                //         },
-                //         {
-                //             name: "Author",
-                //             value: `\`${value.author?.discordName ?? "anonymous"}\``,
-                //             inline: true
-                //         },
-                //         {
-                //             name: "Time",
-                //             value: `<t:${Math.floor(parseInt(value.registeredAt)/1000)}>`,
-                //             inline: true
-                //         }
-                //     )
-                // })
+
                 return interaction.followUp({
-                    content: `Here is the project ${result.title ?? "No Title"} information.`,
                     embeds: [projectEmbed]
                 })
             }
 
             if (interaction.options.getSubcommand() == "skill"){
-                 const skillId = interaction.options.getString("skill");
+                const skillId = interaction.options.getString("skill");
 
                 if (!validSkill(skillId)) return interaction.reply({
                     content: "Sorry, we cannot find information of this skill.",

@@ -44,19 +44,42 @@ async function awaitWrapTimeout(promise, timeout = CONSTANT.NUMERICAL_VALUE.GRAP
     });
 }
 
-function validUser(userId){
-    const result = myCache.get("users").filter(value => value._id == userId);
-    return result.length != 0?result[0]:null
+function validUser(userId, guildId){
+    const result = myCache.get("users")[userId];
+    if (!result) return null;
+    return result[serverId].includes(guildId) ? result : null;
 }
 
 function validSkill(skillId){
-    const result = myCache.get("skills").filter(value => value._id == skillId);
-    return result.length != 0?result[0]:null
+    return myCache.get("skills")[skillId] ?? null;
 }
 
-function validProject(projectId){
-    const result = myCache.get("projects").filter(value => value._id == projectId);
-    return result.length != 0?result[0]:null
+function validProject(projectId, guildId){
+    const result = myCache.get("projects")[guildId];
+    if (!result) return null;
+    return result[projectId] ?? null
+}
+
+function updateUserCache(userId, discordName, guildId){
+    const cached = myCache.get("users");
+    if (!cached[userId]) myCache.set("users", {
+        ...cached,
+        [userId]: {
+            discordName: discordName,
+            serverId: [guildId]
+        }
+    })
+    else {
+        const guilds = cached[userId]["serverId"];
+        myCache.set("users", {
+            ...cached,
+            [userId]: {
+                discordName: discordName,
+                serverId: guilds.includes(guildId) ? guilds : [...guilds, guildId]
+            }
+        })
+    }
+    
 }
 
 function insertVerticalBar(array){
@@ -73,4 +96,12 @@ function insertVerticalBar(array){
     return tmp.toString()
 }
 
-module.exports = { awaitWrap, awaitWrapTimeout, validProject, validSkill, validUser, insertVerticalBar }
+module.exports = { 
+    awaitWrap, 
+    awaitWrapTimeout,
+    validProject, 
+    validSkill, 
+    validUser, 
+    insertVerticalBar, 
+    updateUserCache,
+}

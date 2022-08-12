@@ -59,11 +59,13 @@ module.exports = {
      * @param  {CommandInteraction} interaction
      */
     async execute(interaction) {
+        const guildId = interaction.guild.id;
         if (interaction.options.getSubcommand() == "project"){
-            await interaction.deferReply({ ephemeral: true })
+            await interaction.deferReply({ ephemeral: true });
+
             const [ matchResult, error ] = await matchMemberToProject({ 
                 memberId: interaction.user.id,
-                serverId: [interaction.guild.id]
+                serverId: [guildId]
             });
             if (error) return interaction.followUp({
                 content: `Error occured when fetching his/her profile: \`${error}\`.`
@@ -138,18 +140,20 @@ module.exports = {
                 noSkillContent = `Sorry, we cannot find a match for you because you don't have any skill. Try to find someone to endorse you!`
             }
 
-            const isValidUser = validUser(targetUser.id);
+            const isValidUser = validUser(targetUser.id, guildId);
 
             if (!isValidUser) return interaction.reply({
                 content: "Sorry, you are not a member of Soil. Please use \`/onboard\` command to join in our family!",
                 ephemeral: true
-            })
+            });
+
             await interaction.deferReply({
                 ephemeral: true
-            })
+            });
+
             const [tmpResult, matchError] = await matchMemberToUser({ 
                 memberId: targetUser.id,
-                serverId: [interaction.guild.id]
+                serverId: [guildId]
              });
 
             if (matchError) return interaction.followUp({
@@ -163,7 +167,7 @@ module.exports = {
                     content: sprintf(userDetailErrorContent, userDetailError)
                 })
 
-                if (!userDetail.skills.length) return interaction.followUp({
+                if (userDetail.skills.length == 0) return interaction.followUp({
                     content: noSkillContent
                 })
 
@@ -184,7 +188,7 @@ module.exports = {
             ].filter(value => validSkill(value)))
 
             if (skills.length == 0) return interaction.reply({
-                content: "Please choose at least one option",
+                content: "Please choose at least valid option",
                 ephemeral: true
             })
 
@@ -194,7 +198,7 @@ module.exports = {
 
             const [tmpResult, matchError] = await matchMemberToSkill({
                 skillsId: skills,
-                serverId: [interaction.guild.id]
+                serverId: [guildId]
             });
 
             if (matchError) return interaction.followUp({
@@ -204,6 +208,7 @@ module.exports = {
             if (tmpResult.length == 0) return interaction.followUp({
                 content: "Sorry, I cannot find a member with these skills"
             })
+            
             matchResult = tmpResult;
             authorName = `@${interaction.user.username} - Skill Matching Results`;
             avatarURL = interaction.user.avatarURL();

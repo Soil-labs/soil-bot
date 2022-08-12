@@ -4,7 +4,7 @@ const { addNewMember } = require('../helper/graphql');
 const { sprintf } = require('sprintf-js');
 const myCache = require("../helper/cache");
 const CONSTANT = require("../helper/const");
-const _ = require("lodash");
+const { updateUserCache, awaitWrap } = require('../helper/util');
 
 
 module.exports = {
@@ -28,7 +28,7 @@ module.exports = {
      */
     async execute(interaction) {
         const membersString = interaction.options.getString("member").match(/<@.?[0-9]*?>/g);
-
+        const guildId = interaction.guild.id;
         //membersString is null
         if (!membersString) return interaction.reply({
             content: "Please input at least one member in this guild",
@@ -38,7 +38,7 @@ module.exports = {
         let prefix = '';
         let memberIds = [];
         let updatePromise = [];
-        let cached = myCache.get("users");
+        let toBecached = [];
         //TO-DO: Handler Role and other mentions
         membersString.forEach((value) => {
             let duplicateValue = value;
@@ -56,9 +56,6 @@ module.exports = {
                 if (member.user.bot) return
                 
                 memberIds.push(duplicateValue);
-                const index = _.findIndex(cached, (element) => {
-                    return element._id == member.id
-                })
 
                 const inform = {
                     _id: member.id,
@@ -66,13 +63,14 @@ module.exports = {
                     discriminator: member.user.discriminator,
                     discordAvatar: member.user.avatarURL(),
                     invitedBy: interaction.user.id,
-                    serverId: [interaction.guild.id]
+                    serverId: [guildId]
                 }
+                toBecached.push({
+                    id: duplicateValue,
+                    discordName: inform.discordName
+                });
 
-                if (index == -1) cached.push(inform);
-                else cached.splice(index, 1, inform);
-                
-                updatePromise.push(addNewMember(inform))
+                updatePromise.push(addNewMember(inform));
             }
         })
 
@@ -86,13 +84,21 @@ module.exports = {
         await interaction.deferReply({ ephemeral: true });
         const onboardLink = sprintf(CONSTANT.LINK.STAGING_ONBOARD, prefix);
 
-        await Promise.all(updatePromise);
+        const results = await Promise.all(updatePromise);
+
+        if (results.filter((value) => (value[1])).length != 0) return interaction.followUp({
+            content: "Error occured when updating members."
+        })
+
+        //updateCache
+        //to-do should support array updates cache
+        toBecached.forEach((value) => {
+            updateUserCache(value.id, value.discordName, guildId)
+        })
 
         const replyEmbed = new MessageEmbed()
             .setTitle("🥰Planting seeds for yourself & others how WAGMI🥰")
             .setDescription(sprintf(CONSTANT.CONTENT.ONBOARD, { onboardLink: onboardLink }));
-
-        myCache.set("users", cached);
 
         return interaction.followUp({
             embeds: [replyEmbed]

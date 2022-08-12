@@ -1,7 +1,7 @@
 const { SlashCommandBuilder } = require('@discordjs/builders');
 const { CommandInteraction, MessageEmbed } = require("discord.js");
 const { addNewMember } = require("../helper/graphql");
-const { validUser, awaitWrap } = require('../helper/util');
+const { validUser, awaitWrap, updateUserCache } = require('../helper/util');
 const { sprintf } = require('sprintf-js');
 const myCache = require("../helper/cache");
 const CONSTANT = require("../helper/const");
@@ -27,35 +27,37 @@ module.exports = {
      * @param  {CommandInteraction} interaction
      */
     async execute(interaction) {
-        const user = interaction.options.getUser('user');
-        const author = interaction.user
+        const invitee = interaction.options.getUser('user');
+        const inviter = interaction.user;
+        const guildId = interaction.guild.id;
         
-        if (user.id == author.id) return interaction.reply({
+        if (invitee.id == inviter.id) return interaction.reply({
             content: "Sorry, you cannot invite yourself.",
             ephemeral: true
         })
-        if (user.bot) return interaction.reply({
+        if (invitee.bot) return interaction.reply({
             content: "Sorry, you cannot choose a bot as a target.",
             ephemeral: true
         })
-        const isNewAuthor = validUser(author.id);
-        if (!isNewAuthor) return interaction.reply({
-            content: "Please use \`/onboard\` command to onboard yourself first"
+        const isNewInviter = validUser(inviter.id, guildId);
+        if (!isNewInviter) return interaction.reply({
+            content: "Please use \`/onboard\` command to onboard yourself first",
+            ephemeral: true
         })
 
-        const isNewUser = validUser(user.id);
+        const isNewUser = validUser(invitee.id, guildId);
         if (isNewUser) return interaction.reply({
             content: "Sorry, this user has been onboarded.",
             ephemeral: true
         })
 
         const userInform = {
-            _id: user.id,
-            discordName: user.username,
-            discriminator: user.discriminator,
-            discordAvatar: user.displayAvatarURL({ format: 'jpg' }),
-            invitedBy: author.id,
-            serverId: [interaction.guild.id]
+            _id: invitee.id,
+            discordName: invitee.username,
+            discriminator: invitee.discriminator,
+            discordAvatar: invitee.displayAvatarURL({ format: 'jpg' }),
+            invitedBy: inviter.id,
+            serverId: [guildId]
         }
 
         await interaction.deferReply({
@@ -67,13 +69,12 @@ module.exports = {
             content: `Error occured: \`${error}\``
         })
 
-        //Add newcomer into the cache
-        myCache.set("users", [ ...myCache.get("users"), userInform ])
+        updateUserCache(invitee.id, invitee.username, guildId);
 
-        const onboardLink = sprintf(CONSTANT.LINK.ONBOARD, user.id);
+        const onboardLink = sprintf(CONSTANT.LINK.ONBOARD, invitee.id);
         let embedContent = new MessageEmbed()
-            .setAuthor({ name: author.username, url: sprintf(CONSTANT.LINK.USER, author.id), iconURL: author.avatarURL() });
-        const DMchannel = await user.createDM();
+            .setAuthor({ name: inviter.username, url: sprintf(CONSTANT.LINK.USER, inviter.id), iconURL: inviter.avatarURL() });
+        const DMchannel = await invitee.createDM();
         const { DMResult, DMError } = await awaitWrap(DMchannel.send({
             embeds: [
                 embedContent.setDescription(sprintf(CONSTANT.CONTENT.INVITE_DM, { onboardLink: onboardLink }))
@@ -81,7 +82,7 @@ module.exports = {
         }))
         if (DMError) {
             interaction.channel.send({
-                content: `<@${user.id}>`,
+                content: `<@${invitee.id}>`,
                 embeds: [
                     embedContent.setDescription(sprintf(CONSTANT.CONTENT.INVITE_DM_FAIL, { onboardLink: onboardLink }))
                 ]
@@ -91,16 +92,8 @@ module.exports = {
             })
         }
         return interaction.followUp({
-            content: sprintf("DM is sent to \`%s\`", user.username)
+            content: sprintf("DM is sent to \`%s\`", invitee.username)
         })
-
-
-        //Update Cache
-        // const tmp = myCache.get("users");
-        // const idArray = tmp.map(value => value._id);
-        // const index = idArray.indexOf(updateCache._id);
-        // tmp.splice(index, 1, userInform);
-        // myCache.set("users", tmp)
     }
 
 }

@@ -1,7 +1,7 @@
 const { SlashCommandBuilder } = require('@discordjs/builders');
 const { CommandInteraction, User, MessageEmbed } = require("discord.js");
 const { addSkillToMember, addSkill, addNewMember } = require('../helper/graphql');
-const { awaitWrap, validSkill, validUser } = require("../helper/util");
+const { awaitWrap, validSkill, validUser, updateUserCache } = require("../helper/util");
 const myCache = require('../helper/cache');
 const CONSTANT = require("../helper/const");
 const { sprintf } = require('sprintf-js');
@@ -30,16 +30,18 @@ module.exports = {
      * @param  {CommandInteraction} interaction
      */
     async execute(interaction) {
-        const user = interaction.options.getUser('user');
+        const endorsee = interaction.options.getUser('user');
+        const guildId = interaction.guild.id;
         let skill = interaction.options.getString('skill');
         let skillState = CONSTANT.SKILL_STATE.APPROVED;
+        let skillName;
 
-        if (user.bot) return interaction.followUp({
+        if (endorsee.bot) return interaction.followUp({
             content: `Sorry, you cannot support a bot.`,
             ephemeral: true
         })
 
-        if (user.id == interaction.user.id) return interaction.reply({
+        if (endorsee.id == interaction.user.id) return interaction.reply({
             content: "Sorry, you cannot endorse yourself.",
             ephemeral: true
         })
@@ -48,8 +50,8 @@ module.exports = {
             ephemeral: true
         })
 
-        if (!validUser(interaction.user.id)) {
-            const authorOnboardResult = await this._onboardNewUser(interaction.user, interaction.guild.id);
+        if (!validUser(interaction.user.id, guildId)) {
+            const authorOnboardResult = await this._onboardNewUser(interaction.user, guildId);
 
             if (authorOnboardResult.error) return interaction.followUp({
                 content: `Error occured when onboarding you: \`${authorOnboardResult.message}\``,
@@ -63,16 +65,16 @@ module.exports = {
             })
         }
 
-        const isNewMember = validUser(user.id) ? false : true
+        const isNewMember = validUser(endorsee.id, guildId) ? false : true
         if (isNewMember) {
-            const userOnboardResult = await this._onboardNewUser(user, interaction.guild.id);
+            const userOnboardResult = await this._onboardNewUser(endorsee, guildId);
             if (userOnboardResult.error) return interaction.followUp({
-                content: `Error occured when onboarding ${user.username}: \`${userOnboardResult.message}\``,
+                content: `Error occured when onboarding ${endorsee.username}: \`${userOnboardResult.message}\``,
                 ephemeral: true
             });
 
-            const userOnboardLink = sprintf(CONSTANT.LINK.ONBOARD, user.id)
-            const userDMchannel = await user.createDM()
+            const userOnboardLink = sprintf(CONSTANT.LINK.ONBOARD, endorsee.id)
+            const userDMchannel = await endorsee.createDM()
             const {userDMresult ,userDMerror} = await awaitWrap(userDMchannel.send({
                 content: sprintf(CONSTANT.CONTENT.INVITE_DM, {
                     inviterName: interaction.member.displayName,
@@ -83,14 +85,14 @@ module.exports = {
             if (userDMerror){
                 await interaction.channel.send({
                     content: sprintf(CONSTANT.CONTENT.INVITE_DM_FAIL, {
-                        inviteeId: user.id,
+                        inviteeId: endorsee.id,
                         inviterId: interaction.user.id,
                         onboardLink: userOnboardLink
                     })
                 })
             }else{
                 await interaction.followUp({
-                    content: sprintf("Onboard DM is sent to \`%s\`", user.username),
+                    content: sprintf("Onboard DM is sent to \`%s\`", endorsee.username),
                     ephemeral: true
                 });
             }
@@ -113,13 +115,13 @@ module.exports = {
                 content: `A new unverified skill \`${skill}\` has been created.`,
                 ephemeral: true
             })
-            myCache.set("unverifiedSkills", [
+            myCache.set("unverifiedSkills", {
                 ...myCache.get("unverifiedSkills"),
-                {
-                    _id: unverifiedSkill._id,
+                [unverifiedSkill._id]: {
                     name: skill
                 }
-            ]);
+            });
+
             skillName = skill;
             skill = unverifiedSkill._id;
             skillState = CONSTANT.SKILL_STATE.WAITING;
@@ -139,23 +141,23 @@ module.exports = {
         const [result, error] = await addSkillToMember(
             {
                 skillID: skill,
-                memberID: user.id,
+                memberID: endorsee.id,
                 authorID: interaction.user.id,
-                serverId: [interaction.guild.id]
+                serverId: [guildId]
             }
         );
 
         if (error) return interaction.followUp({
-            content: `Error occured when add skill to ${user.username}: \`${error}\``,
+            content: `Error occured when add skill to ${endorsee.username}: \`${error}\``,
             ephemeral: true
         })
 
         const infor = {
-            endorseeName: user.username,
-            endorseeId: user.id,
+            endorseeName: endorsee.username,
+            endorseeId: endorsee.id,
             endorserName: interaction.user.username,
-            claimEndorsementLink: sprintf(CONSTANT.LINK.CLAIM_ENDORSEMENT, user.id),
-            onboardLink: sprintf(CONSTANT.LINK.ONBOARD, user.id),
+            claimEndorsementLink: sprintf(CONSTANT.LINK.CLAIM_ENDORSEMENT, endorsee.id),
+            onboardLink: sprintf(CONSTANT.LINK.ONBOARD, endorsee.id),
             endorserEndorsementLink: sprintf(CONSTANT.LINK.ENDORSEMENTS, interaction.user.id)
         }
         const contents = [...this._contents].filter(([condition, content]) => (
@@ -165,25 +167,25 @@ module.exports = {
         const endorserReply = isNewMember ? sprintf(CONSTANT.CONTENT.ENDORSE_NEW_MEMBER_CASE_ENDORSER_REPLY, infor) 
             : sprintf(CONSTANT.CONTENT.ENDORSE_OLD_MEMBER_CASE_ENDORSER_REPLY, infor);
 
-        const DMchannel = await user.createDM();
+        const DMchannel = await endorsee.createDM();
         const { DMresult ,DMerror } = await awaitWrap(DMchannel.send({
             embeds: [
                 new MessageEmbed()
                     .setAuthor({ name: sprintf(dmContent.authorContent, infor), url: infor.endorserEndorsementLink, iconURL: interaction.user.avatarURL() })
                     .setTitle(sprintf(dmContent.title, infor))
                     .setDescription(sprintf(dmContent.description, infor))
-                    .setThumbnail(user.avatarURL())
+                    .setThumbnail(endorsee.avatarURL())
             ]
         }), "DMresult", "DMerror");
         if (DMerror){
             interaction.channel.send({
-                content: `<@${interaction.user.id}> <@${user.id}>`,
+                content: `<@${interaction.user.id}> <@${endorsee.id}>`,
                 embeds: [
                     new MessageEmbed()
                         .setAuthor({ name: sprintf(dmErrorContent.authorContent, infor), url: infor.endorserEndorsementLink, iconURL: interaction.user.avatarURL() })
                         .setTitle(sprintf(dmErrorContent.title, infor))
                         .setDescription(sprintf(dmErrorContent.description, infor))
-                        .setThumbnail(user.avatarURL())
+                        .setThumbnail(endorsee.avatarURL())
                 ]
             })
         }
@@ -213,7 +215,7 @@ module.exports = {
             message: error
         }
 
-        myCache.set("users", [ ...myCache.get("users"), userInform ])
+        updateUserCache(user.id, user.username, guildId);
         
         return {
             error: false

@@ -12,18 +12,21 @@ module.exports = {
     async execute(interaction) {
         const focusedOption = interaction.options.getFocused(true);
         if (this.options.includes(focusedOption.name)) {
-            //Remove null title
             if (myCache.has("skills")){
-                const choices = myCache.get("skills").filter(value => value.name)
+                const skills = myCache.get("skills");
+                if (Object.keys(skills).length == 0) return interaction.respond([]);
 
-                const filtered = choices.filter(value => value.name.startsWith(focusedOption.value))
-                    .splice(0, CONSTANT.NUMERICAL_VALUE.AUTOCOMPLETE_OPTION_LENGTH);
+                const filtered = Object.keys(skills).filter((skillId) => (
+                    skills[skillId].name.includes(focusedOption.value) 
+                )).map((skillId) => ({
+                    name: skills[skillId].name,
+                    value: skillId
+                })).slice(0, CONSTANT.NUMERICAL_VALUE.AUTOCOMPLETE_OPTION_LENGTH);
+                    
                 if (filtered.length == 0) {
                     return interaction.respond([])
                 } else {
-                    return interaction.respond(
-                        filtered.map(value => ({ name: value.name, value: value._id}))
-                    )
+                    return interaction.respond(filtered)
                 }
             }
         }

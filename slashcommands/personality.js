@@ -1,10 +1,9 @@
 const { SlashCommandBuilder } = require('@discordjs/builders');
-const { CommandInteraction, MessageEmbed } = require("discord.js");
+const { CommandInteraction } = require("discord.js");
 const { validUser } = require('../helper/util');
 const { endorseAttribute } = require('../helper/graphql');
 const { sprintf } = require('sprintf-js');
 const CONSTANT = require("../helper/const");
-const myCache = require('../helper/cache');
 
 
 module.exports = {
@@ -48,7 +47,8 @@ module.exports = {
             content: "Sorry, you cannot endorse yourself with a trait.",
             ephemeral: true
         })
-        const validResult = validUser(user.id);
+
+        const validResult = validUser(user.id, interaction.guild.id);
         if (!validResult) return interaction.reply({
             content: "Sorry, please use \`/onboard\` command to join in Soil🌱 first",
             ephemeral: true

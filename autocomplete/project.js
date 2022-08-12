@@ -15,16 +15,20 @@ module.exports = {
         if (this.options.includes(focusedOption.name)){
             if (myCache.has("projects")){
                 const cached = myCache.get("projects");
+                const projectsInGuild = cached[interaction.guild.id];
+                if (Object.keys(projectsInGuild).length == 0) return interaction.respond([]);
+
+                const filtered = Object.keys(projectsInGuild).filter((projectId) => {
+                    return projectsInGuild[projectId].title.includes(focusedOption.value)
+                }).map((projectId) => ({
+                    name: projectsInGuild[key].title,
+                    value: projectId
+                })).slice(0, CONSTANT.NUMERICAL_VALUE.AUTOCOMPLETE_OPTION_LENGTH);
                 
-                const choices = myCache.get("projects").filter(value => value.title)
-                const filtered = choices.filter(value => value.title.startsWith(focusedOption.value))
-                    .splice(0, CONSTANT.NUMERICAL_VALUE.AUTOCOMPLETE_OPTION_LENGTH);
                 if (filtered.length == 0) {
                     return interaction.respond([])
                 } else {
-                    return interaction.respond(
-                        filtered.map(value => ({ name: value.title, value: value._id }))
-                    )
+                    return interaction.respond(filtered)
                 }
             }else{
                 return interaction.respond([])
