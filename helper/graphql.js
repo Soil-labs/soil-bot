@@ -75,7 +75,7 @@ const ADD_MEMBER = gql`
     $discordAvatar: String
     $discriminator: String
     $invitedBy: String
-    $serverId: [String]
+    $serverId: String
   ){
   addNewMember(fields:{
     _id: $_id
@@ -239,7 +239,7 @@ const FETCH_USER_DETAIL = gql`
                 }
             }
             hoursPerWeek
-            attributes{f
+            attributes{
               Director
               Motivator
               Inspirer

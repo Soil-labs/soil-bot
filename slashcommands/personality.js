@@ -1,7 +1,7 @@
 const { SlashCommandBuilder } = require('@discordjs/builders');
 const { CommandInteraction } = require("discord.js");
-const { validUser } = require('../helper/util');
-const { endorseAttribute } = require('../helper/graphql');
+const { validUser, updateUserCache } = require('../helper/util');
+const { endorseAttribute, addNewMember } = require('../helper/graphql');
 const { sprintf } = require('sprintf-js');
 const CONSTANT = require("../helper/const");
 
@@ -40,22 +40,65 @@ module.exports = {
      * @param  {CommandInteraction} interaction
      */
     async execute(interaction) {
+        const author = interaction.user;
         const user = interaction.options.getUser("person");
         const trait = interaction.options.getString("trait");
+        const guildId = interaction.guild.id;
 
-        if (user.id == interaction.user.id) return interaction.reply({
+        if (user.id == author.id) return interaction.reply({
             content: "Sorry, you cannot endorse yourself with a trait.",
             ephemeral: true
         })
 
-        const validResult = validUser(user.id, interaction.guild.id);
-        if (!validResult) return interaction.reply({
-            content: "Sorry, please use \`/onboard\` command to join in Soil🌱 first",
-            ephemeral: true
-        })
+        //to-do onboard them in a smarter way, stupid implementation!
+        const authorValidResult = validUser(author.id, guildId);
+        if (!authorValidResult) {
+            const authorInform = {
+                _id: author.id,
+                discordName: author.username,
+                discriminator: author.discriminator,
+                discordAvatar: author.displayAvatarURL({ format: 'jpg' }),
+                invitedBy: author.id,
+                serverId: guildId
+            };
 
-        await interaction.deferReply({ ephemeral: true });
+            await interaction.deferReply({
+                ephemeral: true
+            })
 
+            const [authorResult, authorError] = await addNewMember(authorInform);
+
+            if (authorError) return interaction.followUp({
+                content: `Error occured when onboarding you: \`${error}\``
+            })
+            
+            updateUserCache(author.id, author.username, guildId);
+        }
+
+        const validResult = validUser(user.id, guildId);
+        if (!validResult) {
+            const userInform = {
+                _id: user.id,
+                discordName: user.username,
+                discriminator: user.discriminator,
+                discordAvatar: user.displayAvatarURL({ format: 'jpg' }),
+                invitedBy: user.id,
+                serverId: guildId
+            };
+
+            if (!interaction.deferred) await interaction.deferReply({ ephemeral: true });
+
+            const [userResult, userError] = await addNewMember(userInform);
+
+            if (userError) return interaction.followUp({
+                content: `Error occured when onboarding you: \`${error}\``
+            })
+            
+            updateUserCache(user.id, user.username, guildId);
+        }
+
+        if (!interaction.deferred) await interaction.deferReply({ ephemeral: true });
+       
         const [result, error] = await endorseAttribute({
             memberId: user.id,
             attribute: trait
@@ -67,7 +110,7 @@ module.exports = {
 
         return interaction.followUp({
             content: sprintf(CONSTANT.CONTENT.ENDORSE_ATTRIBUTE, {
-                endorseeName: validResult.discordName,
+                endorseeName: user.username,
                 attributeName: trait
             })
         })

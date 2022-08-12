@@ -63,7 +63,7 @@ module.exports = {
                     discriminator: member.user.discriminator,
                     discordAvatar: member.user.avatarURL(),
                     invitedBy: interaction.user.id,
-                    serverId: [guildId]
+                    serverId: guildId
                 }
                 toBecached.push({
                     id: duplicateValue,

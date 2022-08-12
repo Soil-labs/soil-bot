@@ -3,7 +3,6 @@ const { CommandInteraction, MessageEmbed } = require("discord.js");
 const { addNewMember } = require("../helper/graphql");
 const { validUser, awaitWrap, updateUserCache } = require('../helper/util');
 const { sprintf } = require('sprintf-js');
-const myCache = require("../helper/cache");
 const CONSTANT = require("../helper/const");
 
 
@@ -31,25 +30,40 @@ module.exports = {
         const inviter = interaction.user;
         const guildId = interaction.guild.id;
         
-        if (invitee.id == inviter.id) return interaction.reply({
-            content: "Sorry, you cannot invite yourself.",
-            ephemeral: true
-        })
+        // if (invitee.id == inviter.id) return interaction.reply({
+        //     content: "Sorry, you cannot invite yourself.",
+        //     ephemeral: true
+        // })
+
         if (invitee.bot) return interaction.reply({
             content: "Sorry, you cannot choose a bot as a target.",
             ephemeral: true
         })
-        const isNewInviter = validUser(inviter.id, guildId);
-        if (!isNewInviter) return interaction.reply({
-            content: "Please use \`/onboard\` command to onboard yourself first",
-            ephemeral: true
-        })
 
-        const isNewUser = validUser(invitee.id, guildId);
-        if (isNewUser) return interaction.reply({
-            content: "Sorry, this user has been onboarded.",
-            ephemeral: true
-        })
+        const isNewInviter = validUser(inviter.id, guildId);
+        if (!isNewInviter) {
+            const inviterInform = {
+                _id: inviter.id,
+                discordName: inviter.username,
+                discriminator: inviter.discriminator,
+                discordAvatar: inviter.displayAvatarURL({ format: 'jpg' }),
+                invitedBy: inviter.id,
+                serverId: guildId
+            };
+
+            await interaction.deferReply({
+                ephemeral: true
+            })
+            const [inviterResult, inviterError] = await addNewMember(inviterInform);
+
+            if (inviterError) return interaction.followUp({
+                content: `Error occured when onboarding you: \`${error}\``
+            })
+
+            updateUserCache(inviter.id, inviter.username, guildId);
+        }
+        //to-do handle invite myself in a smarter way, just return a dm or a reply
+        // if (invitee.id == inviter.id) return;
 
         const userInform = {
             _id: invitee.id,
@@ -57,12 +71,10 @@ module.exports = {
             discriminator: invitee.discriminator,
             discordAvatar: invitee.displayAvatarURL({ format: 'jpg' }),
             invitedBy: inviter.id,
-            serverId: [guildId]
+            serverId: guildId
         }
+        if (!interaction.deferred) await interaction.deferReply({ ephemeral: true });
 
-        await interaction.deferReply({
-            ephemeral: true
-        })
         const [result, error] = await addNewMember(userInform);
 
         if (error) return interaction.followUp({

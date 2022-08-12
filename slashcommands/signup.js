@@ -4,7 +4,6 @@ const { validUser, updateUserCache } = require('../helper/util');
 const { addNewMember, updateUser } = require('../helper/graphql');
 const { sprintf } = require('sprintf-js');
 const CONSTANT = require("../helper/const");
-const _ = require("lodash");
 
 
 module.exports = {
@@ -33,7 +32,8 @@ module.exports = {
             discriminator: user.discriminator,
             discordAvatar: user.displayAvatarURL()
         };
-        await interaction.followUp({ ephemeral: true });
+        await interaction.deferReply({ ephemeral: true });
+        
         if (validResult){
             const [result, error] = await updateUser(inform);
 
@@ -44,7 +44,7 @@ module.exports = {
             const [result, error] = await addNewMember({
                 ...inform,
                 invitedBy: user.id,
-                serverId: [guildId]
+                serverId: guildId
             });
             
             if (error) return interaction.followUp({

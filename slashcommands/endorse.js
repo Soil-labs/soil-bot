@@ -111,7 +111,7 @@ module.exports = {
                 ephemeral: true
             })
 
-            await interaction.editReply({
+            await interaction.followUp({
                 content: `A new unverified skill \`${skill}\` has been created.`,
                 ephemeral: true
             })
@@ -205,7 +205,7 @@ module.exports = {
             discordName: user.username,
             discriminator: user.discriminator,
             discordAvatar: user.avatarURL(),
-            serverId: [guildId]
+            serverId: guildId
         }
 
         const [result, error] = await addNewMember(userInform);

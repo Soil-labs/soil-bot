@@ -13,7 +13,8 @@ module.exports = {
         const focusedOption = interaction.options.getFocused(true);
         if (this.options.includes(focusedOption.name)){
             if (myCache.has("server")){
-                const cached = myCache.get("server");
+                const cached = myCache.get("server")[interaction.guild.id];
+                if (!cached) return interaction.respond([]);
                 let filter;
                 switch (focusedOption.name){
                     case "role":

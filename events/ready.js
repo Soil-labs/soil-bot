@@ -1,7 +1,7 @@
 const { REST } = require('@discordjs/rest');
 const { Routes } = require('discord-api-types/v9');
 const { Client } = require("discord.js");
-const { fetchProjects, fetchSkills, fetchUsers, fetchUnverifiedSkills, fetchTeams, fetchServer } = require("../helper/graphql");
+const { fetchProjects, fetchSkills, fetchUsers, fetchUnverifiedSkills, fetchTeams, fetchServer, updateServer } = require("../helper/graphql");
 const myCache = require("../helper/cache")
 const logger = require("../helper/logger");
 const AsciiTable = require('ascii-table/ascii-table');
@@ -57,6 +57,8 @@ module.exports = {
             const fetchServerPromise = guildIds.map((value) => (fetchServer({ guildId: value })));
             const serverResult = await Promise.all(fetchServerPromise);
             let cache = {};
+            let serverToBeUpdated = [];
+
             serverResult.forEach((value, index) => {
                 if (value[1]){
                     table.addRow(`${guildNames[index]} admin`, `❌ Error: ${value[1]}`);
@@ -64,14 +66,31 @@ module.exports = {
                 }else{
                     table.addRow(`${guildNames[index]} admin`, `✅ Fetched and cached`);
                     if (value[0].length == 0){
-                        cache[guildIds[index]] = {
+                        //to-do upload this part when we allow multiple sercerUpload
+                        const empty = {
                             adminID: [],
                             adminRoles: [],
                             adminCommands: []
-                        }
-                    }else cache[guildIds[index]] = value[0];
+                        };
+                        cache[guildIds[index]] = empty;
+                        serverToBeUpdated.push(updateServer({
+                            ...empty,
+                            guildId: guildIds[index],
+                            guildName: guildNames[index]
+                        }))
+                    //Caution: 
+                    }else cache[guildIds[index]] = value[0][0];
                 }
             })
+
+            const serverUpdateResults = await Promise.all(serverToBeUpdated);
+            for (const updateResult of serverUpdateResults){
+                if (updateResult[1]){
+                    logger.error("Updating Server Admin Data Error!");
+                    logger.info(`\n${table.toString()}`);
+                    process.exit(1);
+                }
+            }
 
             if (errorFlag){
                 logger.error("Fetching data error!");

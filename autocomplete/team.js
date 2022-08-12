@@ -16,7 +16,7 @@ module.exports = {
                 if (interaction.options.getSubcommand() == "garden"){
                     const cached = myCache.get("teams");
                     const teamsInGuild = cached[interaction.guild.id];
-                    if (Object.keys(teamsInGuild).length == 0) return interaction.respond([]);
+                    if (!teamsInGuild || Object.keys(teamsInGuild).length == 0) return interaction.respond([]);
 
                     const filter = Object.keys(teamsInGuild).filter((teamId) => (
                         teamsInGuild[teamId].name.includes(focusedOption.value)

@@ -55,10 +55,15 @@ module.exports = {
     async execute(interaction) {
 
         if (interaction.options.getSubcommand() == "all_projects"){
+            let num = 0;
+            if (myCache.has("projects")){
+                const cachedGuildProject = myCache.get("projects")[interaction.guild.id];
+                if (cachedGuildProject) num = Object.keys(cachedGuildProject).length;
+            }
             return interaction.reply({
                 embeds: [
                     new MessageEmbed()
-                        .setTitle(sprintf("🪄Total projects in DAO: %d", myCache.get("projects").length))
+                        .setTitle(sprintf("🪄Total projects in DAO: %d", num))
                         .setDescription(sprintf("🔗Click [here](%s) to see all projects", CONSTANT.LINK.PROJECT_GATEWAY))
                 ],
                 ephemeral: true

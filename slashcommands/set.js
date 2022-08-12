@@ -82,11 +82,18 @@ module.exports = {
      * @param  {CommandInteraction} interaction
      */
     async execute(interaction) {
+        //to-do when admin and adminRole is empty and you want to add `admin cmd` as an admin command, the bot gives a warning
         const command = interaction.options.getSubcommand();
-        const cached = myCache.get("server");
+        const guildId = interaction.guild.id;
+        if (!myCache.has("server") || !myCache.get("server")[guildId]) return interaction.reply({
+            content: "Cannot find server admin information, please contact admin.",
+            ephemeral: true
+        })
+        const cachedGuildsAdmin = myCache.get("server");
+        const cachedGuildAdmin = cachedGuildsAdmin[guildId];
         if (command == "read"){
             let adminUsersField = '', adminRolesField = '', adminCmdsField= '';
-            const { adminID, adminRoles, adminCommands } = cached;
+            const { adminID, adminRoles, adminCommands } = cachedGuildAdmin;
             [adminID, adminRoles, adminCommands].forEach((value, index) => {
                 if (index == 0){
                     if (value.length == 0) adminUsersField = '> -';
@@ -138,22 +145,24 @@ module.exports = {
             let adminRoles;
             if (command == "add") {
                 const role = interaction.options.getRole("role");
-                if (cached.adminRoles.includes(role.id)) return interaction.reply({
+                if (cachedGuildAdmin.adminRoles.includes(role.id)) return interaction.reply({
                     content: `\`${role.name}\` has been added to the admin group`,
+                    ephemeral: true
                 })
-                adminRoles = [...cached.adminRoles, role.id];
+                adminRoles = [...cachedGuildAdmin.adminRoles, role.id];
                 successReply = `\`${role.name}\` has been added to the admin group`;
             }else{
                 const roleId = interaction.options.getString("role");
-                if (!cached.adminRoles.includes(roleId)) return interaction.reply({
+                if (!cachedGuildAdmin.adminRoles.includes(roleId)) return interaction.reply({
                     content: "Please check your input, the role you chose is not in the list",
+                    ephemeral: true
                 });
-                adminRoles = cached.adminRoles.filter(value => value != roleId)
+                adminRoles = cachedGuildAdmin.adminRoles.filter(value => value != roleId)
                 const roleObj = interaction.guild.roles.cache.get(roleId);
                 successReply = `\`${roleObj.name}\` has been removed from the admin group`;
             }
             data = {
-                ...cached,
+                ...cachedGuildAdmin,
                 adminRoles: adminRoles
             }
         }
@@ -162,22 +171,24 @@ module.exports = {
             let adminID;
             if (command == "add") {
                 const user = interaction.options.getUser("user");
-                if (cached.adminID.includes(user.id)) return interaction.reply({
+                if (cachedGuildAdmin.adminID.includes(user.id)) return interaction.reply({
                     content: `\`${user.username}\` has been added to the admin group`,
+                    ephemeral: true
                 })
-                adminID = [...cached.adminID, user.id];
+                adminID = [...cachedGuildAdmin.adminID, user.id];
                 successReply = `\`${user.username}\` has been added to the admin group`;
             }else{
                 const userId = interaction.options.getString("user");
-                if (!cached.adminID.includes(userId)) return interaction.reply({
+                if (!cachedGuildAdmin.adminID.includes(userId)) return interaction.reply({
                     content: "Please check your input, the role you chose is not in the list",
+                    ephemeral: true
                 });
-                adminID = cached.adminID.filter(value => value != userId);
+                adminID = cachedGuildAdmin.adminID.filter(value => value != userId);
                 const memberObj = interaction.guild.members.cache.get(userId);
                 successReply = `\`${memberObj.displayName}\` has been removed from the admin group`;
             }
             data = {
-                ...cached,
+                ...cachedGuildAdmin,
                 adminID: adminID
             }
         }
@@ -186,20 +197,22 @@ module.exports = {
             const commandName = interaction.options.getString("command");
             let adminCommands;
             if (command == "add") {
-                if (cached.adminCommands.includes(commandName)) return interaction.reply({
+                if (cachedGuildAdmin.adminCommands.includes(commandName)) return interaction.reply({
                     content: `\`${commandName}\` has been added to the admin group`,
+                    ephemeral: true
                 })
-                adminCommands = [...cached.adminCommands, commandName];
+                adminCommands = [...cachedGuildAdmin.adminCommands, commandName];
                 successReply = `\`${commandName}\` has been added to the admin group`;
             }else{
-                if (!cached.adminCommands.includes(commandName)) return interaction.reply({
+                if (!cachedGuildAdmin.adminCommands.includes(commandName)) return interaction.reply({
                     content: "Please check your input, the role you chose is not in the list",
+                    ephemeral: true
                 });
-                adminCommands = cached.adminCommands.filter(value => value != commandName);
+                adminCommands = cachedGuildAdmin.adminCommands.filter(value => value != commandName);
                 successReply = `\`${commandName}\` has been removed from the admin group`;
             }
             data = {
-                ...cached,
+                ...cachedGuildAdmin,
                 adminCommands: adminCommands
             }
         }
@@ -207,14 +220,18 @@ module.exports = {
         await interaction.deferReply({ ephemeral:true });
         const [ result, error ] = await updateServer({
             ...data,
-            guildId: interaction.guild.id,
+            guildId: guildId,
             guildName: interaction.guild.name
         })
 
         if (error) return interaction.followUp({
             content: `Error occured when updloading: \`${error}\``,
-        })
-        myCache.set("server", data);
+        });
+
+        myCache.set("server", {
+            ...cachedGuildsAdmin,
+            [guildId]: data
+        });
 
         return interaction.followUp({
             content: successReply

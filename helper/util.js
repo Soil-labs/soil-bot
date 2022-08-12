@@ -47,7 +47,7 @@ async function awaitWrapTimeout(promise, timeout = CONSTANT.NUMERICAL_VALUE.GRAP
 function validUser(userId, guildId){
     const result = myCache.get("users")[userId];
     if (!result) return null;
-    return result[serverId].includes(guildId) ? result : null;
+    return result["serverId"].includes(guildId) ? result : null;
 }
 
 function validSkill(skillId){

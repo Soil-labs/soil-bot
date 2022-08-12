@@ -172,7 +172,7 @@ module.exports = {
                 })
 
                 return interaction.followUp({
-                    content: `Sorry, we cannot find a match for you without a detailed reason. Please report this case to our team.`
+                    content: `Wow, your skill is so special that no matching result is for you. You are unique!`
                 })
             }
             matchResult = tmpResult;
@@ -208,7 +208,7 @@ module.exports = {
             if (tmpResult.length == 0) return interaction.followUp({
                 content: "Sorry, I cannot find a member with these skills"
             })
-            
+
             matchResult = tmpResult;
             authorName = `@${interaction.user.username} - Skill Matching Results`;
             avatarURL = interaction.user.avatarURL();

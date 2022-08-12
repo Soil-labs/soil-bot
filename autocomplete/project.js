@@ -16,22 +16,22 @@ module.exports = {
             if (myCache.has("projects")){
                 const cached = myCache.get("projects");
                 const projectsInGuild = cached[interaction.guild.id];
-                if (Object.keys(projectsInGuild).length == 0) return interaction.respond([]);
+                if (!projectsInGuild || Object.keys(projectsInGuild).length == 0) return interaction.respond([]);
 
                 const filtered = Object.keys(projectsInGuild).filter((projectId) => {
                     return projectsInGuild[projectId].title.includes(focusedOption.value)
                 }).map((projectId) => ({
-                    name: projectsInGuild[key].title,
+                    name: projectsInGuild[projectId].title,
                     value: projectId
                 })).slice(0, CONSTANT.NUMERICAL_VALUE.AUTOCOMPLETE_OPTION_LENGTH);
                 
                 if (filtered.length == 0) {
-                    return interaction.respond([])
+                    return interaction.respond([]);
                 } else {
-                    return interaction.respond(filtered)
+                    return interaction.respond(filtered);
                 }
             }else{
-                return interaction.respond([])
+                return interaction.respond([]);
             }
         }
     }

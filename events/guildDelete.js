@@ -10,6 +10,7 @@ module.exports = {
      * @param  {Guild} guild
      */
     async execute(guild) {
+        console.log(1)
         if (guild.available){
             let cached;
             if (myCache.has("server")){
@@ -17,7 +18,7 @@ module.exports = {
                 delete cached[guild.id];
                 myCache.set("server", cached);
             }
-            
+
             const [result, error] = await updateServer({
                 guildId: guild.id,
                 guildName: guild.name,
@@ -27,6 +28,7 @@ module.exports = {
             });
 
             if (error) return logger.error(`${guild.name} was deleted, but cannot upload its permission information. Reason: ${error}`);
+            console.log(myCache.get("server"))
         }
     }
 }
