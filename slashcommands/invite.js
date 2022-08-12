@@ -54,7 +54,8 @@ module.exports = {
             discordName: user.username,
             discriminator: user.discriminator,
             discordAvatar: user.displayAvatarURL({ format: 'jpg' }),
-            invitedBy: author.id
+            invitedBy: author.id,
+            serverId: [interaction.guild.id]
         }
 
         await interaction.deferReply({

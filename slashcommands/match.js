@@ -61,7 +61,10 @@ module.exports = {
     async execute(interaction) {
         if (interaction.options.getSubcommand() == "project"){
             await interaction.deferReply({ ephemeral: true })
-            const [ matchResult, error ] = await matchMemberToProject({ memberId: interaction.user.id });
+            const [ matchResult, error ] = await matchMemberToProject({ 
+                memberId: interaction.user.id,
+                serverId: [interaction.guild.id]
+            });
             if (error) return interaction.followUp({
                 content: `Error occured when fetching his/her profile: \`${error}\`.`
             })
@@ -144,7 +147,10 @@ module.exports = {
             await interaction.deferReply({
                 ephemeral: true
             })
-            const [tmpResult, matchError] = await matchMemberToUser({ memberId: targetUser.id });
+            const [tmpResult, matchError] = await matchMemberToUser({ 
+                memberId: targetUser.id,
+                serverId: [interaction.guild.id]
+             });
 
             if (matchError) return interaction.followUp({
                 content: `Error occured when matching: \`${matchError}\``
@@ -186,7 +192,10 @@ module.exports = {
                 ephemeral: true
             })
 
-            const [tmpResult, matchError] = await matchMemberToSkill({ skillsID: skills });
+            const [tmpResult, matchError] = await matchMemberToSkill({
+                skillsId: skills,
+                serverId: [interaction.guild.id]
+            });
 
             if (matchError) return interaction.followUp({
                 content: `Error occured when matching: \`${matchError}\``

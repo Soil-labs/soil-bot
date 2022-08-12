@@ -19,9 +19,20 @@ module.exports = {
             //TODO Need to handle this error
             if (!command) return;
 
+            
             if (myCache.has("server")){
-                const { commandName, member } = interaction;
-                const { adminID, adminRoles, adminCommands } = myCache.get("server");
+                const { commandName, member, guildId } = interaction;
+                const guildPermissionInform = myCache.get("server")[guildId];
+
+                if (!guildPermissionInform) {
+                    logger.error(`${interaction.guild.name} cannot find its permission information.`);
+                    return interaction.reply({
+                        content: "Error occurs on the permission system. Please report to the admin.",
+                        ephemeral: true
+                    })
+                }
+
+                const { adminID, adminRoles, adminCommands } = guildPermissionInform;
                 if (adminCommands.includes(commandName)){
                     if (
                         !adminID.includes(member.id)
@@ -31,7 +42,14 @@ module.exports = {
                         ephemeral: true
                     })
                 }
-            }
+
+            //Possible case: when our bot is running in multiple servers, and we restart our bot,
+            //users run a command before the bot loaded cache (Have not finished Ready Event), then
+            //they will reach this branch
+            }else return interaction.reply({
+                content: "The permission system is being loaded, please try again.",
+                ephemeral: true
+            })
             
             try{
                 await command.execute(interaction);
@@ -43,7 +61,7 @@ module.exports = {
                         button: []
                     });
                 }
-                return logger.error(`User: ${interaction.user.username} Error: ${err.name} occurs when executing ${interaction.commandName} command. Msg: ${err.message} Stack: ${err.stack}`);
+                return logger.error(`User: ${interaction.user.username} Guild: ${interaction.guild.name} Error: ${err.name} occurs when executing ${interaction.commandName} command. Msg: ${err.message} Stack: ${err.stack}`);
             }
         }
 
@@ -57,7 +75,7 @@ module.exports = {
                 await button.execute(interaction);
             }catch(err){
                 //console.error(err)
-                return logger.error(`User: ${interaction.user.username} Error: ${err.name} occurs when interacting ${interaction.customId} button. Msg: ${err.message} Stack: ${err.stack}`);
+                return logger.error(`User: ${interaction.user.username} Guild: ${interaction.guild.name} Error: ${err.name} occurs when interacting ${interaction.customId} button. Msg: ${err.message} Stack: ${err.stack}`);
             }
         }
 
@@ -70,7 +88,7 @@ module.exports = {
             try {
                 await command.execute(interaction);
             } catch (err) {
-                return logger.error(`User: ${interaction.user.username} Error: ${err.name} occurs when executing ${interaction.commandName} command. Msg: ${err.message} Stack: ${err.stack}`);
+                return logger.error(`User: ${interaction.user.username} Guild: ${interaction.guild.name} Error: ${err.name} occurs when executing ${interaction.commandName} command. Msg: ${err.message} Stack: ${err.stack}`);
             }
         }
 

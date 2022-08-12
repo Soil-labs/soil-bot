@@ -249,7 +249,8 @@ module.exports = {
                 authorId: interaction.user.id,
                 teamIds: [teamId],
                 title: title,
-                content: content
+                content: content,
+                serverId: [interaction.guild.id]
             }
 
             const [result, error] = await createProjectUpdate(updateInform);

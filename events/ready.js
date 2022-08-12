@@ -24,80 +24,84 @@ module.exports = {
         const rest = new REST({ version: '9' }).setToken(process.env.TOKEN);
 
         const loadCache = async() =>{
-            const [projects , projectsError] = await fetchProjects();
-            const [skills, skillsError] = await fetchSkills();
-            const [unverifiedSkills, unverifiedSkillsError] = await fetchUnverifiedSkills();
-            const [users, usersError] = await fetchUsers();
-            const [teams, teamError] = await fetchTeams();
-            const [server, serverError] = await fetchServer({ guildId: process.env.GUILDID });
             const table = new AsciiTable("Cache Loading ...");
-            table.setHeading("Data", "Status")
-            if (projects) {
-                myCache.set("projects", projects);
-                table.addRow("Projects", "✅ Fetched and cached");
-            }else table.addRow("Projects", `❌ Error: ${projectsError}`);
-            if (skills){
-                myCache.set("skills", skills);
-                table.addRow("Skills", "✅ Fetched and cached");
-            }else table.addRow("Skills", `❌ Error: ${skillsError}`)
-            if (unverifiedSkills){
-                myCache.set("unverifiedSkills", unverifiedSkills);
-                table.addRow("Unverified Skills", "✅ Fetched and cached");
-            }else table.addRow("Unverified Skills", `❌ Error: ${unverifiedSkillsError}`)            
-            if (users){
-                myCache.set("users", users);
-                table.addRow("Users", "✅ Fetched and cached");
-            } else table.addRow("Users", `❌ Error: ${usersError}`);
-            if (teams){
-                myCache.set("teams", teams);
-                table.addRow("Teams", "✅ Fetched and cached");
-            }else table.addRow("Teams", `❌ Error: ${teamError}`);
-            //to-do correctly handle multiple server
-            if (server){
-                if (server.length == 0){
-                    myCache.set("server", {
-                        adminID: [],
-                        adminRoles: [],
-                        adminCommands: []
-                    });
-                }else  myCache.set("server", server[0]);
-                table.addRow("Server", "✅ Fetched and cached");
-            }else table.addRow("Server", `❌ Error: ${serverError}`);
+            table.setHeading("Data", "Status");
+
+            const results = await Promise.all([
+                fetchProjects(),
+                fetchSkills(),
+                fetchUnverifiedSkills(),
+                fetchUsers(),
+                fetchTeams()
+            ]);
+            const items = ["Project", "Skills", "Unverified Skills", "Users", "Teams"];
+            let errorFlag = false;
+
+            results.forEach((value, index) => {
+                if (value) {
+                    table.addRow(items[index], `❌ Error: ${value}`);
+                    errorFlag = true;
+                }else {
+                    table.addRow(items[index], "✅ Fetched and cached");
+                }
+            })
+
+            //to-do can fetch 200 at most once, if > 200 we should loop it
+            const guilds = await client.guilds.fetch();
+            if (guilds.size == 0) {
+                logger.error("The bot is not running in any guild!");
+                process.exit(1);
+            }
+            const guildIds = guilds.map((_, id) => (id));
+            const guildNames = guilds.map(guild => guild.name);
+            const fetchServerPromise = guildIds.map((value) => (fetchServer({ guildId: value })));
+            const serverResult = await Promise.all(fetchServerPromise);
+            let cache = {};
+            serverResult.forEach((value, index) => {
+                if (value[1]){
+                    table.addRow(`${guildNames[index]} admin`, `❌ Error: ${value[1]}`);
+                    errorFlag = true;
+                }else{
+                    table.addRow(`${guildNames[index]} admin`, `✅ Fetched and cached`);
+                    if (value[0].length == 0){
+                        cache[guildIds[index]] = {
+                            adminID: [],
+                            adminRoles: [],
+                            adminCommands: []
+                        }
+                    }else cache[guildIds[index]] = value[0];
+                }
+            })
+
+            if (errorFlag){
+                logger.error("Fetching data error!");
+                logger.info(`\n${table.toString()}`);
+                process.exit(1);
+            }              
+            myCache.set("server", cache);
+            console.log(cache)
             logger.info(`\n${table.toString()}`);
         }
 
         await loadCache();
 
         myCache.on("expired", async(key, value) => {
-            if (key == "projects"){
-                const [projects, projectsError] = await fetchProjects();
-                if (projects) myCache.set("projects", projects);
-            }
-
-            if (key == "skills"){
-                const [skills, skillsError] = await fetchSkills();
-                if (skills) myCache.set("skills", skills)
-            }
-
-            if (key == "users"){
-                const [users, usersError] = await fetchUsers();
-                if (users) myCache.set("users", users)
-            }
-
-            if (key == "teams"){
-                const [teams, teamError] = await fetchTeams();
-                myCache.set("teams", teams);
-            }
-
-            if (key == "server"){
-                const [server, serverError] = await fetchServer({ guildId: process.env.GUILDID });
-                if (server.length == 0){
-                    myCache.set("server", {
-                        adminID: [],
-                        adminRoles: [],
-                        adminCommands: []
-                    });
-                }else  myCache.set("server", server[0]);
+            switch(key){
+                case "projects":
+                    await fetchProjects();
+                    break;
+                case "skills":
+                    await fetchSkills();
+                    break;
+                case "users":
+                    await fetchUsers();
+                    break;
+                case "teams":
+                    await fetchTeams();
+                    break;
+                case "unverifiedSkills":
+                    await fetchUnverifiedSkills();
+                    break;
             }
         })
 

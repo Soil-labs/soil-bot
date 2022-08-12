@@ -14,6 +14,8 @@ module.exports = {
         const focusedOption = interaction.options.getFocused(true);
         if (this.options.includes(focusedOption.name)){
             if (myCache.has("projects")){
+                const cached = myCache.get("projects");
+                
                 const choices = myCache.get("projects").filter(value => value.title)
                 const filtered = choices.filter(value => value.title.startsWith(focusedOption.value))
                     .splice(0, CONSTANT.NUMERICAL_VALUE.AUTOCOMPLETE_OPTION_LENGTH);

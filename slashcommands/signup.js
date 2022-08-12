@@ -51,7 +51,8 @@ module.exports = {
 
             const [result, error] = await addNewMember({
                 ...inform,
-                invitedBy: user.id
+                invitedBy: user.id,
+                serverId: [interaction.guild.id]
             });
             
             if (error) return interaction.reply({

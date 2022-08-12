@@ -65,7 +65,8 @@ module.exports = {
                     discordName: member.user.username,
                     discriminator: member.user.discriminator,
                     discordAvatar: member.user.avatarURL(),
-                    invitedBy: interaction.user.id
+                    invitedBy: interaction.user.id,
+                    serverId: [interaction.guild.id]
                 }
 
                 if (index == -1) cached.push(inform);

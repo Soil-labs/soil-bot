@@ -69,16 +69,15 @@ for (const file of autoCompleteFiles){
 const eventsFilesPath = path.join(process.cwd(), "events");
 const eventsFiles = fs.readdirSync(eventsFilesPath).filter((file) => file.endsWith(".js"));
 
-
-if (process.env.SLASH_CMD_ENV == "production"){
-    const filtedCommands = process.env.ALLOW_COMMAND.split(',').filter((value) => value != '');
-    if (filtedCommands.length == 0){
-        logger.error("Please set ALLOW_COMMAND in .env or check its format");
-        process.exit(1);
-    }else{
-        slashCommands = slashCommands.filter((value) => filtedCommands.includes(value.name))
-    }
-}
+// if (process.env.SLASH_CMD_ENV == "production"){
+//     const filtedCommands = process.env.ALLOW_COMMAND.split(',').filter((value) => value != '');
+//     if (filtedCommands.length == 0){
+//         logger.error("Please set ALLOW_COMMAND in .env or check its format");
+//         process.exit(1);
+//     }else{
+//         slashCommands = slashCommands.filter((value) => filtedCommands.includes(value.name))
+//     }
+// }
 
 //Loop event
 for (const file of eventsFiles){

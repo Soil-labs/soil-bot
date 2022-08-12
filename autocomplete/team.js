@@ -4,7 +4,7 @@ const myCache = require("../helper/cache");
 
 module.exports = {
     attachedCommand: ["update"],
-    options: ["team"],
+    options: ["-"],
 
     /**
      * @param  {AutocompleteInteraction} interaction

@@ -1,6 +1,6 @@
 const { SlashCommandBuilder } = require('@discordjs/builders');
 const { CommandInteraction, User, MessageEmbed } = require("discord.js");
-const { addSkillToMember, addSkill, updateUser, fetchUserDetail } = require('../helper/graphql');
+const { addSkillToMember, addSkill, addNewMember } = require('../helper/graphql');
 const { awaitWrap, validSkill, validUser } = require("../helper/util");
 const myCache = require('../helper/cache');
 const CONSTANT = require("../helper/const");
@@ -33,7 +33,6 @@ module.exports = {
         const user = interaction.options.getUser('user');
         let skill = interaction.options.getString('skill');
         let skillState = CONSTANT.SKILL_STATE.APPROVED;
-        let skillName = '';
 
         if (user.bot) return interaction.followUp({
             content: `Sorry, you cannot support a bot.`,
@@ -50,7 +49,7 @@ module.exports = {
         })
 
         if (!validUser(interaction.user.id)) {
-            const authorOnboardResult = await this._onboardNewUser(interaction.user);
+            const authorOnboardResult = await this._onboardNewUser(interaction.user, interaction.guild.id);
 
             if (authorOnboardResult.error) return interaction.followUp({
                 content: `Error occured when onboarding you: \`${authorOnboardResult.message}\``,
@@ -66,7 +65,7 @@ module.exports = {
 
         const isNewMember = validUser(user.id) ? false : true
         if (isNewMember) {
-            const userOnboardResult = await this._onboardNewUser(user);
+            const userOnboardResult = await this._onboardNewUser(user, interaction.guild.id);
             if (userOnboardResult.error) return interaction.followUp({
                 content: `Error occured when onboarding ${user.username}: \`${userOnboardResult.message}\``,
                 ephemeral: true
@@ -141,7 +140,8 @@ module.exports = {
             {
                 skillID: skill,
                 memberID: user.id,
-                authorID: interaction.user.id
+                authorID: interaction.user.id,
+                serverId: [interaction.guild.id]
             }
         );
 
@@ -194,17 +194,19 @@ module.exports = {
     },
     /**
      * @param  {User} user
+     * @param  {string} guildId
      */
-    async _onboardNewUser(user){
+    async _onboardNewUser(user, guildId){
 
         const userInform = {
             _id: user.id,
             discordName: user.username,
             discriminator: user.discriminator,
-            discordAvatar: user.displayAvatarURL({ format: 'jpg' })
+            discordAvatar: user.avatarURL(),
+            serverId: [guildId]
         }
 
-        const [result, error] = await updateUser(userInform);
+        const [result, error] = await addNewMember(userInform);
 
         if (error) return {
             error: true,

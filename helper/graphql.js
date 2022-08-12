@@ -1,6 +1,7 @@
 const { gql, GraphQLClient } = require("graphql-request")
 const { awaitWrapTimeout } = require("./util");
 const CONSTANT = require("./const");
+const myCache = require("./cache");
 
 const _client = new GraphQLClient(CONSTANT.LINK.GRAPHQL_ENDPOINT, { headers: {} })
 
@@ -20,23 +21,23 @@ const GET_SERVER = gql`
 
 const GET_PROJECTS = gql`
     query{
-        findProjects(fields:{}){
-            _id
-            title
-            description      
-        }
+      findProjects(fields:{}){
+        _id
+        title
+        serverID 
+      }
     }
 `;
 
 const GET_SKILLS = gql`
-    query{
-        findSkills(fields:{
-        }){
-            _id
-            name
-            state
-        }
+  query{
+    findSkills(fields:{
+    }){
+      _id
+      name
+      state
     }
+  }
 `;
 
 const GET_USERS = gql`
@@ -44,8 +45,7 @@ const GET_USERS = gql`
     findMembers(fields: {}) {
       _id
       discordName
-      discordAvatar
-      discriminator
+      serverID
     }
   }
 `;
@@ -53,6 +53,16 @@ const GET_USERS = gql`
 const GET_TEAMS = gql`
   query{
     findTeams(fields:{}){
+      _id
+      name
+      serverID
+    }
+  }
+`
+
+const GET_UNVERIFIED_SKILL = gql`
+  query{
+    waitingToAproveSkills(fields:{}){
       _id
       name
     }
@@ -65,6 +75,7 @@ const ADD_MEMBER = gql`
     $discordAvatar: String
     $discriminator: String
     $invitedBy: String
+    $serverId: [String]
   ){
   addNewMember(fields:{
     _id: $_id
@@ -72,6 +83,7 @@ const ADD_MEMBER = gql`
     discordAvatar: $discordAvatar
     discriminator: $discriminator
     invitedBy: $invitedBy
+    serverID: $serverId
   }){
     _id
   }
@@ -98,26 +110,19 @@ const UPDATE_USER = gql`
   }
 `;
 
-const GET_UNVERIFIED_SKILL = gql`
-  query{
-      waitingToAproveSkills(fields:{}){
-        _id
-        name
-      }
-    }
-`
-
 const ADD_SKILL_TO_MEMBER = gql`
   mutation (
     $skillID: ID
     $memberID: ID
     $authorID: ID
+    $serverId: [String]
   ){
   addSkillToMember(
     fields:{
       skillID: $skillID
       memberID: $memberID
       authorID: $authorID
+      serverID: $serverId
   }){
   	discordName
   }
@@ -234,7 +239,7 @@ const FETCH_USER_DETAIL = gql`
                 }
             }
             hoursPerWeek
-            attributes{
+            attributes{f
               Director
               Motivator
               Inspirer
@@ -298,9 +303,11 @@ const FETCH_SKILL_DETAIL = gql`
 const MATCH_MEMBER_TO_USER = gql`
   query(
     $memberId: ID
+    $serverId: [String]
   ){
     matchMembersToUser(fields:{
       memberID: $memberId
+      serverID: $serverId
     }){
     matchPercentage
       member{
@@ -317,10 +324,12 @@ const MATCH_MEMBER_TO_USER = gql`
 
 const MATCH_MEMBER_TO_SKILL = gql`
   query(
-    $skillsID: [ID]
+    $skillsId: [ID]
+    $serverId: [String]
   ){
     matchMembersToSkills(fields:{
-      skillsID: $skillsID
+      skillsID: $skillsId
+      serverID: $serverId
     }){
       matchPercentage
       member{
@@ -337,9 +346,11 @@ const MATCH_MEMBER_TO_SKILL = gql`
 const MATCH_MEMBER_TO_PROJECT = gql`
   query(
     $memberId: ID
+    $serverId: [String]
   ){
   findProjects_RecommendedToUser(fields:{
     memberID: $memberId
+    serverID: $serverId
   }){
       matchPercentage
       projectData{
@@ -381,6 +392,7 @@ mutation(
   $teamIds: [String]
   $title: String
   $content: String
+  $serverId: [String]
 ){
   createProjectUpdate(fields:{
     title: $title
@@ -389,6 +401,7 @@ mutation(
     memberID: $memberIds
     authorID: $authorId
     teamID: $teamIds
+    serverID: $serverId
   }){
     _id   
   }
@@ -396,39 +409,101 @@ mutation(
 `
 async function fetchServer(guildJSON) {
     const { result, error } = await awaitWrapTimeout(_client.request(GET_SERVER, guildJSON), CONSTANT.NUMERICAL_VALUE.GRAPHQL_TIMEOUT_LONG);
-    if (error) return [null, _graphqlErrorHandler(error)]
-    else return [result.findServers, null]
+    if (error) return [null, _graphqlErrorHandler(error)];
+    else return [result.findServers, null];
 }
-
 
 async function fetchProjects() {
     const { result, error } = await awaitWrapTimeout(_client.request(GET_PROJECTS), CONSTANT.NUMERICAL_VALUE.GRAPHQL_TIMEOUT_LONG);
-    if (error) return [null, _graphqlErrorHandler(error)]
-    else return [result.findProjects, null]
+    if (error) return _graphqlErrorHandler(error);
+    else {
+      let toBecached = {};
+      result.findProjects.forEach((value) => {
+        const servers = value.serverID;
+        if (servers.length == 0) return
+        if (toBecached[servers[0]]){
+          toBecached[servers[0]][value._id] = {
+            title: value.title
+          }
+        }else toBecached[servers[0]] = {
+          [value._id]: {
+            title: value.title
+          }
+        }
+      })
+      myCache.set("projects", toBecached);
+      return false
+    }
 }
 
 async function fetchSkills() {
     const { result, error } = await awaitWrapTimeout(_client.request(GET_SKILLS), CONSTANT.NUMERICAL_VALUE.GRAPHQL_TIMEOUT_LONG);
-    if (error) return [null, _graphqlErrorHandler(error)]
-    else return [result.findSkills, null]
+    if (error) return _graphqlErrorHandler(error);
+    else {
+      let toBecached = {};
+      result.findSkills.forEach((value) => {
+        toBecached[value._id] = {
+          name: value.name,
+          state: value.state
+        }
+      });
+      myCache.set("skills", toBecached);
+      return false
+    }
 }
 
 async function fetchUnverifiedSkills(){
     const { result, error } = await awaitWrapTimeout(_client.request(GET_UNVERIFIED_SKILL), CONSTANT.NUMERICAL_VALUE.GRAPHQL_TIMEOUT_LONG);
-    if (error) return [null, _graphqlErrorHandler(error)]
-    else return [result.waitingToAproveSkills, null]
+    if (error) return _graphqlErrorHandler(error);
+    else {
+      let toBecached = {};
+      result.waitingToAproveSkills.forEach((value) => {
+        toBecached[value._id] = {
+          name: value.name,
+        }
+      });
+      myCache.set("unverifiedSkills", toBecached);
+      return false
+    }
 }
 
 async function fetchUsers() {
   const { result, error } = await awaitWrapTimeout(_client.request(GET_USERS), CONSTANT.NUMERICAL_VALUE.GRAPHQL_TIMEOUT_LONG);
-  if (error) return [null, _graphqlErrorHandler(error)];
-  else return [result.findMembers, null];
+  if (error) return _graphqlErrorHandler(error);
+  else {
+    let toBecached = {};
+    result.findMembers.forEach((value) => {
+      toBecached[value._id] = {
+        discordName: value.discordName,
+        serverId: value.serverID
+      }
+    })
+    myCache.set("users", toBecached);
+    return false
+  }
 }
 
 async function fetchTeams(){
   const { result, error } = await awaitWrapTimeout(_client.request(GET_TEAMS), CONSTANT.NUMERICAL_VALUE.GRAPHQL_TIMEOUT_LONG);
-  if (error) return [null, _graphqlErrorHandler(error)];
-  else return [result.findTeams, null];
+  if (error) return _graphqlErrorHandler(error);
+  else {
+    let toBecached = {}
+    result.findTeams.forEach((value) => {
+      const servers = value.serverID;
+      if (servers.length == 0) return;
+      if (toBecached[servers[0]]){
+        toBecached[servers[0]][value._id] = {
+          name: value.name
+        };
+      }else toBecached[servers[0]] = {
+        [value._id]: {
+          name: value.name
+        }
+      }
+    })
+    myCache.set("teams", toBecached);
+    return false
+  }
 }
 
 async function addNewMember(userJSON) {
