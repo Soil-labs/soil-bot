@@ -53,7 +53,8 @@ module.exports = {
 
                 const member = interaction.guild.members.cache.get(duplicateValue);
 
-                if (member.user.bot) return
+                //to-do, should fetch it again, here prevents unfetchable members and role mention and other mentions and bot
+                if (member?.user?.bot) return;
                 
                 memberIds.push(duplicateValue);
 

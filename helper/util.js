@@ -60,6 +60,12 @@ function validProject(projectId, guildId){
     return result[projectId] ?? null
 }
 
+function validTeam(teamId, guildId){
+    const result = myCache.get("teams")[guildId];
+    if (!result) return null;
+    return result[teamId] ?? null
+}
+
 function updateUserCache(userId, discordName, guildId){
     const cached = myCache.get("users");
     if (!cached[userId]) myCache.set("users", {
@@ -102,6 +108,7 @@ module.exports = {
     validProject, 
     validSkill, 
     validUser, 
+    validTeam,
     insertVerticalBar, 
     updateUserCache,
 }

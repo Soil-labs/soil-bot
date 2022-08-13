@@ -1,7 +1,7 @@
 const { SlashCommandBuilder } = require('@discordjs/builders');
 const { CommandInteraction, MessageEmbed } = require("discord.js");
 const { newTweetProject, fetchProjectDetail, createProjectUpdate } = require('../helper/graphql');
-const { validUser, validProject, awaitWrap } = require('../helper/util');
+const { validUser, validProject, awaitWrap, validTeam } = require('../helper/util');
 const CONSTANT = require("../helper/const");
 const { sprintf } = require('sprintf-js');
 
@@ -115,7 +115,7 @@ module.exports = {
                 tweetLink: tweetLink
             };
 
-            //to-do approve should be branched in the future.
+            //to-do update approve should be branched in the future.
             //currently we approve all update
             const result = await this._updateProject({
                 ...projectUpdateInform,
@@ -204,6 +204,16 @@ module.exports = {
                 ephemeral: true
             })
 
+            if (!validProject(projectId, guildId)) return interaction.reply({
+                content: "Please input a valid project",
+                ephemeral: true
+            })
+
+            if (!validTeam(teamId, guildId)) return interaction.reply({
+                content: "Please input a valid team",
+                ephemeral: true
+            })
+
             let hasBot = false
 
             //TO-DO: Handler Role and other mentions
@@ -216,10 +226,9 @@ module.exports = {
                         duplicateValue = duplicateValue.slice(1);
                     }
                     const member = interaction.guild.members.cache.get(duplicateValue);
-                    if (member.user.bot) {
-                        hasBot = true
-                        return null;
-                    }
+                    
+                    //to-do, should fetch it again, here prevents unfetchable members and role mention and other mentions and bot
+                    if (member?.user?.bot) return null;
                     else return member.id
                 }
             }).filter(value => value);

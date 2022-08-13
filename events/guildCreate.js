@@ -10,9 +10,7 @@ module.exports = {
      * @param  {Guild} guild
      */
     async execute(guild) {
-        console.log(1)
         if (guild.available){
-            console.log(1)
             const guildPermissionInform = {
                 adminID: [],
                 adminRoles: [],
@@ -35,7 +33,6 @@ module.exports = {
             if (error) return logger.error(`${guild.name} was created, but cannot upload its permission information. Reason: ${error}`);
 
             myCache.set("server", cached);
-            console.log(myCache.get("server"))
         }
     }
 }

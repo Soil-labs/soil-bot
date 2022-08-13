@@ -420,16 +420,23 @@ async function fetchProjects() {
       let toBecached = {};
       result.findProjects.forEach((value) => {
         const servers = value.serverID;
-        if (servers.length == 0) return
-        if (toBecached[servers[0]]){
-          toBecached[servers[0]][value._id] = {
-            title: value.title
+        const projectId = value._id;
+        const projectTitle = value.title;
+        //Handle special case, the server should have not been empty
+        if (servers.length == 0) return;
+        servers.forEach((serverId) => {
+          if (toBecached[serverId]){
+            toBecached[serverId][projectId] = {
+              title: projectTitle
+            }
+          }else{
+            toBecached[serverId] = {
+              [projectId]: {
+                title: projectTitle
+              }
+            }
           }
-        }else toBecached[servers[0]] = {
-          [value._id]: {
-            title: value.title
-          }
-        }
+        })
       })
       myCache.set("projects", toBecached);
       return false
@@ -490,16 +497,23 @@ async function fetchTeams(){
     let toBecached = {}
     result.findTeams.forEach((value) => {
       const servers = value.serverID;
+      const teamName = value.name;
+      const teamId = value._id;
+      //Handle special case
       if (servers.length == 0) return;
-      if (toBecached[servers[0]]){
-        toBecached[servers[0]][value._id] = {
-          name: value.name
-        };
-      }else toBecached[servers[0]] = {
-        [value._id]: {
-          name: value.name
+      servers.forEach((serverId) => {
+        if (toBecached[serverId]){
+          toBecached[serverId][teamId] = {
+            name: teamName
+          };
+        }else{
+          toBecached[serverId] = {
+            [teamId]: {
+              name: teamName
+            }
+          }
         }
-      }
+      }) 
     })
     myCache.set("teams", toBecached);
     return false

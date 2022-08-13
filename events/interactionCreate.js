@@ -18,7 +18,6 @@ module.exports = {
         
             //TODO Need to handle this error
             if (!command) return;
-
             
             if (myCache.has("server")){
                 const { commandName, member, guildId } = interaction;

@@ -98,7 +98,6 @@ module.exports = {
                 process.exit(1);
             }              
             myCache.set("server", cache);
-            console.log(cache)
             logger.info(`\n${table.toString()}`);
         }
 
@@ -132,7 +131,15 @@ module.exports = {
                 });
                 logger.info("Commands are set globally");
             }else{
-                const guild = client.guilds.cache.get(process.env.GUILDID);
+                //to-do when bot changed, this cache is not reliable, you have to fetch by yourself
+                let guild = client.guilds.cache.get(process.env.GUILDID);
+                if (!guild) {
+                    guild = await client.guilds.fetch(process.env.GUILDID);
+                    if (!guild){
+                        logger.error("Cannot find this guild");
+                        process.exit(1);
+                    }
+                }
                 await guild.members.fetch();
                 await guild.channels.fetch();
                 //Set commands only available in this guild 
