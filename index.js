@@ -9,7 +9,8 @@ const client = new discord.Client({ intents: [
     discord.Intents.FLAGS.GUILD_MESSAGES,
     discord.Intents.FLAGS.GUILD_MEMBERS,
     discord.Intents.FLAGS.GUILD_PRESENCES,
-    discord.Intents.FLAGS.GUILD_MESSAGE_REACTIONS
+    discord.Intents.FLAGS.GUILD_MESSAGE_REACTIONS,
+    discord.Intents.FLAGS.GUILD_VOICE_STATES
 ]});
 
 client.commands = new discord.Collection();
@@ -41,7 +42,7 @@ if (commandIndex != -1){
 }
 
 //Load autoComplete
-const autoCompleteFilesPath = path.join(process.cwd(), 'autocomplete');
+const autoCompleteFilesPath = path.join(process.cwd(), 'autocompletes');
 const autoCompleteFiles = fs.readdirSync(autoCompleteFilesPath).filter((file) => file.endsWith(".js"))
 
 for (const file of autoCompleteFiles){
@@ -54,30 +55,20 @@ for (const file of autoCompleteFiles){
     }
 }
 
-// const buttonFilesPath = path.join(process.cwd(), "button");
-// const buttonFiles = fs.readdirSync(buttonFilesPath).filter((file) => file.endsWith(".js"));
+const buttonFilesPath = path.join(process.cwd(), "buttons");
+const buttonFiles = fs.readdirSync(buttonFilesPath).filter((file) => file.endsWith(".js"));
 
-// //Load button
-// for (const file of buttonFiles){
-//     const button = require(path.join(buttonFilesPath, file));
-//     //Our self-defined customId is an array
-//     for(const id of button.customId){
-//         client.buttons.set(id, button);
-//     }
-// }
+//Load button
+for (const file of buttonFiles){
+    const button = require(path.join(buttonFilesPath, file));
+    //Our self-defined customId is an array
+    for(const id of button.customId){
+        client.buttons.set(id, button);
+    }
+}
 
 const eventsFilesPath = path.join(process.cwd(), "events");
 const eventsFiles = fs.readdirSync(eventsFilesPath).filter((file) => file.endsWith(".js"));
-
-// if (process.env.SLASH_CMD_ENV == "production"){
-//     const filtedCommands = process.env.ALLOW_COMMAND.split(',').filter((value) => value != '');
-//     if (filtedCommands.length == 0){
-//         logger.error("Please set ALLOW_COMMAND in .env or check its format");
-//         process.exit(1);
-//     }else{
-//         slashCommands = slashCommands.filter((value) => filtedCommands.includes(value.name))
-//     }
-// }
 
 //Loop event
 for (const file of eventsFiles){

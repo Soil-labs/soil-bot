@@ -1,5 +1,6 @@
 const myCache = require("./cache");
 const CONSTANT = require("../helper/const");
+const _ = require('lodash');
 
 /**
  * @param  {Promise} promise
@@ -68,24 +69,35 @@ function validTeam(teamId, guildId){
 
 function updateUserCache(userId, discordName, guildId){
     const cached = myCache.get("users");
-    if (!cached[userId]) myCache.set("users", {
+    const servers = cached[userId]?.serverId ?? [];
+    myCache.set("users", {
         ...cached,
         [userId]: {
             discordName: discordName,
-            serverId: [guildId]
+            serverId: _.uniq([...servers, guildId])
         }
-    })
-    else {
-        const guilds = cached[userId]["serverId"];
-        myCache.set("users", {
-            ...cached,
+    });
+}
+
+function updateUsersCache(userInforms, guildId){
+    let toBecached = {};
+    const cached = myCache.get("users");
+    userInforms.forEach((userInform) => {
+        const userId = userInform.id;
+        const discordName = userInform.discordName;
+        const servers = cached[userId]?.serverId ?? [];
+        toBecached = {
+            ...toBecached,
             [userId]: {
                 discordName: discordName,
-                serverId: guilds.includes(guildId) ? guilds : [...guilds, guildId]
+                serverId: _.uniq([...servers, guildId])
             }
-        })
-    }
-    
+        }
+    })
+    myCache.set("users", {
+        ...cached,
+        ...toBecached
+    });
 }
 
 function insertVerticalBar(array){
@@ -111,4 +123,5 @@ module.exports = {
     validTeam,
     insertVerticalBar, 
     updateUserCache,
+    updateUsersCache
 }

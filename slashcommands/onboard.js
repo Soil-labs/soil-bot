@@ -1,10 +1,11 @@
 const { SlashCommandBuilder } = require('@discordjs/builders');
-const { CommandInteraction, MessageEmbed } = require("discord.js");
+const { CommandInteraction, MessageEmbed, MessageActionRow, MessageButton } = require("discord.js");
 const { addNewMember } = require('../helper/graphql');
 const { sprintf } = require('sprintf-js');
+const { ChannelType } = require("discord-api-types/payloads/v10");
+const { awaitWrap, updateUsersCache } = require('../helper/util');
 const myCache = require("../helper/cache");
 const CONSTANT = require("../helper/const");
-const { updateUserCache, awaitWrap } = require('../helper/util');
 
 
 module.exports = {
@@ -17,93 +18,198 @@ module.exports = {
         this.data = new SlashCommandBuilder()
             .setName(this.commandName)
             .setDescription(this.description)
-            .addStringOption(option =>
-                option.setName("member")
-                    .setDescription("Member you'd like to onboard")
-                    .setRequired(true))
+            .addSubcommand(command =>
+                command.setName("member")
+                    .setDescription("Manually onboard mulitple members")
+                        .addStringOption(option =>
+                            option.setName("member")
+                                .setDescription("Member you'd like to onboard")
+                                .setRequired(true))
+            )
+            .addSubcommand(command =>
+                command.setName("auto")
+                    .setDescription("Automatically onboard members in a voice call")
+                        .addChannelOption(option =>
+                            option.setName("channel")
+                                .setDescription("Onboarding voice channel")
+                                .addChannelTypes(ChannelType.GuildVoice)
+                                .setRequired(true))
+            )
+
     },
 
     /**
      * @param  {CommandInteraction} interaction
      */
     async execute(interaction) {
-        const membersString = interaction.options.getString("member").match(/<@.?[0-9]*?>/g);
+        const subCommand = interaction.options.getSubcommand();
         const guildId = interaction.guild.id;
-        //membersString is null
-        if (!membersString) return interaction.reply({
-            content: "Please input at least one member in this guild",
-            ephemeral: true
-        })
 
-        let prefix = '';
-        let memberIds = [];
-        let updatePromise = [];
-        let toBecached = [];
-        //TO-DO: Handler Role and other mentions
-        membersString.forEach((value) => {
-            let duplicateValue = value;
-            if (duplicateValue.startsWith('<@') && duplicateValue.endsWith('>')) {
-                duplicateValue = duplicateValue.slice(2, -1);
+        if (subCommand == "member"){
+            const membersString = interaction.options.getString("member").match(/<@.?[0-9]*?>/g);
+            //membersString is null
+            if (!membersString) return interaction.reply({
+                content: "Please input at least one member in this guild",
+                ephemeral: true
+            })
 
-                if (duplicateValue.startsWith('!')) {
-                    duplicateValue = duplicateValue.slice(1);
+            let prefix = '';
+            let memberIds = [];
+            let updatePromise = [];
+            let toBecached = [];
+
+            membersString.forEach((value) => {
+                let duplicateValue = value;
+                if (duplicateValue.startsWith('<@') && duplicateValue.endsWith('>')) {
+                    duplicateValue = duplicateValue.slice(2, -1);
+
+                    if (duplicateValue.startsWith('!')) {
+                        duplicateValue = duplicateValue.slice(1);
+                    }
+
+                    if (memberIds.includes(duplicateValue)) return;
+
+                    const member = interaction.guild.members.cache.get(duplicateValue);
+
+                    //to-do, should fetch it again, here prevents unfetchable members and role mention and other mentions and bot
+                    if (member?.user?.bot) return;
+                    
+                    memberIds.push(duplicateValue);
+
+                    const inform = {
+                        _id: member.id,
+                        discordName: member.user.username,
+                        discriminator: member.user.discriminator,
+                        discordAvatar: member.user.avatarURL(),
+                        invitedBy: interaction.user.id,
+                        serverId: guildId
+                    }
+                    toBecached.push({
+                        id: duplicateValue,
+                        discordName: inform.discordName
+                    });
+
+                    updatePromise.push(addNewMember(inform));
                 }
+            })
+            if (memberIds.length == 0) return interaction.reply({
+                content: "You need to input at least one member in this guid.",
+                ephemeral: true
+            });
 
-                if (memberIds.includes(duplicateValue)) return;
-
-                const member = interaction.guild.members.cache.get(duplicateValue);
-
-                //to-do, should fetch it again, here prevents unfetchable members and role mention and other mentions and bot
-                if (member?.user?.bot) return;
-                
-                memberIds.push(duplicateValue);
-
-                const inform = {
-                    _id: member.id,
-                    discordName: member.user.username,
-                    discriminator: member.user.discriminator,
-                    discordAvatar: member.user.avatarURL(),
-                    invitedBy: interaction.user.id,
-                    serverId: guildId
+            memberIds.forEach((value, index) => {
+                if (index == 0){
+                    prefix += `?id=${value}`;
+                }else{
+                    prefix += `&id=${value}`;
                 }
-                toBecached.push({
-                    id: duplicateValue,
-                    discordName: inform.discordName
-                });
+            })
+            await interaction.deferReply({ ephemeral: true });
+            const onboardLink = sprintf(CONSTANT.LINK.STAGING_ONBOARD, prefix);
 
-                updatePromise.push(addNewMember(inform));
+            const results = await Promise.all(updatePromise);
+
+            if (results.filter((value) => (value[1])).length != 0) return interaction.followUp({
+                content: "Error occured when updating members."
+            })
+
+            updateUsersCache(toBecached, guildId);
+
+            const replyEmbed = new MessageEmbed()
+                .setTitle("🥰Planting seeds for yourself & others how WAGMI🥰")
+                .setDescription(sprintf(CONSTANT.CONTENT.ONBOARD, { onboardLink: onboardLink }));
+
+            return interaction.followUp({
+                embeds: [replyEmbed]
+            })
+        }
+
+        if (subCommand == "auto"){
+            if (!myCache.has("voiceContext")) return interaction.reply({
+                content: "Please try again, auto onboard is initing.",
+                ephemeral: true
+            })
+ 
+            const voiceChannel = interaction.options.getChannel("channel");
+            const selectedMembers = voiceChannel.members.filter((member) => !member.user.bot).map((_, memberId) => (memberId));
+
+            const contexts = myCache.get("voiceContext");
+            const guildVoiceContext = contexts[guildId];
+                //Onboarding is going on
+            if (guildVoiceContext && Object.keys(guildVoiceContext).length != 0){
+                return interaction.reply({
+                    embeds: [
+                        new MessageEmbed()
+                            .setTitle("Onboarding Call is going on")
+                            .setDescription(`Sorry, an onboarding call has started in <#${guildVoiceContext.channelId}>, hosted by <@${guildVoiceContext.hostId}>, at <t:${Math.floor(guildVoiceContext.timestamp / 1000)}:f>.\nPlease wait for its end or cancel it through its dashboard.`)
+                    ],
+                    components: [
+                        new MessageActionRow()
+                            .addComponents([
+                                new MessageButton()
+                                    .setLabel("Jump to the Dashboard")
+                                    .setStyle("LINK")
+                                    .setURL(sprintf(CONSTANT.LINK.DISCORD_MSG, {
+                                        guildId: guildId,
+                                        channelId: guildVoiceContext.channelId,
+                                        messageId: guildVoiceContext.messageId
+                                    }))
+                            ])
+                    ],
+                    ephemeral: true
+                })
             }
-        })
 
-        memberIds.forEach((value, index) => {
-            if (index == 0){
-                prefix += `?id=${value}`;
-            }else{
-                prefix += `&id=${value}`;
+            let membersFields = '';
+            if (selectedMembers.length == 0 ) membersFields = '-';
+            else {
+                for (const memberId of selectedMembers){
+                    membersFields += `\`00:00:00\` <@${memberId}>\n`
+                }
             }
-        })
-        await interaction.deferReply({ ephemeral: true });
-        const onboardLink = sprintf(CONSTANT.LINK.STAGING_ONBOARD, prefix);
+            const timestampMili = new Date().getTime();
+            const timestampSec = Math.floor(timestampMili / 1000);
+            const message = await voiceChannel.send({
+                embeds: [
+                    new MessageEmbed()
+                        .setTitle(`${interaction.guild.name} Onboarding Call Started`)
+                        .setAuthor({ name: `@${interaction.user.tag} -- Onboarding Call Host`, iconURL: interaction.user.avatarURL() })
+                        .setDescription(`**ChannelID**: <#${voiceChannel.id}>\n\n**Started**: <t:${timestampSec}:f>(<t:${timestampSec}:R>)`)
+                        .addField("Avtivity", membersFields)
+                ],
+                components: [
+                    new MessageActionRow()
+                        .addComponents([
+                            new MessageButton()
+                                .setCustomId("onboard")
+                                .setStyle("PRIMARY")
+                                .setLabel("Onboard Crew")
+                                .setEmoji("🫂"),
+                            new MessageButton()
+                                .setCustomId("cancel")
+                                .setStyle("DANGER")
+                                .setLabel("Cancel Onboarding")
+                                .setEmoji("⚠️"),
+                        ])
+                ]
+            });
 
-        const results = await Promise.all(updatePromise);
+            myCache.set("voiceContext", {
+                ...myCache.get("voiceContext"),
+                [guildId]: {
+                    messageId: message.id,
+                    channelId: voiceChannel.id,
+                    timestamp: timestampMili,
+                    hostId: interaction.user.id,
+                    attendees: selectedMembers
+                }
+            })
 
-        if (results.filter((value) => (value[1])).length != 0) return interaction.followUp({
-            content: "Error occured when updating members."
-        })
-
-        //updateCache
-        //to-do should support array updates cache
-        toBecached.forEach((value) => {
-            updateUserCache(value.id, value.discordName, guildId)
-        })
-
-        const replyEmbed = new MessageEmbed()
-            .setTitle("🥰Planting seeds for yourself & others how WAGMI🥰")
-            .setDescription(sprintf(CONSTANT.CONTENT.ONBOARD, { onboardLink: onboardLink }));
-
-        return interaction.followUp({
-            embeds: [replyEmbed]
-        })
+            return interaction.reply({
+                content: `Auto onboarding has started in <#${voiceChannel.id}>`,
+                ephemeral: true
+            })
+        }
 
     }
 

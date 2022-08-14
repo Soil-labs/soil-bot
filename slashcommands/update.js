@@ -199,7 +199,7 @@ module.exports = {
                 interaction.options.getString("content")
             ];
 
-            if (membersString.length == 0) return interaction.reply({
+            if (!membersString) return interaction.reply({
                 content: "Please input at least one member in this guild",
                 ephemeral: true
             })
@@ -213,8 +213,6 @@ module.exports = {
                 content: "Please input a valid team",
                 ephemeral: true
             })
-
-            let hasBot = false
 
             //TO-DO: Handler Role and other mentions
             const members = membersString.map((value) => {
@@ -233,8 +231,8 @@ module.exports = {
                 }
             }).filter(value => value);
 
-            if (hasBot) return interaction.reply({
-                content: "You cannot add a bot as a member",
+            if (members.length == 0) return interaction.reply({
+                content: "You need to input at least one member in this guid.",
                 ephemeral: true
             })
 

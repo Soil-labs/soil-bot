@@ -45,7 +45,11 @@ module.exports = {
                     table.addRow(items[index], "✅ Fetched and cached");
                 }
             })
-
+            
+            //to-do temp method to handle multi-guild auto onboarding
+            myCache.set("voiceContext", {});
+            table.addRow("Voice Context", "✅ Fetched and cached");
+            
             //to-do can fetch 200 at most once, if > 200 we should loop it
             const guilds = await client.guilds.fetch();
             if (guilds.size == 0) {
@@ -131,7 +135,6 @@ module.exports = {
                 });
                 logger.info("Commands are set globally");
             }else{
-                //to-do when bot changed, this cache is not reliable, you have to fetch by yourself
                 let guild = client.guilds.cache.get(process.env.GUILDID);
                 if (!guild) {
                     guild = await client.guilds.fetch(process.env.GUILDID);
