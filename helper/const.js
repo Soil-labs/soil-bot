@@ -48,6 +48,8 @@ const LINK = Object.freeze({
     AIRTABLE_ONBOARDING: "https://airtable.com/shrLeYlIfsS7r4ZOi?prefill_discord+Name=@%(discordName)s&prefill_ID=%(discordId)s&prefill_AuthorName=@%(discordName)s&hide_Parent+Record+ID=true&hide_AuthorName=true&hide_ID=true&hide_AuthorID=true",
     RECOMMENDATION: "https://soil-app-front-end-ruddy.vercel.app/projects?tab=1",
     DISCORD_MSG: "https://discord.com/channels/%(guildId)s/%(channelId)s/%(messageId)s",
+    GARDEN_FEED: "https://eden-garden-front.vercel.app/",
+    GARDEN_GRAPH: "https://garden-rho.vercel.app/"
 })
 
 const CONTENT = Object.freeze({
