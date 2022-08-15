@@ -285,8 +285,8 @@ module.exports = {
                 memberIds: members,
                 authorId: interaction.user.id,
                 teamIds: [teamId],
-                title: replacedContent,
-                content: content,
+                title: title,
+                content: replacedContent,
                 serverId: [guildId]
             }
             const [result, error] = await createProjectUpdate(updateInform);
@@ -309,7 +309,7 @@ module.exports = {
                             new MessageEmbed()
                                 .setAuthor({ name: `@${interaction.member.displayName} -- created this update`, iconURL: interaction.user.avatarURL() })
                                 .setTitle(`${projectTitle} Updates`)
-                                .setDescription(`**Team Included**: ${teamId}\n**Title**: ${title}\n**Content**: ${content}`)
+                                .setDescription(`**Team Included**: ${teamName}\n**Title**: ${title}\n**Content**: ${content}`)
                         ]
                     })
                 }else return interaction.followUp({
