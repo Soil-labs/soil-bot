@@ -2,8 +2,10 @@ const { SlashCommandBuilder } = require('@discordjs/builders');
 const { CommandInteraction, MessageEmbed } = require("discord.js");
 const { newTweetProject, fetchProjectDetail, createProjectUpdate } = require('../helper/graphql');
 const { validUser, validProject, awaitWrap, validTeam } = require('../helper/util');
-const CONSTANT = require("../helper/const");
 const { sprintf } = require('sprintf-js');
+
+const CONSTANT = require("../helper/const");
+const _ = require("lodash");
 
 module.exports = {
     commandName: "update",
@@ -54,7 +56,11 @@ module.exports = {
                         .addStringOption(option =>
                             option.setName("content")
                                 .setDescription("Content of News or announcement you'd like to report")
-                                .setRequired(true)))
+                                .setRequired(true))
+                        .addBooleanOption(option =>
+                            option.setName("request_thread")
+                                .setDescription("Create a thread for futher discussion"))
+            )
     },
 
     /**
@@ -190,26 +196,29 @@ module.exports = {
                 teamId,
                 membersString,
                 title,
-                content
+                content,
+                hasThread
             ] = [
                 interaction.options.getString("project"),
                 interaction.options.getString("team"),
                 interaction.options.getString("member").match(/<@.?[0-9]*?>/g),
                 interaction.options.getString("title"),
-                interaction.options.getString("content")
+                interaction.options.getString("content"),
+                interaction.options.getBoolean("request_thread")
             ];
 
             if (!membersString) return interaction.reply({
                 content: "Please input at least one member in this guild",
                 ephemeral: true
             })
-
-            if (!validProject(projectId, guildId)) return interaction.reply({
+            const projectTitle = validProject(projectId, guildId)?.title;
+            if (!projectTitle) return interaction.reply({
                 content: "Please input a valid project",
                 ephemeral: true
             })
 
-            if (!validTeam(teamId, guildId)) return interaction.reply({
+            const teamName = validTeam(teamId, guildId)?.name;
+            if (!teamName) return interaction.reply({
                 content: "Please input a valid team",
                 ephemeral: true
             })
@@ -240,24 +249,76 @@ module.exports = {
                 ephemeral: true
             });
 
+            //to-do Better handling contents, like mention members, roles, or other possible discord contents
+            let replacedContent = _.replace(content, /<@.?[0-9]*?>/g, (match) => {
+                if (match.startsWith('<@') && match.endsWith('>')) {
+                    match = match.slice(2, -1);
+
+                    if (match.startsWith('&')){
+                        match = match.slice(1);
+                        const role = interaction.guild.roles.cache.get(match);
+                        if (!role) return "unknownRole";
+                        else return `@Role ${role.name}`
+                    }
+
+                    if (match.startsWith('!')) {
+                        match = match.slice(1);
+                    }
+                    const member = interaction.guild.members.cache.get(match);
+                    if (!member) return "unknownUser"
+                    if (member.user.bot) return `Bot ${member.displayName}`;
+                    return member.displayName;
+                }else return "unknownUser"
+            })
+
+            replacedContent = _.replace(replacedContent, /<#[0-9]*?>/g, (match) => {
+                if (match.startsWith('<#') && match.endsWith('>')) {
+                    match = match.slice(2, -1);
+                    const channel = interaction.guild.channels.cache.get(match);
+                    if (!channel) return "unknownChannel";
+                    return `#${channel.name}`
+                }else return "unknownChannel"
+            })
+            
             const updateInform = {
                 projectId: projectId,
                 memberIds: members,
                 authorId: interaction.user.id,
                 teamIds: [teamId],
-                title: title,
+                title: replacedContent,
                 content: content,
                 serverId: [guildId]
             }
-
             const [result, error] = await createProjectUpdate(updateInform);
             
             if (error) return interaction.followUp({
                 content: `Error occured when fetching project details: \`${error}\``
             })
 
+            const replyEmbed = new MessageEmbed().setDescription("Check the [Garden Feed](https://eden-garden-front.vercel.app/)\nCheck the [Garden Graph](https://garden-rho.vercel.app/)");
+            // Temporarily hard coded for Soil Team Server
+            if (hasThread && guildId == "996558082098339953") {
+                const targetChannel = interaction.guild.channels.cache.get("1008476220352114748");
+                if (targetChannel.type == "GUILD_TEXT"){
+                    const thread = await targetChannel.threads.create({
+                        name: title
+                    })
+                    await thread.send({
+                        content: members.map((value) => (`<@${value}>`)).toString(),
+                        embeds: [
+                            new MessageEmbed()
+                                .setAuthor({ name: `@${interaction.member.displayName} -- created this update`, iconURL: interaction.user.avatarURL() })
+                                .setTitle(`${projectTitle} Updates`)
+                                .setDescription(`**Team Included**: ${teamId}\n**Title**: ${title}\n**Content**: ${content}`)
+                        ]
+                    })
+                }else return interaction.followUp({
+                    embeds: [replyEmbed.setTitle("Update successfully but fail to create a thread")]
+                })
+            }
+
             return interaction.followUp({
-                content: "Update successfully."
+                embeds: [replyEmbed.setTitle("Update successfully the Secret Garden")]
             })
             
         }
