@@ -309,7 +309,7 @@ module.exports = {
                             new MessageEmbed()
                                 .setAuthor({ name: `@${interaction.member.displayName} -- created this update`, iconURL: interaction.user.avatarURL() })
                                 .setTitle(`${projectTitle} Updates`)
-                                .setDescription(`**Team Included**: ${teamName}\n**Title**: ${title}\n**Content**: ${content}`)
+                                .setDescription(`**Team Included**: ${teamName}\n**Title**: ${title}\n**Content**: ${content}\n\nCheck the [Garden Feed](https://eden-garden-front.vercel.app/)\nCheck the [Garden Graph](https://garden-rho.vercel.app/)`)
                         ]
                     })
                 }else return interaction.followUp({
