@@ -54,14 +54,14 @@ module.exports = {
 
         updateUserCache(user.id, user.username, guildId);
 
-        const onboardLink = sprintf(CONSTANT.LINK.AIRTABLE_ONBOARDING, {
-            discordName: encodeURIComponent(user.username),
-            discordId: user.id
-        })
+        // const onboardLink = sprintf(CONSTANT.LINK.SIGNUP, {
+        //     discordName: encodeURIComponent(user.username),
+        //     discordId: user.id
+        // })
 
         const replyEmbed = new MessageEmbed()
             .setTitle("Join Soil 🌳 ")
-            .setDescription(sprintf(CONSTANT.CONTENT.ONBOARD_SELF, { onboardLink: onboardLink }));
+            .setDescription(sprintf(CONSTANT.CONTENT.ONBOARD_SELF, { onboardLink: CONSTANT.LINK.SIGNUP}));
 
         return interaction.followUp({
             embeds: [replyEmbed],
