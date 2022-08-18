@@ -1,5 +1,6 @@
 .env
 .env.d_d
+.env.soil
 .env.dev
 .env.dev
 .env.main

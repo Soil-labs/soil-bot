@@ -8,7 +8,7 @@ const CONSTANT = require("../helper/const");
 
 module.exports = {
     commandName: "signup",
-    description: "Onboard yourself",
+    description: "join Eden 🌳 to find projects you love",
 
     data: null,
 
@@ -54,13 +54,8 @@ module.exports = {
 
         updateUserCache(user.id, user.username, guildId);
 
-        // const onboardLink = sprintf(CONSTANT.LINK.SIGNUP, {
-        //     discordName: encodeURIComponent(user.username),
-        //     discordId: user.id
-        // })
-
         const replyEmbed = new MessageEmbed()
-            .setTitle("Join Soil 🌳 ")
+            .setTitle("Hooray! You're about to join Eden 🌳")
             .setDescription(sprintf(CONSTANT.CONTENT.ONBOARD_SELF, { onboardLink: CONSTANT.LINK.SIGNUP}));
 
         return interaction.followUp({

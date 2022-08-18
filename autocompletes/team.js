@@ -19,7 +19,7 @@ module.exports = {
                     if (!teamsInGuild || Object.keys(teamsInGuild).length == 0) return interaction.respond([]);
 
                     const filter = Object.keys(teamsInGuild).filter((teamId) => (
-                        teamsInGuild[teamId].name.includes(focusedOption.value)
+                        teamsInGuild[teamId].name.toLowerCase().startsWith(focusedOption.value.toLowerCase())
                     )).map((teamId) => ({
                         name: teamsInGuild[teamId].name,
                         value: teamId

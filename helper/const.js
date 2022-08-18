@@ -1,17 +1,35 @@
 
-let _endPoint, _frontEnd;
+let _endPoint, _frontEnd, _champion, _project, _projectAll, _projectTweets, _createProject, _signUp;
 switch(process.env.VERSION){
   case "Test":
     _endPoint = "https://soil-test-backend.herokuapp.com/graphql";
-    _frontEnd = "https://oasis-app-front-end-zeta.vercel.app/"
+    _frontEnd = "https://soil-app-front-end-zeta.vercel.app";
+    _champion = _frontEnd + "/champion-dashboard";
+    _project = _frontEnd + "/projects/%s";
+    _projectAll = _frontEnd + "/projects?tab=1";
+    _projectTweets = _frontEnd + "/projects/%s/feed";
+    _createProject = _frontEnd + "/form/%s";
+    _signUp = _frontEnd + "/member/signup"; 
     break;
   case "Develop":
     _endPoint = "http://oasis-bot-test-deploy.herokuapp.com/graphql";
-    _frontEnd = "https://oasis-app-front-end-zeta.vercel.app/"
-    break;
+    _frontEnd = "https://oasis-app-front-end-zeta.vercel.app/";
+    _champion = _frontEnd + "/champion-dashboard";
+    _project = _frontEnd + "/projects/%s";
+    _projectAll = _frontEnd + "/projects?tab=1";
+    _projectTweets = _frontEnd + "/projects/%s/feed";
+    _createProject = _frontEnd + "/form/%s";
+    _signUp = _frontEnd + "/member/signup";
+    break; 
   case "Production":
     _endPoint = "https://eden-deploy.herokuapp.com/graphql";
-    _frontEnd = "https://eden-app-front-end-zeta.vercel.app/"
+    _frontEnd = "https://eden-app-front-end-zeta.vercel.app/";
+    _champion = _frontEnd + "/champion-dashboard";
+    _project = _frontEnd + "/projects/%s";
+    _projectAll = _frontEnd + "/projects?tab=1";
+    _projectTweets = _frontEnd + "/projects/%s/feed";
+    _createProject = _frontEnd + "/form/%s";
+    _signUp = _frontEnd + "/member/signup";
     break;
   default:
     logger.error("Please check the bot version in .env");
@@ -33,30 +51,29 @@ const ERROR = Object.freeze({
 })
 
 const LINK = Object.freeze({
+    EDEN_WEBPAGE: "https://www.edenprotocol.app",
     GRAPHQL_ENDPOINT: _endPoint,
-    NEW_PROJECT: "https://soil-app-front-p7kor7uzy-msaratzidis-gmailcom.vercel.app/form",
-    PROJECT_TWEET: "https://soil-app-front-end-ruddy.vercel.app/projects/%s/feed",
-    SOIL: "https://www.Soil.xyz",
-    PROJECT: "https://www.soil.xyz/project/%s",
-    PROJECT_GATEWAY: "https://www.soil.xyz/project/",
+    PROJECT_TWEET: _projectTweets,
     USER: "https://www.soil.xyz/profile/%s/",
     SKILL: "https://www.soil.xyz/member/%s/",
-    ONBOARD: "https://www.soil.xyz/onboard/%s/",
     STAGING_ONBOARD: _frontEnd + "onboard%s",
     ENDORSEMENTS: "https://www.soil.xyz/member/%s/endorsements/",
     CLAIM_ENDORSEMENT: "https://www.soil.xyz/endorsment/%s/",
-    SIGNUP: "https://oasis-app-front-end-zeta.vercel.app/member/signup",
-    RECOMMENDATION: "https://soil-app-front-end-ruddy.vercel.app/projects?tab=1",
-    DISCORD_MSG: "https://discord.com/channels/%(guildId)s/%(channelId)s/%(messageId)s",
+    SIGNUP: _signUp,
     GARDEN_FEED: "https://eden-garden-front.vercel.app/",
-    GARDEN_GRAPH: "https://garden-rho.vercel.app/"
+    GARDEN_GRAPH: "https://garden-rho.vercel.app/",
+    PROJECT: _project,
+    PROJECT_ALL: _projectAll,
+    LAUNCH_PROJECT: _createProject,
+    DASHBOARD: _champion
 })
 
 const CONTENT = Object.freeze({
-    ONBOARD: "You're about to onboard another member into Soil 🌳. Click [here](%(onboardLink)s) to continue!",
-    ONBOARD_SELF: "In order for Soil 🌱 to recommend the right projects for you, Soil needs to know about your skills. Add them [here](%(onboardLink)s)",
-    INVITE_DM: "Soil🌱 is the DAO's magic ✨, AI-driven bot that helps you find opportunities to learn, earn, collaborate & contribute. Your personal onboarding [link](%(onboardLink)s)",
-    INVITE_DM_FAIL: "Soil🌱 is the DAO's magic ✨, AI-driven bot that helps you find opportunities to learn, earn, collaborate & contribute. Your personal onboarding [link](%(onboardLink)s)",
+    ONBOARD: "Growing the garden of opportunities is how we are all going to make it. To onboard new members, click [here](%(onboardLink)s).",
+    ONBOARD_SELF: "In order for Eden 🌳 to recommend the right projects for you, we need to know about your skills. Add them [here](%(onboardLink)s).",
+    GROUP_ONBORAD: "Growing the garden of opportunities is how we are all going to make it. To onboard new members, click [here](%(onboardLink)s).",
+    INVITE_DM: "<@%(inviterId)s> has invited you to join the tool we use to coordinate talent across the community. It uses AI to make smart, community driven recommendations for projects you'd love. To join, click [here](%(onboardLink)s).",
+    INVITE_DM_FAIL: "Hi <@%(inviteeId)s>! Eden is the tool we use to coordinate talent across the community. It uses AI to make smart, community driven recommendations for projects you'd love. To join, click [here](%(onboardLink)s).",
     
     ENDORSE_NEW_MEMBER_CASE_ENDORSER_REPLY: "By endorsing other community members, you increase their chance of finding magical opportunities✨.\n\nIn other words, you're awesome. On behalf of \`%(endorseeName)s\`, a heartfelt thank you 🙏 wagmi!\n\nWhile you're at it, feel free to check out your own [endorsements](%(endorserEndorsementLink)s).",
     ENDORSE_OLD_MEMBER_CASE_ENDORSER_REPLY: "On behalf of \`%(endorseeName)s\`, a heartfelt thank you - this is how wagmi ❤️",
@@ -112,10 +129,10 @@ const CONTENT = Object.freeze({
     MATCH_SKILL: "Here are the people that have a similar skillset to yours! Why not reach out & talk about what you have in common?\n\u200B\n",
     MATCH_SKILL_FAIL: "Wow, your skill is so special that no matching result is for you. You are unique!\n\u200B\n",
 
-    MATCH_PROJECT: "This is the best projects and Roles for your skills 🥂\n\u200B\n",
-    MATCH_PROJECT_FAIL: "Wow, your skill is so special that no matching result is for you. You are unique!\n\u200B\n",
+    MATCH_PROJECT: "Find all the relevant projects for you [here](%s).",
+    //MATCH_PROJECT_FAIL: "Wow, your skill is so special that no matching result is for you. You are unique!\n\u200B\n",
 
-    ENDORSE_ATTRIBUTE: "You have successfully endorsed \`%(endorseeName)s\` with \`%(attributeName)s\` trait",
+    ENDORSE_ATTRIBUTE: "You have successfully endorsed \`%(endorseeName)s\` with \`%(attributeName)s\` trait.",
 })
 
 const NUMERICAL_VALUE = Object.freeze({

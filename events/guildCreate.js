@@ -9,7 +9,7 @@ module.exports = {
     /**
      * @param  {Guild} guild
      */
-    async execute(guild) {
+    async execute(guild) {  
         if (guild.available){
             const guildPermissionInform = {
                 adminID: [],

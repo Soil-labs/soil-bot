@@ -64,7 +64,7 @@ module.exports = {
                 embeds: [
                     new MessageEmbed()
                         .setTitle(sprintf("🪄Total projects in DAO: %d", num))
-                        .setDescription(sprintf("🔗Click [here](%s) to see all projects", CONSTANT.LINK.PROJECT_GATEWAY))
+                        .setDescription(sprintf("🔗Click [here](%s) to see all projects", CONSTANT.LINK.PROJECT_ALL))
                 ],
                 ephemeral: true
             })

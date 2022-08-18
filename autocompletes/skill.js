@@ -3,7 +3,7 @@ const myCache = require("../helper/cache")
 const CONSTANT = require("../helper/const");
 
 module.exports = {
-    attachedCommand: ["endorse", "search", "match"],
+    attachedCommand: ["endorse", "search", "find"],
     options: ["skill", "skill_1", "skill_2", "skill_3", "skill_4"],
 
     /**
@@ -17,7 +17,7 @@ module.exports = {
                 if (Object.keys(skills).length == 0) return interaction.respond([]);
 
                 const filtered = Object.keys(skills).filter((skillId) => (
-                    skills[skillId].name.includes(focusedOption.value) 
+                    skills[skillId].name.toLowerCase().startsWith(focusedOption.value.toLowerCase()) 
                 )).map((skillId) => ({
                     name: skills[skillId].name,
                     value: skillId

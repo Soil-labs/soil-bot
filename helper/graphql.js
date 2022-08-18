@@ -192,28 +192,18 @@ const FETCH_PROJECT_DETAIL = gql`
     query(
         $projectID: ID
     ){
-        findProject(fields:{
-            _id: $projectID
-        }){
-            title
-            description
-            tweets{
-                title
-                content
-                author {
-                    discordName
-                }
-                registeredAt
-                approved
-            }
-            role{
-              _id
-              title
-            }    
-            champion{
-              _id
-            }
+      findProject(fields:{
+        _id: $projectID
+      }){
+        title
+        role{
+          title
+        }    
+        champion{
+          _id
+          discordName
         }
+      }
     }
 `;
 

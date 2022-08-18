@@ -3,7 +3,7 @@ const { CommandInteraction, MessageEmbed, MessageActionRow, MessageButton } = re
 const { addNewMember } = require('../helper/graphql');
 const { sprintf } = require('sprintf-js');
 const { ChannelType } = require("discord-api-types/payloads/v10");
-const { awaitWrap, updateUsersCache } = require('../helper/util');
+const { updateUsersCache } = require('../helper/util');
 const myCache = require("../helper/cache");
 const CONSTANT = require("../helper/const");
 
@@ -20,9 +20,9 @@ module.exports = {
             .setDescription(this.description)
             .addSubcommand(command =>
                 command.setName("member")
-                    .setDescription("Manually onboard mulitple members")
+                    .setDescription("Onboard multiple new frens into Eden 🌳")
                         .addStringOption(option =>
-                            option.setName("member")
+                            option.setName("frens")
                                 .setDescription("Member you'd like to onboard")
                                 .setRequired(true))
             )
@@ -46,7 +46,7 @@ module.exports = {
         const guildId = interaction.guild.id;
 
         if (subCommand == "member"){
-            const membersString = interaction.options.getString("member").match(/<@.?[0-9]*?>/g);
+            const membersString = interaction.options.getString("frens").match(/<@.?[0-9]*?>/g);
             //membersString is null
             if (!membersString) return interaction.reply({
                 content: "Please input at least one member in this guild",
@@ -114,13 +114,21 @@ module.exports = {
             })
 
             updateUsersCache(toBecached, guildId);
-
-            const replyEmbed = new MessageEmbed()
-                .setTitle("🥰Planting seeds for yourself & others how WAGMI🥰")
-                .setDescription(sprintf(CONSTANT.CONTENT.ONBOARD, { onboardLink: onboardLink }));
+            let embedTitle, embedDescription;
+            if (memberIds.length == 1 && memberIds[0] == interaction.user.id){
+                embedTitle = "Hooray! You're about to join Eden 🌳";
+                embedDescription = sprintf(CONSTANT.CONTENT.ONBOARD_SELF, { onboardLink: CONSTANT.LINK.SIGNUP});
+            }else{
+                embedTitle = "You’re about to onboard new members 🌳";
+                embedDescription = sprintf(CONSTANT.CONTENT.GROUP_ONBORAD, { onboardLink: onboardLink });
+            }
 
             return interaction.followUp({
-                embeds: [replyEmbed]
+                embeds: [
+                    new MessageEmbed()
+                        .setTitle(embedTitle)
+                        .setDescription(embedDescription)
+                ]
             })
         }
 
@@ -135,7 +143,7 @@ module.exports = {
 
             const contexts = myCache.get("voiceContext");
             const guildVoiceContext = contexts[guildId];
-                //Onboarding is going on
+            //Onboarding is going on
             if (guildVoiceContext && Object.keys(guildVoiceContext).length != 0){
                 return interaction.reply({
                     embeds: [

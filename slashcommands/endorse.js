@@ -58,7 +58,7 @@ module.exports = {
                 ephemeral: true
             });
 
-            const onboardLink = sprintf(CONSTANT.LINK.ONBOARD, interaction.user.id)
+            const onboardLink = CONSTANT.LINK.SIGNUP
             await interaction.followUp({
                 content: sprintf(CONSTANT.CONTENT.ONBOARD, { onboardLink: onboardLink }),
                 ephemeral: true
@@ -73,8 +73,8 @@ module.exports = {
                 ephemeral: true
             });
 
-            const userOnboardLink = sprintf(CONSTANT.LINK.ONBOARD, endorsee.id)
-            const userDMchannel = await endorsee.createDM()
+            const userOnboardLink = CONSTANT.LINK.SIGNUP;
+            const userDMchannel = await endorsee.createDM();
             const {userDMresult ,userDMerror} = await awaitWrap(userDMchannel.send({
                 content: sprintf(CONSTANT.CONTENT.INVITE_DM, {
                     inviterName: interaction.member.displayName,
@@ -157,7 +157,7 @@ module.exports = {
             endorseeId: endorsee.id,
             endorserName: interaction.user.username,
             claimEndorsementLink: sprintf(CONSTANT.LINK.CLAIM_ENDORSEMENT, endorsee.id),
-            onboardLink: sprintf(CONSTANT.LINK.ONBOARD, endorsee.id),
+            onboardLink: CONSTANT.LINK.SIGNUP,
             endorserEndorsementLink: sprintf(CONSTANT.LINK.ENDORSEMENTS, interaction.user.id)
         }
         const contents = [...this._contents].filter(([condition, content]) => (

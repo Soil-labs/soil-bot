@@ -5,7 +5,7 @@ const CONSTANT = require("../helper/const");
 
 module.exports = {
     attachedCommand: ["project", "update", "search"],
-    options: ["project"],
+    options: ["project", "project_name"],
 
     /**
      * @param  {AutocompleteInteraction} interaction
@@ -19,7 +19,7 @@ module.exports = {
                 if (!projectsInGuild || Object.keys(projectsInGuild).length == 0) return interaction.respond([]);
 
                 const filtered = Object.keys(projectsInGuild).filter((projectId) => {
-                    return projectsInGuild[projectId].title.includes(focusedOption.value)
+                    return projectsInGuild[projectId].title.toLowerCase().startsWith(focusedOption.value.toLowerCase())
                 }).map((projectId) => ({
                     name: projectsInGuild[projectId].title,
                     value: projectId
