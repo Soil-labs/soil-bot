@@ -83,13 +83,14 @@ module.exports = {
             }), "userDMresult", "userDMerror");
 
             if (userDMerror){
-                await interaction.channel.send({
+                const {sendResult, sendError } = await awaitWrap(interaction.channel.send({
                     content: sprintf(CONSTANT.CONTENT.INVITE_DM_FAIL, {
                         inviteeId: endorsee.id,
                         inviterId: interaction.user.id,
                         onboardLink: userOnboardLink
                     })
-                })
+                }), "sendResult", "sendError");
+                //to-do
             }else{
                 await interaction.followUp({
                     content: sprintf("Onboard DM is sent to \`%s\`", endorsee.username),

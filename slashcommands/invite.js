@@ -85,7 +85,7 @@ module.exports = {
 
         let embedContent = new MessageEmbed().setTitle("You've been invited to join Eden 🌳");
         if (process.env.SLASH_CMD_ENV == "production" && process.env.DM_OPTION == "false"){
-            interaction.channel.send({
+            const { result, error } = await awaitWrap(interaction.channel.send({
                 content: `<@${inviter.id}> has invited <@${invitee.id}> to join Eden 🌳! BIG WAGMI ENERGY!⚡`,
                 embeds: [
                     embedContent.setDescription(sprintf(CONSTANT.CONTENT.INVITE_DM_FAIL, {
@@ -93,7 +93,11 @@ module.exports = {
                         inviteeId: invitee.id
                     }))
                 ]
+            }));
+            if (error) return interaction.followUp({
+                content: "Cannot send message in this channel, please check the permission. But you have been onboarded!"
             })
+
             return interaction.followUp({
                 content: sprintf("Invite message has been sent to <#%s>", interaction.channel.id)
             })
@@ -109,7 +113,7 @@ module.exports = {
         }), "DMResult", "DMError");
 
         if (DMError) {
-            interaction.channel.send({
+            const {channelResult, channelError} = await awaitWrap(interaction.channel.send({
                 content: `<@${inviter.id}> has invited <@${invitee.id}> to join Eden 🌳! BIG WAGMI ENERGY!⚡`,
                 embeds: [
                     embedContent.setDescription(sprintf(CONSTANT.CONTENT.INVITE_DM_FAIL, {
@@ -117,7 +121,8 @@ module.exports = {
                         inviteeId: invitee.id
                     }))
                 ]
-            })
+            }), "channelResult", "channelError");
+            //to-do
             return interaction.followUp({
                 content: sprintf("Invite message has been sent to <#%s>", interaction.channel.id)
             })

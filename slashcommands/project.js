@@ -3,7 +3,7 @@ const { CommandInteraction, MessageEmbed } = require("discord.js");
 const { sprintf } = require('sprintf-js');
 const CONSTANT = require("../helper/const");
 const { fetchProjectDetail } = require('../helper/graphql');
-const { validProject, validUser } = require('../helper/util');
+const { validProject, validUser, awaitWrap } = require('../helper/util');
 
 
 module.exports = {
@@ -179,13 +179,17 @@ module.exports = {
                 })
 
                 if (process.env.SLASH_CMD_ENV == "production" && process.env.DM_OPTION == "false"){
-                    interaction.channel.send({
+                    const {channelResult, chanelError} = await awaitWrap(interaction.channel.send({
                         content: `<@${championId}>`,
                         embeds: [
                             embedMessage.setDescription(
                                 sprintf(CONSTANT.CONTENT.NEW_TWEET_PROJECT_CHAMPION_DM_FAIL, embedInform))
                         ]
-                    });
+                    }), "channelResult", "chanelError");
+
+                    if (chanelError) return interaction.followUp({
+                        content: "Permission denied, please check the permission of this channel. But your announcemnet has been uploaded successfully."
+                    })
 
                     return interaction.followUp({
                         content: "New announcement to this project has been uploaded successfully."
@@ -208,7 +212,7 @@ module.exports = {
                                 sprintf(CONSTANT.CONTENT.NEW_TWEET_PROJECT_CHAMPION_DM_FAIL, embedInform))
                         ]
                     });
-
+                    //to-do
                     return interaction.followUp({
                         content: "New announcement to this project has been uploaded successfully."
                     })

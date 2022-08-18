@@ -3,7 +3,7 @@ const { CommandInteraction, MessageEmbed, MessageActionRow, MessageButton } = re
 const { addNewMember } = require('../helper/graphql');
 const { sprintf } = require('sprintf-js');
 const { ChannelType } = require("discord-api-types/payloads/v10");
-const { updateUsersCache } = require('../helper/util');
+const { updateUsersCache, awaitWrap } = require('../helper/util');
 const myCache = require("../helper/cache");
 const CONSTANT = require("../helper/const");
 
@@ -177,7 +177,8 @@ module.exports = {
             }
             const timestampMili = new Date().getTime();
             const timestampSec = Math.floor(timestampMili / 1000);
-            const message = await voiceChannel.send({
+            
+            const { message, msgError } = await awaitWrap(voiceChannel.send({
                 embeds: [
                     new MessageEmbed()
                         .setTitle(`${interaction.guild.name} Onboarding Call Started`)
@@ -200,7 +201,14 @@ module.exports = {
                                 .setEmoji("⚠️"),
                         ])
                 ]
-            });
+            }), "message", "msgError");
+
+            if (msgError){
+                return interaction.reply({
+                    content: "Permission denied, please check whether the bot is allowed to send message in this channel",
+                    ephemeral: true
+                })
+            }
 
             myCache.set("voiceContext", {
                 ...myCache.get("voiceContext"),
