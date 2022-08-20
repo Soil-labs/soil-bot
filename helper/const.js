@@ -65,7 +65,8 @@ const LINK = Object.freeze({
     PROJECT: _project,
     PROJECT_ALL: _projectAll,
     LAUNCH_PROJECT: _createProject,
-    DASHBOARD: _champion
+    DASHBOARD: _champion,
+    DISCORD_MSG: "https://discord.com/channels/%(guildId)s/%(channelId)s/%(messageId)s",
 })
 
 const CONTENT = Object.freeze({

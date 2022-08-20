@@ -7,7 +7,7 @@ const myCache = require("../helper/cache");
 const CONSTANT = require("../helper/const");
 
 module.exports = {
-    customId: ["onboard", "cancel"],
+    customId: ["onboard", "end"],
     /**
      * @param  {ButtonInteraction} interaction
      */
@@ -21,7 +21,7 @@ module.exports = {
         const contexts = myCache.get("voiceContext");
         const guildVoiceContext = contexts[guildId];
         if (!guildVoiceContext || Object.keys(guildVoiceContext).length == 0) return interaction.reply({
-            content: "Error occurs on auto onboarding, please call admin teams",
+            content: "Cannot find this auto onboarding, please start a new one.",
             ephemeral: true
         }) 
 
@@ -30,22 +30,6 @@ module.exports = {
             content: "Sorry, only the host is allowed to trigger this button",
             ephemeral: true
         })
-
-        const message = interaction.message;
-        let button = message.components;
-        button[0].components[0].disabled = true;
-        button[0].components[1].disabled = true;
-
-        let embeds = message.embeds;
-        const title = interaction.customId == this.customId[0] 
-            ? `${interaction.guild.name} Onboarding Call Ended` : `${interaction.guild.name} Onboarding Call Cancelled`;
-        
-        embeds[0].setTitle(title);
-
-        await message.edit({
-            embeds: embeds,
-            components: button
-        });
 
         if (interaction.customId == this.customId[0]){
             const attendees = guildVoiceContext.attendees;
@@ -106,11 +90,7 @@ module.exports = {
                 })
             } 
 
-            updateUsersCache(toBecached);
-            myCache.set("voiceContext", {
-                ...contexts,
-                [guildId]: {}
-            });
+            updateUsersCache(toBecached, guildId);
 
             const replyEmbed = new MessageEmbed()
                 .setTitle("🥰Planting seeds for yourself & others how WAGMI🥰")
@@ -122,6 +102,21 @@ module.exports = {
         }
 
         if (interaction.customId == this.customId[1]){
+            const message = interaction.message;
+            let button = message.components;
+            button[0].components[0].disabled = true;
+            button[0].components[1].disabled = true;
+
+            let embeds = message.embeds;
+            const title = `${interaction.guild.name} Onboarding Call Ended`;
+            
+            embeds[0].setTitle(title);
+
+            await message.edit({
+                embeds: embeds,
+                components: button
+            });
+
             myCache.set("voiceContext", {
                 ...contexts,
                 [guildId]: {}

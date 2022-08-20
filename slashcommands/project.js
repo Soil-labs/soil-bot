@@ -75,10 +75,10 @@ module.exports = {
             const projectLink = sprintf(CONSTANT.LINK.PROJECT_TWEET, projectId);
             let championMember = interaction.guild.members.cache.get(result.champion._id);
             if (!championMember) championMember = result.champion.discordName ?? "Unknown Champion";
-            else championMember = `<#${championMember.id}>`;
+            else championMember = `<@${championMember.id}>`;
             const projectEmbed = new MessageEmbed()
                 .setTitle(`@${projectName}`)
-                .setDescription(sprintf("💪**Champion**: @%s\n\n✅ **Status**: %s\n\n👨‍👩‍👧‍👦 **Open Roles**: %d\n\n🔗 Click [here](%s) to see more activity", 
+                .setDescription(sprintf("💪**Champion**: %s\n\n✅ **Status**: %s\n\n👨‍👩‍👧‍👦 **Open Roles**: %d\n\n🔗 Click [here](%s) to see more activity", 
                     championMember, "@NEW | @RUNNING", result.role.length, projectLink))
 
             return interaction.followUp({
@@ -179,17 +179,17 @@ module.exports = {
                 })
 
                 if (process.env.SLASH_CMD_ENV == "production" && process.env.DM_OPTION == "false"){
-                    const {channelResult, chanelError} = await awaitWrap(interaction.channel.send({
-                        content: `<@${championId}>`,
-                        embeds: [
-                            embedMessage.setDescription(
-                                sprintf(CONSTANT.CONTENT.NEW_TWEET_PROJECT_CHAMPION_DM_FAIL, embedInform))
-                        ]
-                    }), "channelResult", "chanelError");
+                    // const {channelResult, chanelError} = await awaitWrap(interaction.channel.send({
+                    //     content: `<@${championId}>`,
+                    //     embeds: [
+                    //         embedMessage.setDescription(
+                    //             sprintf(CONSTANT.CONTENT.NEW_TWEET_PROJECT_CHAMPION_DM_FAIL, embedInform))
+                    //     ]
+                    // }), "channelResult", "chanelError");
 
-                    if (chanelError) return interaction.followUp({
-                        content: "Permission denied, please check the permission of this channel. But your announcemnet has been uploaded successfully."
-                    })
+                    // if (chanelError) return interaction.followUp({
+                    //     content: "Permission denied, please check the permission of this channel. But your announcemnet has been uploaded successfully."
+                    // })
 
                     return interaction.followUp({
                         content: "New announcement to this project has been uploaded successfully."

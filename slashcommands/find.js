@@ -21,6 +21,7 @@ module.exports = {
             .addSubcommand(command =>
                 command.setName("project")
                     .setDescription("Find projects that match your profile"))
+                    
             .addSubcommand(command =>
                 command.setName("fren")
                     .setDescription("Find member profiles in the community")

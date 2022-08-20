@@ -85,21 +85,21 @@ module.exports = {
 
         let embedContent = new MessageEmbed().setTitle("You've been invited to join Eden 🌳");
         if (process.env.SLASH_CMD_ENV == "production" && process.env.DM_OPTION == "false"){
-            const { result, error } = await awaitWrap(interaction.channel.send({
-                content: `<@${inviter.id}> has invited <@${invitee.id}> to join Eden 🌳! BIG WAGMI ENERGY!⚡`,
-                embeds: [
-                    embedContent.setDescription(sprintf(CONSTANT.CONTENT.INVITE_DM_FAIL, {
-                        onboardLink: CONSTANT.LINK.SIGNUP,
-                        inviteeId: invitee.id
-                    }))
-                ]
-            }));
-            if (error) return interaction.followUp({
-                content: "Cannot send message in this channel, please check the permission. But you have been onboarded!"
-            })
+            // const { result, error } = await awaitWrap(interaction.channel.send({
+            //     content: `<@${inviter.id}> has invited <@${invitee.id}> to join Eden 🌳! BIG WAGMI ENERGY!⚡`,
+            //     embeds: [
+            //         embedContent.setDescription(sprintf(CONSTANT.CONTENT.INVITE_DM_FAIL, {
+            //             onboardLink: CONSTANT.LINK.SIGNUP,
+            //             inviteeId: invitee.id
+            //         }))
+            //     ]
+            // }));
+            // if (error) return interaction.followUp({
+            //     content: "Cannot send message in this channel, please check the permission. But you have been onboarded!"
+            // })
 
             return interaction.followUp({
-                content: sprintf("Invite message has been sent to <#%s>", interaction.channel.id)
+                content: "Congrates, you have onboarded your fren!"
             })
         }
         const DMchannel = await invitee.createDM();

@@ -119,7 +119,7 @@ module.exports = {
                 embedTitle = "Hooray! You're about to join Eden 🌳";
                 embedDescription = sprintf(CONSTANT.CONTENT.ONBOARD_SELF, { onboardLink: CONSTANT.LINK.SIGNUP});
             }else{
-                embedTitle = "You’re about to onboard new members 🌳";
+                embedTitle = "You're about to onboard new members 🌳";
                 embedDescription = sprintf(CONSTANT.CONTENT.GROUP_ONBORAD, { onboardLink: onboardLink });
             }
 
@@ -195,9 +195,9 @@ module.exports = {
                                 .setLabel("Onboard Crew")
                                 .setEmoji("🫂"),
                             new MessageButton()
-                                .setCustomId("cancel")
+                                .setCustomId("end")
                                 .setStyle("DANGER")
-                                .setLabel("Cancel Onboarding")
+                                .setLabel("End Onboarding")
                                 .setEmoji("⚠️"),
                         ])
                 ]
