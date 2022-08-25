@@ -47,11 +47,13 @@ const autoCompleteFiles = fs.readdirSync(autoCompleteFilesPath).filter((file) =>
 
 for (const file of autoCompleteFiles){
     const auto = require(path.join(autoCompleteFilesPath, file));
-    for (const command of auto.attachedCommand){
-        if (auto.options.length == 0) continue;
-        for (const option of auto.options){
-            client.auto.set(`${command}${option}`, auto)
-        }
+    for (const match of auto.match){
+        //to-do shall we add subcommandgroup?
+        //CommandName + SubCommandName(optional) + optionName
+        const keyName = match.reduce((pre, cur) => {
+            return pre + cur
+        }, '')
+        client.auto.set(keyName, auto);
     }
 }
 

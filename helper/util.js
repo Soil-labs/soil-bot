@@ -67,6 +67,12 @@ function validTeam(teamId, guildId){
     return result[teamId] ?? null
 }
 
+function validRole(roleId, guildId){
+    const result = myCache.get("roles")[guildId];
+    if (!result) return null;
+    return result[roleId] ?? null
+}
+
 function updateUserCache(userId, discordName, guildId){
     const cached = myCache.get("users");
     const servers = cached[userId]?.serverId ?? [];
@@ -121,6 +127,7 @@ module.exports = {
     validSkill, 
     validUser, 
     validTeam,
+    validRole,
     insertVerticalBar, 
     updateUserCache,
     updateUsersCache

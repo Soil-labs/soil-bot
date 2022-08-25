@@ -25,6 +25,14 @@ const GET_PROJECTS = gql`
         _id
         title
         serverID 
+        garden_teams{
+          _id
+          name
+          roles{
+            _id
+            name
+          }
+        }
       }
     }
 `;
@@ -56,6 +64,9 @@ const GET_TEAMS = gql`
       _id
       name
       serverID
+      projects {
+        _id
+      }
     }
   }
 `
@@ -68,6 +79,21 @@ const GET_UNVERIFIED_SKILL = gql`
     }
   }
 `
+
+const GET_ROLES = gql`
+  query{
+    findRoles(fields:{
+    }){
+      _id
+      name
+      serverID
+      teams{
+        _id
+      }
+    }
+  }
+`;
+
 const ADD_MEMBER = gql`
   mutation(
     $_id: ID,
@@ -380,18 +406,24 @@ mutation(
   $memberIds: [String]
   $authorId: String
   $teamIds: [String]
+  $roleIds: [String]
+  $serverId: [String]
   $title: String
   $content: String
-  $serverId: [String]
+  $threadLink: String!
+  $tokenAmount: String!
 ){
   createProjectUpdate(fields:{
     title: $title
     content: $content
     projectID: $projectId
     memberID: $memberIds
+    roleID: $roleIds
     authorID: $authorId
     teamID: $teamIds
     serverID: $serverId
+    thread: $threadLink
+    token: $tokenAmount
   }){
     _id   
   }
@@ -408,27 +440,94 @@ async function fetchProjects() {
     if (error) return _graphqlErrorHandler(error);
     else {
       let toBecached = {};
+      let teamCached = {};
+      let roleCached = {};
       result.findProjects.forEach((value) => {
         const servers = value.serverID;
         const projectId = value._id;
         const projectTitle = value.title;
-        //Handle special case, the server should have not been empty
+        const teams = value.garden_teams;
         if (servers.length == 0) return;
+
+        let teamTmp = {};
+        let teamTmpCache = {};
+        let roleTmpCache = {};
+        if (teams.length != 0){
+          teams.forEach((team) => {
+            const teamId = team._id;
+            const teamName = team.name;
+            const roles = team.roles;
+            teamTmp = {
+              ...teamTmp,
+              [teamId]: {
+                name: teamName
+              }
+            }
+            teamTmpCache = {
+              ...teamTmpCache,
+              [teamId]: {
+                name: teamName
+              }
+            }
+            if (roles.length != 0){
+              roles.forEach((role) => {
+                const roleId = role._id;
+                const roleName = role.name;
+                teamTmp[teamId] = {
+                  ...teamTmp[teamId],
+                  [roleId]: {
+                    name: roleName
+                  }
+                }
+                roleTmpCache = {
+                  ...roleTmpCache,
+                  [roleId]: {
+                    name: roleName
+                  }
+                }
+              })
+            }
+          })
+        }
         servers.forEach((serverId) => {
           if (toBecached[serverId]){
             toBecached[serverId][projectId] = {
+              ...teamTmp,
               title: projectTitle
-            }
+            };
           }else{
             toBecached[serverId] = {
               [projectId]: {
+                ...teamTmp,
                 title: projectTitle
               }
+            }
+          }
+          if (teamCached[serverId]){
+            teamCached[serverId] = {
+              ...teamCached[serverId],
+              ...teamTmpCache
+            };
+          }else{
+            teamCached[serverId] = {
+              ...teamTmpCache
+            }
+          }
+          if (roleCached[serverId]){
+            roleCached[serverId] = {
+              ...roleCached[serverId],
+              ...roleTmpCache
+            };
+          }else{
+            roleCached[serverId] = {
+              ...roleTmpCache
             }
           }
         })
       })
       myCache.set("projects", toBecached);
+      myCache.set("teams", teamCached);
+      myCache.set("roles", roleCached);
       return false
     }
 }
@@ -485,29 +584,116 @@ async function fetchTeams(){
   if (error) return _graphqlErrorHandler(error);
   else {
     let toBecached = {}
+    let projectToTeam = {}
     result.findTeams.forEach((value) => {
-      const servers = value.serverID;
+      const serverId = value.serverID[0];
       const teamName = value.name;
       const teamId = value._id;
-      //Handle special case
-      if (servers.length == 0) return;
-      servers.forEach((serverId) => {
-        if (toBecached[serverId]){
-          toBecached[serverId][teamId] = {
-            name: teamName
-          };
-        }else{
-          toBecached[serverId] = {
-            [teamId]: {
-              name: teamName
-            }
+      const projectId = value.projects?._id;
+      if (!serverId) return;
+      //to-do assume one team => one server => one project
+      if (serverId in toBecached){
+        toBecached[serverId][teamId] = {
+          name: teamName,
+        };
+      }else{
+        toBecached[serverId] = {
+          [teamId]: {
+            name: teamName,
           }
         }
-      }) 
+      }
+      const key = `${projectId}_${serverId}`
+      if (key in projectToTeam) {
+        projectToTeam[key] = {
+          ...projectToTeam[key],
+          [teamId]: teamName
+        }
+      }else{
+        projectToTeam = {
+          [key]: {
+            [teamId]: teamName
+          }
+        }
+      }
     })
     myCache.set("teams", toBecached);
+    myCache.set("projectToTeam", projectToTeam)
     return false
   }
+}
+
+async function fetchRoles(){
+  const { result, error } = await awaitWrapTimeout(_client.request(GET_ROLES), CONSTANT.NUMERICAL_VALUE.GRAPHQL_TIMEOUT_LONG);
+  if (error) return _graphqlErrorHandler(error);
+  else {
+    let toBecached = {};
+    let teamToRoleMap = {};
+    result.findRoles.forEach((value) => {
+      const serverId = value.serverID[0];
+      const roleName = value.name;
+      const roleId = value._id;
+      const teamId = value.teams[0]?._id;
+      if (!serverId && !teamId) return;
+      //to-do assume one team => one server => one project
+
+      const key = `${teamId}_${serverId}`;
+      if (key in teamToRoleMap){
+        teamToRoleMap[key] = {
+          ...teamToRoleMap[key],
+          [roleId]: roleName
+        }
+      }else{
+        teamToRoleMap = {
+          [key]: {
+            [roleId]: roleName
+          }
+        }
+      }
+    })
+    myCache.set("teamToRole", teamToRoleMap);
+    myCache.set("roles", toBecached);
+    return false
+  }
+}
+
+function projectTeamRole(){
+  const cachedProject = myCache.get("projects");
+  const cachedProjectToTeam = myCache.get("projectToTeam");
+  const cachedTeamToRole = myCache.get("teamToRole");
+  let projectTeamRole = {}
+  Object.keys(cachedProject).forEach((serverId) => {
+    if (!(serverId in projectTeamRole)){
+      projectTeamRole = {
+        ...projectTeamRole,
+        [serverId]: {}
+      }
+    }
+    const projects = cachedProject[serverId];
+    Object.keys(projects).forEach((projectId) => {
+      const projectToTeamKey = `${projectId}_${serverId}`;
+      projectTeamRole[serverId][projectId] = {};
+        
+      if (projectToTeamKey in cachedProjectToTeam) {
+        const teams = cachedProjectToTeam[projectToTeamKey];
+        Object.keys(teams).forEach((teamId) => {
+          const teamToRoleKey = `${teamId}_${serverId}`;
+          projectTeamRole[serverId][projectId][teamId] = {
+            name: teams[teamId]
+          }
+          if (teamToRoleKey in cachedTeamToRole){
+            const roles = cachedTeamToRole[teamToRoleKey];
+            Object.keys(roles).forEach((roleId) => {
+              projectTeamRole[serverId][projectId][teamId][roleId] = {
+                name: roles[roleId]
+              }
+            })
+          }
+        })
+      }
+    })
+  })
+  myCache.set("projectTeamRole", projectTeamRole);
 }
 
 async function addNewMember(userJSON) {
@@ -622,6 +808,8 @@ module.exports = {
   fetchSkills, 
   fetchUsers, 
   fetchTeams,
+  fetchRoles,
+  projectTeamRole,
   fetchUnverifiedSkills, 
   addNewMember,
   updateUser, 

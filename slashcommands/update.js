@@ -1,11 +1,12 @@
 const { SlashCommandBuilder } = require('@discordjs/builders');
 const { CommandInteraction, MessageEmbed } = require("discord.js");
 const { newTweetProject, fetchProjectDetail, createProjectUpdate } = require('../helper/graphql');
-const { validUser, validProject, awaitWrap, validTeam } = require('../helper/util');
+const { validUser, validProject, awaitWrap, validTeam, validRole } = require('../helper/util');
 const { sprintf } = require('sprintf-js');
 
 const CONSTANT = require("../helper/const");
 const _ = require("lodash");
+const myCache = require('../helper/cache');
 
 module.exports = {
     commandName: "update",
@@ -46,6 +47,11 @@ module.exports = {
                                 .setAutocomplete(true)
                                 .setRequired(true))
                         .addStringOption(option =>
+                            option.setName("role")
+                                .setDescription("Role you'd like to add in this team")
+                                .setAutocomplete(true)
+                                .setRequired(true))
+                        .addStringOption(option =>
                             option.setName("member")
                                 .setDescription("Members you'd like to add")
                                 .setRequired(true))
@@ -57,6 +63,9 @@ module.exports = {
                             option.setName("content")
                                 .setDescription("Content of News or announcement you'd like to report")
                                 .setRequired(true))
+                        .addIntegerOption(option =>
+                            option.setName("token_amount")
+                                .setDescription("Input the amount of token you'd like to send"))
                         .addBooleanOption(option =>
                             option.setName("request_thread")
                                 .setDescription("Create a thread for futher discussion"))
@@ -194,19 +203,30 @@ module.exports = {
             const [
                 projectId,
                 teamId,
+                roleId,
                 membersString,
                 title,
                 content,
-                hasThread
+                hasThread,
+                tokenAmount
             ] = [
                 interaction.options.getString("project"),
                 interaction.options.getString("team"),
+                interaction.options.getString("role"),
                 interaction.options.getString("member").match(/<@.?[0-9]*?>/g),
                 interaction.options.getString("title"),
                 interaction.options.getString("content"),
-                interaction.options.getBoolean("request_thread")
+                interaction.options.getBoolean("request_thread"),
+                interaction.options.getInteger("token_amount")
             ];
 
+            if (myCache.has("gardenContext")){
+                const cached = myCache.get("gardenContext");
+                delete cached[interaction.user.id];
+                myCache.set("gardenContext", cached);
+            }
+
+            console.log(projectId, teamId, roleId);
             if (!membersString) return interaction.reply({
                 content: "Please input at least one member in this guild",
                 ephemeral: true
@@ -222,6 +242,14 @@ module.exports = {
                 content: "Please input a valid team",
                 ephemeral: true
             })
+
+            const roleName = validRole(teamId, guildId)?.name;
+            if (!roleName) return interaction.reply({
+                content: "Please input a valid team",
+                ephemeral: true
+            })
+            return console.log(1)
+
 
             //TO-DO: Handler Role and other mentions
             const members = membersString.map((value) => {
@@ -279,28 +307,14 @@ module.exports = {
                     return `#${channel.name}`
                 }else return "unknownChannel"
             })
-            
-            const updateInform = {
-                projectId: projectId,
-                memberIds: members,
-                authorId: interaction.user.id,
-                teamIds: [teamId],
-                title: title,
-                content: replacedContent,
-                serverId: [guildId]
-            }
-            const [result, error] = await createProjectUpdate(updateInform);
-            
-            if (error) return interaction.followUp({
-                content: `Error occured when fetching project details: \`${error}\``
-            })
-
+        
+            let thread = null;
             const replyEmbed = new MessageEmbed().setDescription("Check the [Garden Feed](https://eden-garden-front.vercel.app/)\nCheck the [Garden Graph](https://garden-rho.vercel.app/)");
             // Temporarily hard coded for Soil Team Server
             if (hasThread && guildId == "996558082098339953") {
                 const targetChannel = interaction.guild.channels.cache.get("1008476220352114748");
                 if (targetChannel.type == "GUILD_TEXT"){
-                    const thread = await targetChannel.threads.create({
+                    thread = await targetChannel.threads.create({
                         name: title
                     })
                     await thread.send({
@@ -316,6 +330,29 @@ module.exports = {
                     embeds: [replyEmbed.setTitle("Update successfully but fail to create a thread")]
                 })
             }
+
+            let updateInform = {
+                projectId: projectId,
+                memberIds: members,
+                authorId: interaction.user.id,
+                teamIds: [teamId],
+                title: title,
+                content: replacedContent,
+                serverId: [guildId]
+            };
+
+            if (thread) updateInform.threadLink = sprintf(CONSTANT.LINK.THREAD, {
+                guildId: guildId,
+                threadId: thread.id
+            })
+
+            if (token) updateInform.tokenAmount = tokenAmount.toString();
+
+            const [result, error] = await createProjectUpdate(updateInform);
+            
+            if (error) return interaction.followUp({
+                content: `Error occured when fetching project details: \`${error}\``
+            })
 
             return interaction.followUp({
                 embeds: [replyEmbed.setTitle("Update successfully the Secret Garden")]

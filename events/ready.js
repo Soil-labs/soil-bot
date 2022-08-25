@@ -1,7 +1,7 @@
 const { REST } = require('@discordjs/rest');
 const { Routes } = require('discord-api-types/v9');
 const { Client } = require("discord.js");
-const { fetchProjects, fetchSkills, fetchUsers, fetchUnverifiedSkills, fetchTeams, fetchServer, updateServer } = require("../helper/graphql");
+const { fetchProjects, fetchSkills, fetchUsers, fetchUnverifiedSkills, fetchTeams, fetchServer, updateServer, fetchRoles, projectTeamRole } = require("../helper/graphql");
 const myCache = require("../helper/cache")
 const logger = require("../helper/logger");
 const AsciiTable = require('ascii-table/ascii-table');
@@ -23,7 +23,7 @@ module.exports = {
         const clientId = client.user.id;
         const rest = new REST({ version: '9' }).setToken(process.env.TOKEN);
 
-        const loadCache = async() =>{
+        const loadCache = async() => {
             const table = new AsciiTable("Cache Loading ...");
             table.setHeading("Data", "Status");
 
@@ -32,9 +32,8 @@ module.exports = {
                 fetchSkills(),
                 fetchUnverifiedSkills(),
                 fetchUsers(),
-                fetchTeams()
             ]);
-            const items = ["Project", "Skills", "Unverified Skills", "Users", "Teams"];
+            const items = ["Project", "Skills", "Unverified Skills", "Users"];
             let errorFlag = false;
 
             results.forEach((value, index) => {
@@ -56,13 +55,14 @@ module.exports = {
                 logger.error("The bot is not running in any guild!");
                 process.exit(1);
             }
+
             const guildIds = guilds.map((_, id) => (id));
             const guildNames = guilds.map(guild => guild.name);
             const fetchServerPromise = guildIds.map((value) => (fetchServer({ guildId: value })));
             const serverResult = await Promise.all(fetchServerPromise);
             let cache = {};
             let serverToBeUpdated = [];
-
+            
             serverResult.forEach((value, index) => {
                 if (value[1]){
                     table.addRow(`${guildNames[index]} admin`, `❌ Error: ${value[1]}`);
@@ -102,7 +102,9 @@ module.exports = {
                 process.exit(1);
             }              
             myCache.set("server", cache);
+            myCache.set("gardenContext", {});
             logger.info(`\n${table.toString()}`);
+            logger.info(myCache.get("projects"));
         }
 
         await loadCache();
@@ -117,9 +119,6 @@ module.exports = {
                     break;
                 case "users":
                     await fetchUsers();
-                    break;
-                case "teams":
-                    await fetchTeams();
                     break;
                 case "unverifiedSkills":
                     await fetchUnverifiedSkills();

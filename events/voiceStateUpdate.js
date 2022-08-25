@@ -23,6 +23,7 @@ module.exports = {
         if (!guildContext || Object.keys(guildContext).length == 0) return;
 
         const targetVoiceChannelId = guildContext.channelId;
+        //to-do re-think this condition
         if (newState?.channel?.id == targetVoiceChannelId){
             const {
                 messageId,
@@ -44,6 +45,7 @@ module.exports = {
             const hour = ("00" + current.getHours().toString()).slice(-2);
             const minute = ("00" + current.getMinutes().toString()).slice(-2);
             const sec = ("00" + current.getSeconds().toString()).slice(-2);
+            //to-do overflow for the embed
             if (membersFields == '-') membersFields = '';
             membersFields += sprintf("\n\`%s:%s:%s\` <@%s>", hour, minute, sec, newState.member.id);
             embeds[0].fields = [

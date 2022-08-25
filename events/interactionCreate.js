@@ -80,7 +80,9 @@ module.exports = {
 
         if (interaction.isAutocomplete()){
             const option = interaction.options.getFocused(true).name;
-            const command = interaction.client.auto.get(`${interaction.commandName}${option}`);
+            const subCommand = interaction.options._subcommand;
+            const command = subCommand ? interaction.client.auto.get(`${interaction.commandName}${subCommand}${option}`) :
+                interaction.client.auto.get(`${interaction.commandName}${option}`);
 
             if (!command || !option) return;
 
