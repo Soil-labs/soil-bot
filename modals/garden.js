@@ -37,7 +37,6 @@ module.exports = {
         await interaction.deferReply({ ephemeral: true });
 
         let thread = null;
-        const replyEmbed = new MessageEmbed().setDescription("Check the [Garden Feed](https://eden-garden-front.vercel.app/)\nCheck the [Garden Graph](https://garden-rho.vercel.app/)");
         // Temporarily hard coded for Soil Team Server
         if (hasThread && guildId == "996558082098339953") {
             const targetChannel = interaction.guild.channels.cache.get("1008476220352114748");
@@ -45,14 +44,13 @@ module.exports = {
                 thread = await targetChannel.threads.create({
                     name: title
                 })
-                let embedDescription = `**Team Included**: ${teamName}\n**Role Included**: ${roleName}\n**Title**: ${title}\n**Content**: ${content}`;
+                let embedDescription = `\u200B\n**Project**: ${projectTitle}\n**Team**: ${teamName}\n**Role**: ${roleName}`;
                 if (tokenAmount) embedDescription += `\n**Token Transferred**: \`${tokenAmount}\``;
                 await thread.send({
                     content: memberIds.map((value) => (`<@${value}>`)).toString(),
                     embeds: [
                         new MessageEmbed()
-                            .setAuthor({ name: `@${interaction.member.displayName} -- created this update`, iconURL: interaction.user.avatarURL() })
-                            .setTitle(`${projectTitle} Updates`)
+                            .setAuthor({ name: `@${interaction.member.displayName} -- Author`, iconURL: interaction.user.avatarURL() })
                             .setDescription(embedDescription)
                     ],
                     components: [
@@ -71,8 +69,11 @@ module.exports = {
                             )
                     ]
                 })
+                await thread.send({
+                    content: `**Content**: \n${content}`
+                })
             }else return interaction.followUp({
-                embeds: [replyEmbed.setTitle("Update successfully but fail to create a thread")]
+                content: "Update successfully but fail to create a thread"
             })
         }
         let gardenUpdateInform = {
@@ -92,19 +93,20 @@ module.exports = {
         })
 
         if (tokenAmount) gardenUpdateInform.tokenAmount = tokenAmount.toString();
-        console.log(gardenUpdateInform);
         
-        const [result, error] = await createProjectUpdate(gardenUpdateInform);
+        // const [result, error] = await createProjectUpdate(gardenUpdateInform);
             
-        if (error) return interaction.followUp({
-            content: `Error occured when fetching project details: \`${error}\``
-        })
+        // if (error) return interaction.followUp({
+        //     content: `Error occured when fetching project details: \`${error}\``
+        // })
         
         delete gardenContext[userId];
         myCache.get("gardenContext", gardenContext);
-
+        
+        let reply = "Update the Secret Garden successfully!";
+        if (hasThread) reply = `Update the Secret Garden successfully! Check the thread <#${thread.id}>.`
         return interaction.followUp({
-            embeds: [replyEmbed.setTitle("Update successfully the Secret Garden")]
+            content: reply
         })
 	}
 
