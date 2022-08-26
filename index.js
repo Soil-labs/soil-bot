@@ -16,6 +16,7 @@ const client = new discord.Client({ intents: [
 client.commands = new discord.Collection();
 client.auto = new discord.Collection();
 client.buttons = new discord.Collection();
+client.modals = new discord.Collection();
 
 const slashCommandFilesPath = path.join(process.cwd(), "slashcommands");
 const slashCommandFiles = fs.readdirSync(slashCommandFilesPath).filter((file) => file.endsWith(".js"));
@@ -68,6 +69,14 @@ for (const file of buttonFiles){
         client.buttons.set(id, button);
     }
 }
+
+const modalFilesPath = path.join(process.cwd(), "modals");
+const modalFiles = fs.readdirSync(modalFilesPath).filter((file) => file.endsWith(".js"));
+for (const file of modalFiles){
+    const modal = require(path.join(modalFilesPath, file))
+    client.modals.set(modal.customId, modal)
+}
+
 
 const eventsFilesPath = path.join(process.cwd(), "events");
 const eventsFiles = fs.readdirSync(eventsFilesPath).filter((file) => file.endsWith(".js"));

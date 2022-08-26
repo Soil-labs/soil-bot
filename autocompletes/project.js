@@ -7,6 +7,7 @@ module.exports = {
     match: [
         ["project", "activity", "project_name"],
         ["project", "update", "project_name"],
+        ["update", "project", "project"],
         ["search", "project", "project"]
     ],
 

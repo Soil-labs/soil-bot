@@ -23,8 +23,8 @@ module.exports = {
         if (!guildContext || Object.keys(guildContext).length == 0) return;
 
         const targetVoiceChannelId = guildContext.channelId;
-        //to-do re-think this condition
-        if (newState?.channel?.id == targetVoiceChannelId){
+
+        if (oldState?.channel?.id != targetVoiceChannelId && newState?.channel?.id == targetVoiceChannelId){
             const {
                 messageId,
                 timestamp,

@@ -73,7 +73,6 @@ module.exports = {
             try{
                 await button.execute(interaction);
             }catch(err){
-                //console.error(err)
                 return logger.error(`User: ${interaction.user.username} Guild: ${interaction.guild.name} Error: ${err.name} occurs when interacting ${interaction.customId} button. Msg: ${err.message} Stack: ${err.stack}`);
             }
         }
@@ -93,6 +92,18 @@ module.exports = {
             }
         }
 
+        if(interaction.isModalSubmit()){
+
+            const modal = interaction.client.modals.get(interaction.customId)
+
+            if(!modal) return;
+
+            try{
+                await modal.execute(interaction);
+            }catch(err){
+                return logger.error(`User: ${interaction.user.username} Guild: ${interaction.guild.name} Error: ${err.name} occurs when interacting ${interaction.customId} modal. Msg: ${err.message} Stack: ${err.stack}`);
+            }
+        }
 
     }
 }

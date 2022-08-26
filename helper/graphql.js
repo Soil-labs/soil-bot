@@ -401,33 +401,33 @@ const ENDORSE_ATTRIBUTE = gql`
 `
 
 const CREATE_PROJECT_UPDATE = gql`
-mutation(
-  $projectId: String
-  $memberIds: [String]
-  $authorId: String
-  $teamIds: [String]
-  $roleIds: [String]
-  $serverId: [String]
-  $title: String
-  $content: String
-  $threadLink: String!
-  $tokenAmount: String!
-){
-  createProjectUpdate(fields:{
-    title: $title
-    content: $content
-    projectID: $projectId
-    memberID: $memberIds
-    roleID: $roleIds
-    authorID: $authorId
-    teamID: $teamIds
-    serverID: $serverId
-    thread: $threadLink
-    token: $tokenAmount
-  }){
-    _id   
+  mutation(
+    $projectId: String
+    $memberIds: [String]
+    $authorId: String
+    $teamIds: [String]
+    $roleIds: [String]
+    $serverId: [String]
+    $title: String
+    $content: String
+    $threadLink: String
+    $tokenAmount: String
+  ){
+    createProjectUpdate(fields:{
+      title: $title
+      content: $content
+      projectID: $projectId
+      memberID: $memberIds
+      roleID: $roleIds
+      authorID: $authorId
+      teamID: $teamIds
+      serverID: $serverId
+      thread: $threadLink
+      token: $tokenAmount
+    }){
+      _id   
+    }
   }
-}
 `
 async function fetchServer(guildJSON) {
     const { result, error } = await awaitWrapTimeout(_client.request(GET_SERVER, guildJSON), CONSTANT.NUMERICAL_VALUE.GRAPHQL_TIMEOUT_LONG);
@@ -439,7 +439,8 @@ async function fetchProjects() {
     const { result, error } = await awaitWrapTimeout(_client.request(GET_PROJECTS), CONSTANT.NUMERICAL_VALUE.GRAPHQL_TIMEOUT_LONG);
     if (error) return _graphqlErrorHandler(error);
     else {
-      let toBecached = {};
+      let projectCached = {}
+      let projectTeamRoleCached = {};
       let teamCached = {};
       let roleCached = {};
       result.findProjects.forEach((value) => {
@@ -457,6 +458,7 @@ async function fetchProjects() {
             const teamId = team._id;
             const teamName = team.name;
             const roles = team.roles;
+            if (roles.length == 0) return;
             teamTmp = {
               ...teamTmp,
               [teamId]: {
@@ -469,6 +471,7 @@ async function fetchProjects() {
                 name: teamName
               }
             }
+
             if (roles.length != 0){
               roles.forEach((role) => {
                 const roleId = role._id;
@@ -490,16 +493,28 @@ async function fetchProjects() {
           })
         }
         servers.forEach((serverId) => {
-          if (toBecached[serverId]){
-            toBecached[serverId][projectId] = {
-              ...teamTmp,
+          if (projectTeamRoleCached[serverId]){
+            projectCached[serverId][projectId] = {
               title: projectTitle
-            };
-          }else{
-            toBecached[serverId] = {
-              [projectId]: {
+            }
+            if (teams.length != 0){
+              projectTeamRoleCached[serverId][projectId] = {
                 ...teamTmp,
                 title: projectTitle
+              };
+            }
+          }else{
+            projectCached[serverId] = {
+              [projectId]: {
+                title: projectTitle
+              }
+            }
+            if (teams.length != 0){
+              projectTeamRoleCached[serverId] = {
+                [projectId]: {
+                  ...teamTmp,
+                  title: projectTitle
+                }
               }
             }
           }
@@ -525,7 +540,8 @@ async function fetchProjects() {
           }
         })
       })
-      myCache.set("projects", toBecached);
+      myCache.set("projects", projectCached)
+      myCache.set("projectTeamRole", projectTeamRoleCached);
       myCache.set("teams", teamCached);
       myCache.set("roles", roleCached);
       return false

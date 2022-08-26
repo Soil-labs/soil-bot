@@ -104,7 +104,6 @@ module.exports = {
             myCache.set("server", cache);
             myCache.set("gardenContext", {});
             logger.info(`\n${table.toString()}`);
-            logger.info(myCache.get("projects"));
         }
 
         await loadCache();
