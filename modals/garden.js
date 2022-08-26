@@ -39,8 +39,8 @@ module.exports = {
         let thread = null;
         const replyEmbed = new MessageEmbed().setDescription("Check the [Garden Feed](https://eden-garden-front.vercel.app/)\nCheck the [Garden Graph](https://garden-rho.vercel.app/)");
         // Temporarily hard coded for Soil Team Server
-        if (hasThread && guildId == "988301790795685930") {
-            const targetChannel = interaction.guild.channels.cache.get("1001547443135058010");
+        if (hasThread && guildId == "996558082098339953") {
+            const targetChannel = interaction.guild.channels.cache.get("1008476220352114748");
             if (targetChannel.type == "GUILD_TEXT"){
                 thread = await targetChannel.threads.create({
                     name: title
