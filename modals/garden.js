@@ -94,11 +94,11 @@ module.exports = {
 
         if (tokenAmount) gardenUpdateInform.tokenAmount = tokenAmount.toString();
         
-        // const [result, error] = await createProjectUpdate(gardenUpdateInform);
+        const [result, error] = await createProjectUpdate(gardenUpdateInform);
             
-        // if (error) return interaction.followUp({
-        //     content: `Error occured when fetching project details: \`${error}\``
-        // })
+        if (error) return interaction.followUp({
+            content: `Error occured when fetching project details: \`${error}\``
+        })
         
         delete gardenContext[userId];
         myCache.get("gardenContext", gardenContext);
