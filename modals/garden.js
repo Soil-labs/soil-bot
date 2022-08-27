@@ -3,7 +3,7 @@ const { createProjectUpdate }  = require("../helper/graphql");
 const { sprintf } = require("sprintf-js");
 const CONSTANT = require("../helper/const");
 const myCache = require("../helper/cache");
-
+const _ = require("lodash");
 
 module.exports = {
     customId: "garden",
@@ -16,7 +16,7 @@ module.exports = {
         const guildId = interaction.guild.id;
         let gardenContext = myCache.get("gardenContext");
         if (!gardenContext[userId]) return interaction.reply({
-            content: "Cannot find your submit record",
+            content: "Cannot find your submit record, please report to the admin.",
             ephemeral: true
         })
         const title = interaction.fields.getTextInputValue("garden_title").trim();
@@ -33,7 +33,6 @@ module.exports = {
             teamName,
             roleName
         } = gardenContext[userId];
-
         await interaction.deferReply({ ephemeral: true });
 
         let thread = null;
@@ -47,7 +46,7 @@ module.exports = {
                 let embedDescription = `\u200B\n**Project**: ${projectTitle}\n**Team**: ${teamName}\n**Role**: ${roleName}`;
                 if (tokenAmount) embedDescription += `\n**Token Transferred**: \`${tokenAmount}\``;
                 await thread.send({
-                    content: memberIds.map((value) => (`<@${value}>`)).toString(),
+                    content: _.uniq([...memberIds, userId]).map((value) => (`<@${value}>`)).toString(),
                     embeds: [
                         new MessageEmbed()
                             .setAuthor({ name: `@${interaction.member.displayName} -- Author`, iconURL: interaction.user.avatarURL() })
@@ -86,7 +85,6 @@ module.exports = {
             content: content,
             serverId: [guildId]
         }
-
         if (hasThread) gardenUpdateInform.threadLink = sprintf(CONSTANT.LINK.THREAD, {
             guildId: guildId,
             threadId: thread.id
@@ -104,10 +102,31 @@ module.exports = {
         myCache.get("gardenContext", gardenContext);
         
         let reply = "Update the Secret Garden successfully!";
-        if (hasThread) reply = `Update the Secret Garden successfully! Check the thread <#${thread.id}>.`
-        return interaction.followUp({
-            content: reply
-        })
+        if (hasThread){
+            return interaction.followUp({
+                content: `Update the Secret Garden successfully! Check the thread <#${thread.id}>.`
+            })
+        }else {
+            return interaction.followUp({
+                content: "Update the Secret Garden successfully!",
+                components: [
+                    new MessageActionRow()
+                        .addComponents(
+                            new MessageButton()
+                                .setLabel("Garden Feed")
+                                .setEmoji("🔗")
+                                .setStyle("LINK")
+                                .setURL("https://eden-garden-front.vercel.app/"),
+                            new MessageButton()
+                                .setLabel("Garden Graph")
+                                .setEmoji("🔗")
+                                .setStyle("LINK")
+                                .setURL("https://garden-rho.vercel.app/"),
+                        )
+                ]
+            })
+        }
+        
 	}
 
 }
