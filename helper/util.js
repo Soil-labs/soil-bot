@@ -22,6 +22,7 @@ async function awaitWrap(promise, renamedObject = "result", renamedError = "erro
             }
         });
 }
+
 /**
  * @param  {Promise} promise
  * @param  {number} timeout=CONSTANT.NUMERICAL_VALUE.GRAPHQL_TIMEOUT_SHORT

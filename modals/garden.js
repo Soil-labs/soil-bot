@@ -101,7 +101,6 @@ module.exports = {
         delete gardenContext[userId];
         myCache.get("gardenContext", gardenContext);
         
-        let reply = "Update the Secret Garden successfully!";
         if (hasThread){
             return interaction.followUp({
                 content: `Update the Secret Garden successfully! Check the thread <#${thread.id}>.`

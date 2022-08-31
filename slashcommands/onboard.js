@@ -2,11 +2,11 @@ const { SlashCommandBuilder } = require('@discordjs/builders');
 const { CommandInteraction, MessageEmbed, MessageActionRow, MessageButton } = require("discord.js");
 const { addNewMember } = require('../helper/graphql');
 const { sprintf } = require('sprintf-js');
-const { ChannelType } = require("discord-api-types/payloads/v10");
+const { ChannelType, PermissionFlagsBits } = require("discord-api-types/payloads/v10");
 const { updateUsersCache, awaitWrap } = require('../helper/util');
 const myCache = require("../helper/cache");
 const CONSTANT = require("../helper/const");
-
+    
 
 module.exports = {
     commandName: "onboard",
@@ -33,6 +33,15 @@ module.exports = {
                             option.setName("channel")
                                 .setDescription("Onboarding voice channel")
                                 .addChannelTypes(ChannelType.GuildVoice)
+                                .setRequired(true))
+            )
+            .addSubcommand(command =>
+                command.setName("room")
+                    .setDescription("Set up a channel to self-onboard.")
+                        .addChannelOption(option =>
+                            option.setName("channel")
+                                .setDescription("Choose a channel")
+                                .addChannelTypes(ChannelType.GuildText)
                                 .setRequired(true))
             )
 
@@ -223,6 +232,47 @@ module.exports = {
 
             return interaction.reply({
                 content: `Auto onboarding has started in <#${voiceChannel.id}>`,
+                ephemeral: true
+            })
+        }
+
+        if (subCommand == "room"){
+            const targetChannel = interaction.options.getChannel("channel");
+            if (!targetChannel.viewable) return interaction.reply({
+                content: "Sorry, this channel is unviewable for me",
+                ephemeral: true
+            })
+
+            if(!targetChannel.permissionsFor(interaction.guild.me).has(PermissionFlagsBits.SendMessages)) return interaction.reply({
+                content: "Sorry, I cannot send message to this channel",
+                ephemeral: true
+            })
+
+            targetChannel.send({
+                embeds: [
+                    new MessageEmbed()
+                        .setTitle("Onboard")
+                        .setDescription("Are you a person looking to join a project, or project looking for a person?")
+                ],
+                components: [
+                    new MessageActionRow()
+                        .addComponents([
+                            new MessageButton()
+                                .setLabel("Project")
+                                .setCustomId("project")
+                                .setEmoji("🛠️")
+                                .setStyle("PRIMARY"),
+                            new MessageButton()
+                                .setLabel("Talent")
+                                .setCustomId("talent")
+                                .setEmoji("🧙")
+                                .setStyle("SECONDARY")
+                        ])
+                ]
+            })
+            
+            return interaction.reply({
+                content: `Message has been sent to <#${targetChannel.id}>`,
                 ephemeral: true
             })
         }
