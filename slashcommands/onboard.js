@@ -6,7 +6,7 @@ const { ChannelType, PermissionFlagsBits } = require("discord-api-types/payloads
 const { updateUsersCache, awaitWrap } = require('../helper/util');
 const myCache = require("../helper/cache");
 const CONSTANT = require("../helper/const");
-    
+
 
 module.exports = {
     commandName: "onboard",
@@ -81,7 +81,9 @@ module.exports = {
                     const member = interaction.guild.members.cache.get(duplicateValue);
 
                     //to-do, should fetch it again, here prevents unfetchable members and role mention and other mentions and bot
-                    if (member?.user?.bot) return;
+                    if (member){
+                        if (member.user.bot) return;
+                    }else return;
                     
                     memberIds.push(duplicateValue);
 
