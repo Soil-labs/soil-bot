@@ -1,6 +1,6 @@
-const { ButtonInteraction, MessageEmbed} = require("discord.js");
+const { ButtonInteraction, MessageEmbed, MessageActionRow, MessageButton} = require("discord.js");
 const { addNewMember } = require("../helper/graphql");
-const { awaitWrap, updateUsersCache } = require("../helper/util");
+const { awaitWrap, updateUserCache } = require("../helper/util");
 const { sprintf } = require("sprintf-js");
 
 const myCache = require("../helper/cache");
@@ -25,83 +25,57 @@ module.exports = {
             ephemeral: true
         }) 
 
-        const hostId = guildVoiceContext.hostId;
-        if (interaction.user.id != hostId) return interaction.reply({
-            content: "Sorry, only the host is allowed to trigger this button",
-            ephemeral: true
-        })
+        const { hostId, roomId } = guildVoiceContext;
 
         if (interaction.customId == this.customId[0]){
             const attendees = guildVoiceContext.attendees;
-            if (attendees.length == 0) return interaction.reply({
-                content: "No one attended today's onboarding call",
+
+            if (!attendees.includes(interaction.user.id)) return interaction.reply({
+                content: "Sorry, you did not join in this onboarding call.",
                 ephemeral: true
             })
-
             await interaction.deferReply({ ephemeral: true });
-            const guildMemberManager = interaction.guild.members;
 
-            let updatePromise = [];
-            let toBecached = [];
-            let prefix = '';
-            let counter = 0;
-            for (const attendeeId of attendees){
-                let member = guildMemberManager.cache.get(attendeeId);
-                if (!member) {
-                    const {result, error} = await awaitWrap(guildMemberManager.fetch());
-                    if (error) continue;
-                    else member = result;
-                }
-                const inform = {
-                    _id: attendeeId,
-                    discordName: member.user.username,
-                    discriminator: member.user.discriminator,
-                    discordAvatar: member.user.avatarURL(),
-                    invitedBy: hostId,
-                    serverId: guildId
-                }
-                toBecached.push({
-                    id: attendeeId,
-                    discordName: inform.discordName
-                });
-                updatePromise.push(addNewMember(inform));
+            const member = interaction.user;
+            const [ result, error ] = await addNewMember({
+                _id: member.id,
+                discordName: member.username,
+                discriminator: member.discriminator,
+                discordAvatar: member.avatarURL(),
+                invitedBy: hostId,
+                serverId: guildId
+            });
 
-                if (counter == 0) {
-                    prefix += `?id=${attendeeId}`;
-                }else{
-                    prefix += `&id=${attendeeId}`;
-                }
-                counter++;
-            }
+            if (error) return interaction.followUp({
+                content: `Error occured when onboarding you: \`${error}\``
+            })
 
-            const onboardLink = sprintf(CONSTANT.LINK.STAGING_ONBOARD, prefix);
+            updateUserCache(member.id, member.username, guildId);
 
-            const results = await Promise.all(updatePromise);
-
-            if (results.filter((value) => (value[1])).length != 0){
-                button[0].components[0].disabled = false;
-                button[0].components[1].disabled = false;
-                await message.edit({
-                    embeds: embeds,
-                    components: button
-                });
-                return interaction.followUp({
-                    content: "Error occured when updating members."
-                })
-            } 
-
-            updateUsersCache(toBecached, guildId);
-
-            const replyEmbed = new MessageEmbed()
-                .setTitle("🥰Planting seeds for yourself & others how WAGMI🥰")
-                .setDescription(sprintf(CONSTANT.CONTENT.ONBOARD, { onboardLink: onboardLink }));
+            const roomLink = sprintf(CONSTANT.LINK.ROOM, {
+                roomId: roomId,
+                userId: member.id
+            })
             
             return interaction.followUp({
-                embeds: [replyEmbed]
+                components: [
+                    new MessageActionRow()
+                        .addComponents([
+                            new MessageButton()
+                                .setLabel("Join the Party")
+                                .setStyle("LINK")
+                                .setURL(roomLink)
+                                .setEmoji("🎊")
+                        ])
+                ]
             })
         }
 
         if (interaction.customId == this.customId[1]){
+            if (interaction.user.id != hostId) return interaction.reply({
+                content: "Sorry, only the host is allowed to trigger this button",
+                ephemeral: true
+            })
             const message = interaction.message;
             let button = message.components;
             button[0].components[0].disabled = true;

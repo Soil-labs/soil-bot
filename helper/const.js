@@ -67,7 +67,8 @@ const LINK = Object.freeze({
     LAUNCH_PROJECT: _createProject,
     DASHBOARD: _champion,
     DISCORD_MSG: "https://discord.com/channels/%(guildId)s/%(channelId)s/%(messageId)s",
-    THREAD: "https://discord.com/channels/%(guildId)s/%(threadId)s"
+    THREAD: "https://discord.com/channels/%(guildId)s/%(threadId)s",
+    ROOM: "https://eden-foundation.vercel.app/onboard/party/%(roomId)s?memberId=%(userId)s"
 })
 
 const CONTENT = Object.freeze({

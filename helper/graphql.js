@@ -429,6 +429,15 @@ const CREATE_PROJECT_UPDATE = gql`
     }
   }
 `
+
+const CREATE_ROOM = gql`
+  mutation {
+    createRoom(fields: {}) {
+      _id
+    }
+  }
+`;
+
 async function fetchServer(guildJSON) {
     const { result, error } = await awaitWrapTimeout(_client.request(GET_SERVER, guildJSON), CONSTANT.NUMERICAL_VALUE.GRAPHQL_TIMEOUT_LONG);
     if (error) return [null, _graphqlErrorHandler(error)];
@@ -808,6 +817,13 @@ async function createProjectUpdate(projectUpdateJSON){
     else return [result.createProjectUpdate, null];
 }
 
+
+async function createRoom(){
+    const { result, error } = await awaitWrapTimeout(_client.request(CREATE_ROOM));
+    if (error) return [null, _graphqlErrorHandler(error)]
+    else return [result.createRoom, null];
+}
+
 //to-do GraphQL Error Handling
 function _graphqlErrorHandler(error){
   if (error.message == CONSTANT.ERROR.TIMEOUT) return CONSTANT.ERROR.TIMEOUT;
@@ -843,4 +859,5 @@ module.exports = {
   matchMemberToProject,
   endorseAttribute,
   createProjectUpdate,
+  createRoom
 };

@@ -1,6 +1,8 @@
 const myCache = require("./cache");
 const CONSTANT = require("../helper/const");
 const _ = require('lodash');
+const { GuildChannel } = require("discord.js");
+const { PermissionFlagsBits } = require("discord-api-types/v9");
 
 /**
  * @param  {Promise} promise
@@ -120,6 +122,13 @@ function insertVerticalBar(array){
     })
     return tmp.toString()
 }
+/**
+ * @param  { GuildChannel } channel
+ * @param  { string } userId
+ */
+function checkChannelSendPermission(channel, userId){
+    return channel.permissionsFor(userId).has(PermissionFlagsBits.SendMessages) && channel.permissionsFor(userId).has(PermissionFlagsBits.ViewChannel)
+}
 
 module.exports = { 
     awaitWrap, 
@@ -131,5 +140,6 @@ module.exports = {
     validRole,
     insertVerticalBar, 
     updateUserCache,
-    updateUsersCache
+    updateUsersCache,
+    checkChannelSendPermission
 }

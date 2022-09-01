@@ -1,9 +1,9 @@
 const { SlashCommandBuilder } = require('@discordjs/builders');
 const { CommandInteraction, MessageEmbed, MessageActionRow, MessageButton } = require("discord.js");
-const { addNewMember } = require('../helper/graphql');
+const { addNewMember, createRoom } = require('../helper/graphql');
 const { sprintf } = require('sprintf-js');
 const { ChannelType, PermissionFlagsBits } = require("discord-api-types/payloads/v10");
-const { updateUsersCache, awaitWrap } = require('../helper/util');
+const { updateUsersCache, awaitWrap, checkChannelSendPermission } = require('../helper/util');
 const myCache = require("../helper/cache");
 const CONSTANT = require("../helper/const");
 
@@ -168,16 +168,17 @@ module.exports = {
                                 new MessageButton()
                                     .setLabel("Jump to the Dashboard")
                                     .setStyle("LINK")
-                                    .setURL(sprintf(CONSTANT.LINK.DISCORD_MSG, {
-                                        guildId: guildId,
-                                        channelId: guildVoiceContext.channelId,
-                                        messageId: guildVoiceContext.messageId
-                                    }))
+                                    .setURL(msgLink)
                             ])
                     ],
                     ephemeral: true
                 })
             }
+            await interaction.deferReply({ephemeral: true});
+            const [result, error] = await createRoom();
+            if (error) return interaction.followUp({
+                content: `Error occured when creating room: \`${error}\``
+            })
 
             let membersFields = '';
             if (selectedMembers.length == 0 ) membersFields = '-';
@@ -188,14 +189,17 @@ module.exports = {
             }
             const timestampMili = new Date().getTime();
             const timestampSec = Math.floor(timestampMili / 1000);
-            
-            const { message, msgError } = await awaitWrap(voiceChannel.send({
+            if (!checkChannelSendPermission(voiceChannel, interaction.guild.me.id)){
+                return interaction.followUp({
+                    content: "Permission denied, please check whether the bot is allowed to send message in this channel",
+                })
+            }
+            const message= await voiceChannel.send({
                 embeds: [
                     new MessageEmbed()
-                        .setTitle(`${interaction.guild.name} Onboarding Call Started`)
-                        .setAuthor({ name: `@${interaction.user.tag} -- Onboarding Call Host`, iconURL: interaction.user.avatarURL() })
-                        .setDescription(`**ChannelID**: <#${voiceChannel.id}>\n\n**Started**: <t:${timestampSec}:f>(<t:${timestampSec}:R>)`)
-                        .addField("Avtivity", membersFields)
+                        .setAuthor({ name: `Onboarding Call Host - ${interaction.user.username}`, iconURL: interaction.user.avatarURL() })
+                        .setDescription(`**Started**: <t:${timestampSec}:f>(<t:${timestampSec}:R>)`)
+                        .addField("Attendees", membersFields)
                 ],
                 components: [
                     new MessageActionRow()
@@ -203,38 +207,48 @@ module.exports = {
                             new MessageButton()
                                 .setCustomId("onboard")
                                 .setStyle("PRIMARY")
-                                .setLabel("Onboard Crew")
-                                .setEmoji("🫂"),
+                                .setLabel("Get Party Ticket")
+                                .setEmoji("🎟️"),
                             new MessageButton()
                                 .setCustomId("end")
-                                .setStyle("DANGER")
-                                .setLabel("End Onboarding")
-                                .setEmoji("⚠️"),
+                                .setStyle('SECONDARY')
+                                .setLabel("End Party")
                         ])
                 ]
-            }), "message", "msgError");
+            });
 
-            if (msgError){
-                return interaction.reply({
-                    content: "Permission denied, please check whether the bot is allowed to send message in this channel",
-                    ephemeral: true
-                })
-            }
+            const msgLink = sprintf(CONSTANT.LINK.DISCORD_MSG, {
+                guildId: guildId,
+                channelId: voiceChannel.id,
+                messageId: message.id
+            });
 
             myCache.set("voiceContext", {
                 ...myCache.get("voiceContext"),
                 [guildId]: {
                     messageId: message.id,
+                    messageLink: msgLink,
                     channelId: voiceChannel.id,
                     timestamp: timestampMili,
                     hostId: interaction.user.id,
-                    attendees: selectedMembers
+                    attendees: selectedMembers,
+                    roomId: result._id
                 }
             })
 
-            return interaction.reply({
+            return interaction.followUp({
                 content: `Auto onboarding has started in <#${voiceChannel.id}>`,
-                ephemeral: true
+                ephemeral: true,
+                components: [
+                    new MessageActionRow()
+                        .addComponents([
+                            new MessageButton()
+                                .setStyle("LINK")
+                                .setLabel("Jump to the dashboard")
+                                .setEmoji("🔗")
+                                .setURL(msgLink)
+                        ])
+                ]
             })
         }
 
