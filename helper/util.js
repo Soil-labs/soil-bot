@@ -141,10 +141,10 @@ function getNextBirthday(month, day, offset){
     const thisYear = new Date().getUTCFullYear();
     const machineTimezonBirthday= new Date(`${thisYear}-${month}-${day}`).getTime();
     let utcBirthday = machineTimezonBirthday + date.getTimezoneOffset() * 60000;
-    let offsetBirthday = utcBirthday + 3600000 * offset;
+    let offsetBirthday = utcBirthday - 3600000 * offset;
     if (date.getTime() > machineTimezonBirthday){
         utcBirthday = new Date(`${thisYear + 1}-${month}-${day}`).getTime() + date.getTimezoneOffset() * 60000;
-        offsetBirthday = utcBirthday + 3600000 * offset;
+        offsetBirthday = utcBirthday - 3600000 * offset;
     }
     return Math.floor(offsetBirthday / 1000);
 }
