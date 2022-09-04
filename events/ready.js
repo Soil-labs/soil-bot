@@ -1,10 +1,15 @@
 const { REST } = require('@discordjs/rest');
 const { Routes } = require('discord-api-types/v9');
-const { Client } = require("discord.js");
+const { Client, MessageEmbed } = require("discord.js");
+const { initializeApp, getApp } = require('firebase/app')
+const { getFirestore, getDocs, query, collection, writeBatch, doc } = require("firebase/firestore");
 const { fetchProjects, fetchSkills, fetchUsers, fetchUnverifiedSkills, fetchTeams, fetchServer, updateServer, fetchRoles, projectTeamRole } = require("../helper/graphql");
+const { awaitWrap, getCurrentTimeInSec, getNextBirthday, checkChannelSendPermission } = require('../helper/util');
+
 const myCache = require("../helper/cache")
 const logger = require("../helper/logger");
 const AsciiTable = require('ascii-table/ascii-table');
+const CONSTANT = require("../helper/const");
 
 module.exports = {
     //event name
@@ -48,6 +53,27 @@ module.exports = {
             //to-do temp method to handle multi-guild auto onboarding
             myCache.set("voiceContext", {});
             table.addRow("Voice Context", "✅ Fetched and cached");
+
+            // to-do fetch birthday
+            const app = initializeApp({
+                projectId: process.env.PROJECT_ID,
+            });
+            const db = getFirestore(app);
+            const birthdayQuery = query(collection(db, "Birthday"));
+            const {result: birthdaySnaps, error} = await awaitWrap(getDocs(birthdayQuery));
+            if (error) {
+                table.addRow("Birthday", `❌ Error: ${error.message}`);
+                errorFlag = true;
+            }else{
+                let birthdays = {};
+                if (birthdaySnaps.size != 0) {
+                    birthdaySnaps.forEach((userSnap) => {
+                        birthdays[userSnap.id] = userSnap.data();
+                    })
+                }
+                myCache.set("birthday", birthdays, CONSTANT.NUMERICAL_VALUE.BIRTHDAY_CHECK_INTERVAL);
+                table.addRow("Birthday", "✅ Fetched and cached");
+            }
             
             //to-do can fetch 200 at most once, if > 200 we should loop it
             const guilds = await client.guilds.fetch();
@@ -122,6 +148,60 @@ module.exports = {
                 case "unverifiedSkills":
                     await fetchUnverifiedSkills();
                     break;
+                case "birthday":
+                    let soilTeamGuild = client.guilds.cache.get("996558082098339953");
+                    if (!soilTeamGuild) {
+                        const { result: fetchGuildResult, error: fetchGuildError } = await awaitWrap(client.guilds.fetch("996558082098339953"));
+                        if (fetchGuildError) {
+                            return myCache.set("birthday", value, CONSTANT.NUMERICAL_VALUE.BIRTHDAY_CHECK_INTERVAL);
+                        }
+                        soilTeamGuild = fetchGuildResult;
+                    }
+                    let targetChannel = soilTeamGuild.channels.cache.get("1005520465638477824");
+                    if (!targetChannel) {
+                        const { result: fetchChannelResult, error: fetchChannelError } = await awaitWrap(soilTeamGuild.channels.fetch("1005520465638477824"));
+                        if (fetchChannelError) {
+                            return myCache.set("birthday", value, CONSTANT.NUMERICAL_VALUE.BIRTHDAY_CHECK_INTERVAL);
+                        }
+                        targetChannel = fetchChannelResult;
+                    }
+                    const current = getCurrentTimeInSec();
+                    const celebratePromise = [];
+                    let newCache = value;
+                    const firestore = getFirestore(getApp());
+                    const batch = writeBatch(firestore);
+                    Object.keys(value).forEach((userId) => {
+                        const { date, month, day, offset } = value[userId];
+                        const member = soilTeamGuild.members.cache.get(userId);
+                        if (!member) return;
+                        if (current > date) {
+                            const toBecached = {
+                                ...value[userId],
+                                date: getNextBirthday(month, day, offset)
+                            }
+                            celebratePromise.push(
+                                targetChannel.send({
+                                    content: `<@${userId}>, today is your birthday! Enjoy your day!`,
+                                    embeds: [
+                                        new MessageEmbed()
+                                            .setAuthor({ name: `@${member.displayName}`, iconURL: member.user.avatarURL() })
+                                            .setTitle("Happy Birthday!🥳")
+                                            .setDescription(`Next Birthday: <t:${toBecached.date}>`)
+                                    ]
+                                })
+                            )
+                            batch.set(doc(firestore, 'Birthday', userId), toBecached);
+                            newCache[userId] = toBecached;
+                        }
+                    });
+                    if (celebratePromise.length == 0) {
+                        return myCache.set("birthday", value, CONSTANT.NUMERICAL_VALUE.BIRTHDAY_CHECK_INTERVAL);
+                    };
+                    await batch.commit();
+                    myCache.set("birthday", newCache, CONSTANT.NUMERICAL_VALUE.BIRTHDAY_CHECK_INTERVAL);
+                    if (checkChannelSendPermission(targetChannel, soilTeamGuild.me.id)){
+                        await Promise.all(celebratePromise);
+                    }
             }
         })
 

@@ -91,7 +91,7 @@ module.exports = {
         })
 
         if (tokenAmount) gardenUpdateInform.tokenAmount = tokenAmount.toString();
-        
+
         const [result, error] = await createProjectUpdate(gardenUpdateInform);
             
         if (error) return interaction.followUp({

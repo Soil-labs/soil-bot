@@ -1,7 +1,6 @@
 const { AutocompleteInteraction } = require("discord.js");
 const myCache = require("../helper/cache");
 const CONSTANT = require("../helper/const");
-const { validProject, validTeam } = require("../helper/util");
 
 
 module.exports = {
@@ -12,7 +11,7 @@ module.exports = {
     ],
 
     /**
-     * @param  {AutocompleteInteraction} interaction
+     * @param  { AutocompleteInteraction } interaction
      */
     async execute(interaction){
         const guildId = interaction.guild.id;        

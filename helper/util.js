@@ -130,6 +130,29 @@ function checkChannelSendPermission(channel, userId){
     return channel.permissionsFor(userId).has(PermissionFlagsBits.SendMessages) && channel.permissionsFor(userId).has(PermissionFlagsBits.ViewChannel)
 }
 
+function isValidDate(month, day){
+    const thisYear = new Date().getUTCFullYear();
+    const date = new Date(`${thisYear}-${month}-${day}`);
+    return date != "Invalid Date";
+}
+
+function getNextBirthday(month, day, offset){
+    const date = new Date();
+    const thisYear = new Date().getUTCFullYear();
+    const machineTimezonBirthday= new Date(`${thisYear}-${month}-${day}`).getTime();
+    let utcBirthday = machineTimezonBirthday + date.getTimezoneOffset() * 60000;
+    let offsetBirthday = utcBirthday + 3600000 * offset;
+    if (date.getTime() > machineTimezonBirthday){
+        utcBirthday = new Date(`${thisYear + 1}-${month}-${day}`).getTime() + date.getTimezoneOffset() * 60000;
+        offsetBirthday = utcBirthday + 3600000 * offset;
+    }
+    return Math.floor(offsetBirthday / 1000);
+}
+
+function getCurrentTimeInSec(){
+    return Math.floor(new Date().getTime() / 1000);
+}
+
 module.exports = { 
     awaitWrap, 
     awaitWrapTimeout,
@@ -141,5 +164,8 @@ module.exports = {
     insertVerticalBar, 
     updateUserCache,
     updateUsersCache,
-    checkChannelSendPermission
+    checkChannelSendPermission,
+    isValidDate,
+    getNextBirthday,
+    getCurrentTimeInSec
 }

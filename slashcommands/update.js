@@ -58,9 +58,6 @@ module.exports = {
                         .addIntegerOption(option =>
                             option.setName("token_amount")
                                 .setDescription("Input the amount of token you'd like to send"))
-                        .addBooleanOption(option =>
-                            option.setName("request_thread")
-                                .setDescription("Create a thread for futher discussion"))
             )
     },
 
@@ -198,14 +195,12 @@ module.exports = {
                 teamId,
                 roleId,
                 membersString,
-                hasThread,
                 tokenAmount
             ] = [
                 interaction.options.getString("project"),
                 interaction.options.getString("team"),
                 interaction.options.getString("role"),
                 interaction.options.getString("member").match(/<@.?[0-9]*?>/g),
-                interaction.options.getBoolean("request_thread"),
                 interaction.options.getInteger("token_amount")
             ];
 
@@ -291,10 +286,9 @@ module.exports = {
                 teamName: teamName,
                 roleIds: [roleId],
                 roleName: roleName,
-                hasThread: false,
+                hasThread: true,
                 tokenAmount: null
             };
-            if (hasThread) userCache.hasThread = true;
             if (tokenAmount) userCache.tokenAmount = tokenAmount;
             myCache.set("gardenContext", {
                 ...myCache.get("gardenContext"),

@@ -24,12 +24,14 @@
     "discord-api-types": "^0.37.2",
     "discord.js": "^13.8.0",
     "dotenv": "^16.0.1",
+    "firebase": "^9.9.4",
     "graphql-request": "^4.3.0",
     "lodash": "^4.17.21",
     "node-cache": "^5.1.2",
     "nodemon": "^2.0.16",
     "pino": "^8.0.0",
     "pino-pretty": "^8.0.0",
-    "sprintf-js": "^1.1.2"
+    "sprintf-js": "^1.1.2",
+    "timezones.json": "^1.6.1"
   }
 }

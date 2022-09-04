@@ -1,3 +1,4 @@
+const timezones = require('timezones.json/timezones.json')
 
 let _endPoint, _frontEnd, _champion, _project, _projectAll, _projectTweets, _createProject, _signUp;
 switch(process.env.VERSION){
@@ -145,6 +146,7 @@ const NUMERICAL_VALUE = Object.freeze({
     AUTOCOMPLETE_OPTION_LENGTH: 25,
     GRAPHQL_TIMEOUT_SHORT: 5 * 1000,
     GRAPHQL_TIMEOUT_LONG: 10 * 1000,
+    BIRTHDAY_CHECK_INTERVAL: 60
 })
 
 const MESSAGE_SETTING = Object.freeze({
@@ -162,6 +164,21 @@ const ATTRIBUTES = Object.freeze([
     "Reformer"
 ])
 
+const TIMEZONES = Object.freeze(
+    Object.values(
+        timezones.reduce((pre, cur) => {
+            if (cur.offset in pre) return pre;
+            else return {
+                ...pre,
+                [cur.offset]: {
+                    name: cur.text.replace(/\(+|\)+/g, ''),
+                    value: cur.offset.toString()
+                }
+            }
+        }, {})
+    )
+)
+
 module.exports = { 
     GRAPHQL_ERROR, 
     SKILL_STATE, 
@@ -170,5 +187,6 @@ module.exports = {
     CONTENT,
     NUMERICAL_VALUE,
     MESSAGE_SETTING,
-    ATTRIBUTES
+    ATTRIBUTES,
+    TIMEZONES
 }

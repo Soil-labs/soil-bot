@@ -422,7 +422,7 @@ const CREATE_PROJECT_UPDATE = gql`
       authorID: $authorId
       teamID: $teamIds
       serverID: $serverId
-      thread: $threadLink
+      threadDiscordID: $threadLink
       token: $tokenAmount
     }){
       _id   
