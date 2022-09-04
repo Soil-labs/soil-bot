@@ -50,7 +50,7 @@ module.exports = {
                             value: "7"
                         },
                         {
-                            name: "April",
+                            name: "August",
                             value: "8"
                         },
                         {
