@@ -165,18 +165,34 @@ const ATTRIBUTES = Object.freeze([
 ])
 
 const TIMEZONES = Object.freeze(
-    Object.values(
-        timezones.reduce((pre, cur) => {
-            if (cur.offset in pre) return pre;
-            else return {
-                ...pre,
-                [cur.offset]: {
-                    name: cur.text.replace(/\(+|\)+/g, ''),
-                    value: cur.offset.toString()
-                }
-            }
-        }, {})
-    )
+    [
+        { name: 'UTC-01', value: '-1' },
+        { name: 'UTC-02', value: '-2' },
+        { name: 'UTC-03', value: '-3' },
+        { name: 'UTC-04', value: '-4' },
+        { name: 'UTC-05', value: '-5' },
+        { name: 'UTC-06', value: '-6' },
+        { name: 'UTC-07', value: '-7' },
+        { name: 'UTC-08', value: '-8' },
+        { name: 'UTC-09', value: '-9' },
+        { name: 'UTC-10', value: '-10' },
+        { name: 'UTC-11', value: '-11' },
+        { name: 'UTC-12', value: '-12' },
+        { name: 'UTC+00', value: '0' },
+        { name: 'UTC+01', value: '1' },
+        { name: 'UTC+02', value: '2' },
+        { name: 'UTC+03', value: '3' },
+        { name: 'UTC+04', value: '4' },
+        { name: 'UTC+05', value: '5' },
+        { name: 'UTC+06', value: '6' },
+        { name: 'UTC+07', value: '7' },
+        { name: 'UTC+08', value: '8' },
+        { name: 'UTC+09', value: '9' },
+        { name: 'UTC+10', value: '10' },
+        { name: 'UTC+11', value: '11' },
+        { name: 'UTC+12', value: '12' },
+        { name: 'UTC+13', value: '13' },
+    ]
 )
 
 module.exports = { 

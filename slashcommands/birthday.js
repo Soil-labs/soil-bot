@@ -104,6 +104,7 @@ module.exports = {
             content: `Your input \`timezone\` is invalid.`,
             ephemeral: true
         });
+
         const birthdayDateInSec = getNextBirthday(month, day.toString(), timezone);
         let cached = myCache.get("birthday");
         if (userId in cached){

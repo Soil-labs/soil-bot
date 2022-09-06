@@ -1,6 +1,4 @@
 const { ButtonInteraction, MessageEmbed, MessageActionRow, MessageButton} = require("discord.js");
-const { addNewMember } = require("../helper/graphql");
-const { awaitWrap, updateUserCache } = require("../helper/util");
 const { sprintf } = require("sprintf-js");
 
 const myCache = require("../helper/cache");
@@ -13,7 +11,7 @@ module.exports = {
      */
     async execute(interaction){ 
         if (!myCache.has("voiceContext")) return interaction.reply({
-            content: "Please try again, auto onboarding is initing",
+            content: "Please try again later, auto onboarding is initing",
             ephemeral: true
         })
 
@@ -23,10 +21,15 @@ module.exports = {
         if (!guildVoiceContext || Object.keys(guildVoiceContext).length == 0) return interaction.reply({
             content: "Cannot find this auto onboarding, please start a new one.",
             ephemeral: true
-        }) 
-
-        const { hostId, roomId } = guildVoiceContext;
-
+        });
+        // <t:${timestampSec}:f>
+        const { hostId, roomId, timestamp } = guildVoiceContext;
+        let [ startTimeStamp ] = interaction.message.embeds[0].description.match(/<t:\d*:f>/);
+        if (startTimeStamp.slice(3, -3) !== timestamp.toString()) return interaction.reply({
+            content: "Cannot find this auto onboarding, please start a new one.",
+            ephemeral: true
+        });
+         
         if (interaction.customId == this.customId[0]){
             const attendees = guildVoiceContext.attendees;
 
@@ -37,20 +40,6 @@ module.exports = {
             await interaction.deferReply({ ephemeral: true });
 
             const member = interaction.user;
-            const [ result, error ] = await addNewMember({
-                _id: member.id,
-                discordName: member.username,
-                discriminator: member.discriminator,
-                discordAvatar: member.avatarURL(),
-                invitedBy: hostId,
-                serverId: guildId
-            });
-
-            if (error) return interaction.followUp({
-                content: `Error occured when onboarding you: \`${error}\``
-            })
-
-            updateUserCache(member.id, member.username, guildId);
 
             const roomLink = sprintf(CONSTANT.LINK.ROOM, {
                 roomId: roomId,
@@ -58,15 +47,21 @@ module.exports = {
             })
             
             return interaction.followUp({
-                components: [
-                    new MessageActionRow()
-                        .addComponents([
-                            new MessageButton()
-                                .setLabel("Join the Party")
-                                .setStyle("LINK")
-                                .setURL(roomLink)
-                                .setEmoji("🎊")
-                        ])
+                // components: [
+                //     new MessageActionRow()
+                //         .addComponents([
+                //             new MessageButton()
+                //                 .setLabel("Join the Party")
+                //                 .setStyle("LINK")
+                //                 .setURL(roomLink)
+                //                 .setEmoji("🎊")
+                //         ])
+                // ],
+                embeds: [
+                    new MessageEmbed()
+                        .setTitle("Join the Party🎊")
+                        .setDescription(sprintf("Hey <@%s>! I'm an Eden 🌳 bot helping <@%s> with this onboarding call! Click [here](<%s>) to claim a ticket and join the onboarding Party Page!",
+                            interaction.user.id, hostId, roomLink))
                 ]
             })
         }
@@ -76,6 +71,7 @@ module.exports = {
                 content: "Sorry, only the host is allowed to trigger this button",
                 ephemeral: true
             })
+
             const message = interaction.message;
             let button = message.components;
             button[0].components[0].disabled = true;

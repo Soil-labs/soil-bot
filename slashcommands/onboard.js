@@ -6,6 +6,7 @@ const { ChannelType, PermissionFlagsBits } = require("discord-api-types/payloads
 const { updateUsersCache, awaitWrap, checkChannelSendPermission } = require('../helper/util');
 const myCache = require("../helper/cache");
 const CONSTANT = require("../helper/const");
+const _ = require("lodash")
 
 
 module.exports = {
@@ -148,7 +149,8 @@ module.exports = {
                 content: "Please try again, auto onboard is initing.",
                 ephemeral: true
             })
- 
+
+            const hostId = interaction.user.id;
             const voiceChannel = interaction.options.getChannel("channel");
             const selectedMembers = voiceChannel.members.filter((member) => !member.user.bot).map((_, memberId) => (memberId));
 
@@ -180,15 +182,14 @@ module.exports = {
                 content: `Error occured when creating room: \`${error}\``
             })
 
-            let membersFields = '';
-            if (selectedMembers.length == 0 ) membersFields = '-';
-            else {
-                for (const memberId of selectedMembers){
-                    membersFields += `\`00:00:00\` <@${memberId}>\n`
+            let membersFields = `\`00:00:00\` <@${hostId}> started this onboarding call.\n`;
+            for (const memberId of selectedMembers){
+                if (memberId != hostId){
+                    membersFields += `\`00:00:00\` <@${memberId}> joined this onboarding call.\n`;
                 }
             }
-            const timestampMili = new Date().getTime();
-            const timestampSec = Math.floor(timestampMili / 1000);
+
+            const timestampSec = Math.floor(new Date().getTime() / 1000);
             if (!checkChannelSendPermission(voiceChannel, interaction.guild.me.id)){
                 return interaction.followUp({
                     content: "Permission denied, please check whether the bot is allowed to send message in this channel",
@@ -229,9 +230,9 @@ module.exports = {
                     messageId: message.id,
                     messageLink: msgLink,
                     channelId: voiceChannel.id,
-                    timestamp: timestampMili,
-                    hostId: interaction.user.id,
-                    attendees: selectedMembers,
+                    timestamp: timestampSec,
+                    hostId: hostId,
+                    attendees: _.uniq([...selectedMembers, hostId]),
                     roomId: result._id
                 }
             })
