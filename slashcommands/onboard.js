@@ -170,7 +170,7 @@ module.exports = {
                                 new MessageButton()
                                     .setLabel("Jump to the Dashboard")
                                     .setStyle("LINK")
-                                    .setURL(msgLink)
+                                    .setURL(guildVoiceContext.messageLink)
                             ])
                     ],
                     ephemeral: true

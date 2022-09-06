@@ -1,12 +1,13 @@
 
 
-const { VoiceState } = require("discord.js");
+const { VoiceState, MessageEmbed } = require("discord.js");
 const { sprintf } = require("sprintf-js");
 const { addNewMember } = require("../helper/graphql");
-const { awaitWrap, updateUserCache, validUser } = require("../helper/util");
+const { awaitWrap, updateUserCache, validUser, checkChannelSendPermission } = require("../helper/util");
 
 const logger = require("../helper/logger");
 const myCache = require("../helper/cache");
+const CONSTANT = require("../helper/const");
 
 module.exports = {
     name: "voiceStateUpdate",
@@ -31,11 +32,13 @@ module.exports = {
                     messageId,
                     timestamp,
                     attendees,
-                    hostId
+                    hostId,
+                    messageLink,
+                    roomId
                 } = guildContext;
                 const newMemberId = newState.member.id;
                 if (attendees.includes(newMemberId)) return;
-                
+
                 if (!validUser(newMemberId, guildId)){
                     const [ result, graphQLError ] = await addNewMember({
                         _id: newMemberId,
@@ -60,7 +63,8 @@ module.exports = {
                 let embeds = targetMessage.embeds;
                 let membersFields = embeds[0].fields[0].value;
 
-                const current = new Date(new Date().getTime() - timestamp * 1000);
+                const difference = new Date().getTime() - timestamp * 1000;
+                const current = new Date(difference);
                 const hour = ("00" + current.getHours().toString()).slice(-2);
                 const minute = ("00" + current.getMinutes().toString()).slice(-2);
                 const sec = ("00" + current.getSeconds().toString()).slice(-2);
@@ -80,14 +84,33 @@ module.exports = {
                     }
                 })
 
-                return targetMessage.edit({
+                targetMessage.edit({
                     embeds: embeds,
                     components: voiceChannel.components
-                })
-                
+                });
+
+                if (Math.floor(difference / 1000) > CONSTANT.NUMERICAL_VALUE.ONBOARD_REPEAT_CONTEXT){
+                    if (checkChannelSendPermission(voiceChannel, newState.guild.me.id)){
+                        const roomLink = sprintf(CONSTANT.LINK.ROOM, {
+                            roomId: roomId,
+                            userId: newMemberId
+                        })
+
+                        return voiceChannel.send({
+                            content: `Welcome, <@${newMemberId}>`,
+                            embeds: [
+                                new MessageEmbed()
+                                    .setTitle("Join the Party🎊")
+                                    .setDescription(sprintf("Hey <@%s>! I'm an Eden 🌳 bot helping <@%s> with this onboarding call! Click [here](<%s>) to claim a ticket and join the onboarding Party Page! Or you can jump to our [onboarding dashboard](%s)",
+                                        newMemberId, hostId, roomLink, messageLink))
+                            ]
+                        })
+                    }
+                }
+                return;
             }
         }catch(error){
-            `User: ${oldState.member.displayName} Guild: ${oldState.guild.name} Error: ${error.name} occurs when voiceStateUpdate. Msg: ${err.message} Stack: ${error.stack}`
+            `User: ${newState.member.displayName} Guild: ${newState.guild.name} Error: ${error.name} occurs when voiceStateUpdate. Msg: ${error.message} Stack: ${error.stack}`
         }
         
 

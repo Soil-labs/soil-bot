@@ -29,7 +29,7 @@ module.exports = {
             content: "Cannot find this auto onboarding, please start a new one.",
             ephemeral: true
         });
-         
+
         if (interaction.customId == this.customId[0]){
             const attendees = guildVoiceContext.attendees;
 
@@ -47,16 +47,6 @@ module.exports = {
             })
             
             return interaction.followUp({
-                // components: [
-                //     new MessageActionRow()
-                //         .addComponents([
-                //             new MessageButton()
-                //                 .setLabel("Join the Party")
-                //                 .setStyle("LINK")
-                //                 .setURL(roomLink)
-                //                 .setEmoji("🎊")
-                //         ])
-                // ],
                 embeds: [
                     new MessageEmbed()
                         .setTitle("Join the Party🎊")
