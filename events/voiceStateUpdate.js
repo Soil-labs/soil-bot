@@ -47,10 +47,9 @@ module.exports = {
                         invitedBy: hostId,
                         serverId: guildId
                     });
-
                     // to-do handle the case that the user fail to be onboarded
                     if (result) {
-                        updateUserCache(member.id, member.username, guildId);
+                        updateUserCache(newMemberId, newState.member.user.username, guildId);
                     }
                 }
 
@@ -78,13 +77,12 @@ module.exports = {
                         attendees: [...attendees, newMemberId]
                     }
                 })
-
                 targetMessage.edit({
                     embeds: embeds,
-                    components: voiceChannel.components
+                    components: targetMessage.components
                 });
-
-                if (Math.floor(difference / 1000) > CONSTANT.NUMERICAL_VALUE.ONBOARD_REPEAT_CONTEXT){
+                
+                if (Math.floor(difference / 1000) >= CONSTANT.NUMERICAL_VALUE.ONBOARD_REPEAT_CONTEXT){
                     if (checkChannelSendPermission(voiceChannel, newState.guild.me.id)){
                         const roomLink = sprintf(CONSTANT.LINK.ROOM, {
                             roomId: roomId,
@@ -107,9 +105,9 @@ module.exports = {
                     }
                 }
                 return;
-            }
+            }else return;
         }catch(error){
-            `User: ${newState.member.displayName} Guild: ${newState.guild.name} Error: ${error.name} occurs when voiceStateUpdate. Msg: ${error.message} Stack: ${error.stack}`
+            console.log(`User: ${newState?.member?.displayName} Guild: ${newState?.guild?.name} Error: ${error?.name} occurs when voiceStateUpdate. Msg: ${error?.message} Stack: ${error?.stack}`)
         }
         
 

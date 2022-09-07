@@ -162,7 +162,7 @@ module.exports = {
                     embeds: [
                         new MessageEmbed()
                             .setTitle("Onboarding Call is going on")
-                            .setDescription(`Sorry, an onboarding call has started in <#${guildVoiceContext.channelId}>, hosted by <@${guildVoiceContext.hostId}>, at <t:${Math.floor(guildVoiceContext.timestamp / 1000)}:f>.\nPlease wait for its end or cancel it through its dashboard.`)
+                            .setDescription(`Sorry, an onboarding call has started in <#${guildVoiceContext.channelId}>, hosted by <@${guildVoiceContext.hostId}>, at <t:${guildVoiceContext.timestamp}:f>.\nPlease wait for its end or cancel it through its dashboard.`)
                     ],
                     components: [
                         new MessageActionRow()

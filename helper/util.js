@@ -127,7 +127,7 @@ function insertVerticalBar(array){
  * @param  { string } userId
  */
 function checkChannelSendPermission(channel, userId){
-    return channel.permissionsFor(userId).has(PermissionFlagsBits.SendMessages) && channel.permissionsFor(userId).has(PermissionFlagsBits.ViewChannel);
+    return channel.permissionsFor(userId).has([PermissionFlagsBits.SendMessages, PermissionFlagsBits.ViewChannel]);
 }
 
 function isValidDate(month, day){

@@ -828,7 +828,7 @@ async function createRoom(){
 function _graphqlErrorHandler(error){
   if (error.message == CONSTANT.ERROR.TIMEOUT) return CONSTANT.ERROR.TIMEOUT;
   else {
-    if (error.response) return error.response.errors[0].message;
+    if (error.response) return error.response?.errors[0]?.message;
     else return error.message
   }
 }
