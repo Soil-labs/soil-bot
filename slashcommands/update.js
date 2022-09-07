@@ -18,21 +18,21 @@ module.exports = {
         this.data = new SlashCommandBuilder()
             .setName(this.commandName)
             .setDescription(this.description)
-            .addSubcommand(commnad =>
-                commnad.setName("project")
-                    .setDescription("Update your project milestone")
-                        .addStringOption(option =>
-                            option.setName("project")
-                                .setDescription("Choose a project from the list")
-                                .setRequired(true)
-                                .setAutocomplete(true))
-                        .addStringOption(option =>
-                            option.setName("announcement_title")
-                                .setDescription("Title of News or announcement you'd like to report")
-                                .setRequired(true))
-                        .addStringOption(option =>
-                            option.setName("announcement_content")
-                                .setDescription("Content of News or announcement you'd like to report")))
+            // .addSubcommand(commnad =>
+            //     commnad.setName("project")
+            //         .setDescription("Update your project milestone")
+            //             .addStringOption(option =>
+            //                 option.setName("project")
+            //                     .setDescription("Choose a project from the list")
+            //                     .setRequired(true)
+            //                     .setAutocomplete(true))
+            //             .addStringOption(option =>
+            //                 option.setName("announcement_title")
+            //                     .setDescription("Title of News or announcement you'd like to report")
+            //                     .setRequired(true))
+            //             .addStringOption(option =>
+            //                 option.setName("announcement_content")
+            //                     .setDescription("Content of News or announcement you'd like to report")))
             .addSubcommand(command =>
                 command.setName("garden")
                     .setDescription("Update DAO garden")

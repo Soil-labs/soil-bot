@@ -3,11 +3,12 @@ const { sprintf } = require("sprintf-js");
 
 const myCache = require("../helper/cache");
 const CONSTANT = require("../helper/const");
+const { convertMsToTime } = require("../helper/util");
 
 module.exports = {
     customId: ["onboard", "end"],
     /**
-     * @param  {ButtonInteraction} interaction
+     * @param  { ButtonInteraction } interaction
      */
     async execute(interaction){ 
         if (!myCache.has("voiceContext")) return interaction.reply({
@@ -22,39 +23,40 @@ module.exports = {
             content: "Cannot find this auto onboarding, please start a new one.",
             ephemeral: true
         });
+
+
         // <t:${timestampSec}:f>
-        const { hostId, roomId, timestamp } = guildVoiceContext;
+        const { hostId, timestamp } = guildVoiceContext;
         let [ startTimeStamp ] = interaction.message.embeds[0].description.match(/<t:\d*:f>/);
         if (startTimeStamp.slice(3, -3) !== timestamp.toString()) return interaction.reply({
             content: "Cannot find this auto onboarding, please start a new one.",
             ephemeral: true
         });
 
-        if (interaction.customId == this.customId[0]){
-            const attendees = guildVoiceContext.attendees;
+        // if (interaction.customId == this.customId[0]){
+        //     const attendees = guildVoiceContext.attendees;
 
-            if (!attendees.includes(interaction.user.id)) return interaction.reply({
-                content: "Sorry, you did not join in this onboarding call.",
-                ephemeral: true
-            })
-            await interaction.deferReply({ ephemeral: true });
+        //     if (!attendees.includes(interaction.user.id)) return interaction.reply({
+        //         content: "Sorry, you did not join in this onboarding call.",
+        //         ephemeral: true
+        //     })
+        //     await interaction.deferReply({ ephemeral: true });
 
-            const member = interaction.user;
+        //     const member = interaction.user;
 
-            const roomLink = sprintf(CONSTANT.LINK.ROOM, {
-                roomId: roomId,
-                userId: member.id
-            })
+        //     const roomLink = sprintf(CONSTANT.LINK.ROOM, {
+        //         roomId: roomId,
+        //     })
             
-            return interaction.followUp({
-                embeds: [
-                    new MessageEmbed()
-                        .setTitle("Join the Party🎊")
-                        .setDescription(sprintf("Hey <@%s>! I'm an Eden 🌳 bot helping <@%s> with this onboarding call! Click [here](<%s>) to claim a ticket and join the onboarding Party Page!",
-                            interaction.user.id, hostId, roomLink))
-                ]
-            })
-        }
+        //     return interaction.followUp({
+        //         embeds: [
+        //             new MessageEmbed()
+        //                 .setTitle("Join the Party🎊")
+        //                 .setDescription(sprintf("Hey <@%s>! I'm an Eden 🌳 bot helping <@%s> with this onboarding call! Click [here](<%s>) to claim a ticket and join the onboarding Party Page!",
+        //                     interaction.user.id, hostId, roomLink))
+        //         ]
+        //     })
+        // }
 
         if (interaction.customId == this.customId[1]){
             if (interaction.user.id != hostId) return interaction.reply({
@@ -69,8 +71,18 @@ module.exports = {
 
             let embeds = message.embeds;
             const title = `${interaction.guild.name} Onboarding Call Ended`;
+
+            let membersFields = embeds[0].fields[0].value;
+            const difference = new Date().getTime() - timestamp * 1000;
+            membersFields += sprintf("\n\`%s\` <@%s> ended this onboarding call.", convertMsToTime(difference), hostId);
             
             embeds[0].setTitle(title);
+            embeds[0].fields = [
+                {
+                    name: "Activity",
+                    value: membersFields
+                }
+            ];
 
             await message.edit({
                 embeds: embeds,

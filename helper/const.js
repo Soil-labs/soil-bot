@@ -69,7 +69,7 @@ const LINK = Object.freeze({
     DASHBOARD: _champion,
     DISCORD_MSG: "https://discord.com/channels/%(guildId)s/%(channelId)s/%(messageId)s",
     THREAD: "https://discord.com/channels/%(guildId)s/%(threadId)s",
-    ROOM: "https://eden-foundation.vercel.app/onboard/party/%(roomId)s?memberId=%(userId)s"
+    ROOM: "https://eden-foundation.vercel.app/onboard/party/%(roomId)s"
 })
 
 const CONTENT = Object.freeze({
@@ -147,7 +147,8 @@ const NUMERICAL_VALUE = Object.freeze({
     GRAPHQL_TIMEOUT_SHORT: 5 * 1000,
     GRAPHQL_TIMEOUT_LONG: 10 * 1000,
     BIRTHDAY_CHECK_INTERVAL: 60,
-    ONBOARD_REPEAT_CONTEXT: 1 * 60
+    ONBOARD_REPEAT_CONTEXT: 10 * 60,
+    ONBOARD_AUTO_DELETE: 3 * 60
 })
 
 const MESSAGE_SETTING = Object.freeze({

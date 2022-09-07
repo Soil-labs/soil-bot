@@ -3,7 +3,7 @@
 const { VoiceState, MessageEmbed } = require("discord.js");
 const { sprintf } = require("sprintf-js");
 const { addNewMember } = require("../helper/graphql");
-const { awaitWrap, updateUserCache, validUser, checkChannelSendPermission } = require("../helper/util");
+const { awaitWrap, updateUserCache, validUser, checkChannelSendPermission, convertMsToTime } = require("../helper/util");
 
 const logger = require("../helper/logger");
 const myCache = require("../helper/cache");
@@ -33,7 +33,6 @@ module.exports = {
                     timestamp,
                     attendees,
                     hostId,
-                    messageLink,
                     roomId
                 } = guildContext;
                 const newMemberId = newState.member.id;
@@ -64,12 +63,8 @@ module.exports = {
                 let membersFields = embeds[0].fields[0].value;
 
                 const difference = new Date().getTime() - timestamp * 1000;
-                const current = new Date(difference);
-                const hour = ("00" + current.getHours().toString()).slice(-2);
-                const minute = ("00" + current.getMinutes().toString()).slice(-2);
-                const sec = ("00" + current.getSeconds().toString()).slice(-2);
                 //to-do overflow the embed: Too many members joined
-                membersFields += sprintf("\n\`%s:%s:%s\` <@%s> joined this onboarding call.", hour, minute, sec, newState.member.id);
+                membersFields += sprintf("\n\`%s\` <@%s> joined this onboarding call.", convertMsToTime(difference), newState.member.id);
                 embeds[0].fields = [
                     {
                         name: "Activity",
@@ -93,18 +88,22 @@ module.exports = {
                     if (checkChannelSendPermission(voiceChannel, newState.guild.me.id)){
                         const roomLink = sprintf(CONSTANT.LINK.ROOM, {
                             roomId: roomId,
-                            userId: newMemberId
                         })
-
-                        return voiceChannel.send({
+                        const deleteInMin = Math.floor(new Date().getTime() / 1000) + Number(CONSTANT.NUMERICAL_VALUE.ONBOARD_AUTO_DELETE);
+                        const msg = await voiceChannel.send({
                             content: `Welcome, <@${newMemberId}>`,
                             embeds: [
                                 new MessageEmbed()
                                     .setTitle("Join the Party🎊")
-                                    .setDescription(sprintf("Hey <@%s>! I'm an Eden 🌳 bot helping <@%s> with this onboarding call! Click [here](<%s>) to claim a ticket and join the onboarding Party Page! Or you can jump to our [onboarding dashboard](%s)",
-                                        newMemberId, hostId, roomLink, messageLink))
+                                    .setDescription(sprintf("Hey! I'm an Eden 🌳 bot helping <@%s> with this onboarding call! Click [here](<%s>) to claim a ticket and join the onboarding Party Page! Please note that this meesage will be deleted <t:%s:R>",
+                                        hostId, roomLink, deleteInMin))
                             ]
-                        })
+                        });
+                        setTimeout(() => {
+                            if (msg.deletable){
+                                msg.delete();
+                            }
+                        }, Number(CONSTANT.NUMERICAL_VALUE.ONBOARD_AUTO_DELETE) * 1000);
                     }
                 }
                 return;

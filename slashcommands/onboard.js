@@ -206,9 +206,11 @@ module.exports = {
                     new MessageActionRow()
                         .addComponents([
                             new MessageButton()
-                                .setCustomId("onboard")
-                                .setStyle("PRIMARY")
+                                .setStyle("LINK")
                                 .setLabel("Get Party Ticket")
+                                .setURL(sprintf(CONSTANT.LINK.ROOM, {
+                                    roomId: result._id,
+                                }))
                                 .setEmoji("🎟️"),
                             new MessageButton()
                                 .setCustomId("end")
