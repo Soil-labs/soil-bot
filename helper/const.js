@@ -13,7 +13,7 @@ switch(process.env.VERSION){
     _signUp = _frontEnd + "/member/signup"; 
     break;
   case "Develop":
-    _endPoint = "http://oasis-bot-test-deploy.herokuapp.com/graphql";
+    _endPoint = "https://oasis-botdevelopment.up.railway.app/graphql";
     _frontEnd = "https://oasis-app-front-end-zeta.vercel.app/";
     _champion = _frontEnd + "/champion-dashboard";
     _project = _frontEnd + "/projects/%s";

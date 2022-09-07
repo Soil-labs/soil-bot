@@ -3,7 +3,7 @@
 const { VoiceState, MessageEmbed } = require("discord.js");
 const { sprintf } = require("sprintf-js");
 const { addNewMember } = require("../helper/graphql");
-const { awaitWrap, updateUserCache, validUser, checkChannelSendPermission, convertMsToTime } = require("../helper/util");
+const { awaitWrap, updateUserCache, validUser, checkChannelSendPermission, convertMsToTime, checkMessageModerate } = require("../helper/util");
 
 const logger = require("../helper/logger");
 const myCache = require("../helper/cache");
