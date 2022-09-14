@@ -129,7 +129,6 @@ module.exports = {
             }              
             myCache.set("server", cache);
             myCache.set("gardenContext", {});
-            console.log(myCache.get("users"))
             logger.info(`\n${table.toString()}`);
         }
 

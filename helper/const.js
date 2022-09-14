@@ -14,7 +14,7 @@ switch(process.env.VERSION){
     break;
   case "Develop":
     _endPoint = "https://oasis-botdevelopment.up.railway.app/graphql";
-    _frontEnd = "https://oasis-app-front-end-zeta.vercel.app/";
+    _frontEnd = "https://oasis-app-front-end-zeta.vercel.app";
     _champion = _frontEnd + "/champion-dashboard";
     _project = _frontEnd + "/projects/%s";
     _projectAll = _frontEnd + "/projects?tab=1";
@@ -24,7 +24,7 @@ switch(process.env.VERSION){
     break; 
   case "Production":
     _endPoint = "https://eden-deploy.herokuapp.com/graphql";
-    _frontEnd = "https://eden-app-front-end-zeta.vercel.app/";
+    _frontEnd = "https://eden-app-front-end-zeta.vercel.app";
     _champion = _frontEnd + "/champion-dashboard";
     _project = _frontEnd + "/projects/%s";
     _projectAll = _frontEnd + "/projects?tab=1";
@@ -147,8 +147,8 @@ const NUMERICAL_VALUE = Object.freeze({
     GRAPHQL_TIMEOUT_SHORT: 5 * 1000,
     GRAPHQL_TIMEOUT_LONG: 10 * 1000,
     BIRTHDAY_CHECK_INTERVAL: 60,
-    ONBOARD_REPEAT_CONTEXT: 10 * 60,
-    ONBOARD_AUTO_DELETE: 3 * 60
+    ONBOARD_REPEAT_CONTEXT: 6 * 60,
+    ONBOARD_AUTO_DELETE: 2 * 60
 })
 
 const MESSAGE_SETTING = Object.freeze({

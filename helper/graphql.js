@@ -316,27 +316,27 @@ const FETCH_SKILL_DETAIL = gql`
   }
 `;
 
-const MATCH_MEMBER_TO_USER = gql`
-  query(
-    $memberId: ID
-    $serverId: [String]
-  ){
-    matchMembersToUser(fields:{
-      memberID: $memberId
-      serverID: $serverId
-    }){
-    matchPercentage
-      member{
-        _id
-        discordName
-      }
-      commonSkills{
-        name
-      }
+// const MATCH_MEMBER_TO_USER = gql`
+//   query(
+//     $memberId: ID
+//     $serverId: [String]
+//   ){
+//     matchMembersToUser(fields:{
+//       memberID: $memberId
+//       serverID: $serverId
+//     }){
+//     matchPercentage
+//       member{
+//         _id
+//         discordName
+//       }
+//       commonSkills{
+//         name
+//       }
         
-    }
-  }
-`
+//     }
+//   }
+// `
 
 const MATCH_MEMBER_TO_SKILL = gql`
   query(
@@ -787,11 +787,11 @@ async function addSkill(skillNameJSON){
     else return [result.createSkill, null];
 }
 
-async function matchMemberToUser(memberJSON){
-    const { result, error } = await awaitWrapTimeout(_client.request(MATCH_MEMBER_TO_USER, memberJSON));
-    if (error) return [null, _graphqlErrorHandler(error)]
-    else return [result.matchMembersToUser, null];
-}
+// async function matchMemberToUser(memberJSON){
+//     const { result, error } = await awaitWrapTimeout(_client.request(MATCH_MEMBER_TO_USER, memberJSON));
+//     if (error) return [null, _graphqlErrorHandler(error)]
+//     else return [result.matchMembersToUser, null];
+// }
 
 async function matchMemberToSkill(skillsJSON){
     const { result, error } = await awaitWrapTimeout(_client.request(MATCH_MEMBER_TO_SKILL, skillsJSON));
@@ -854,7 +854,6 @@ module.exports = {
   fetchUserDetail, 
   fetchTeamDetail,
   fetchSkillDetail,
-  matchMemberToUser,
   matchMemberToSkill,
   matchMemberToProject,
   endorseAttribute,
