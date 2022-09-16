@@ -226,7 +226,7 @@ module.exports = {
             top3Match.forEach((value) => {
                 const memberInGuild = interaction.guild.members.cache.get(value.member._id);
                 const name = memberInGuild ? `<@${value.member._id}>` : value.member.discordName;
-                const matchLink = memberInGuild ? sprintf("[%d%%](%s)", value.matchPercentage, sprintf(CONSTANT.LINK.USER, memberInGuild.id)) 
+                const matchLink = memberInGuild ? sprintf("[%d%%](%s)", value.matchPercentage, sprintf(CONSTANT.LINK.USER, value.member._id)) 
                     : sprintf("%d%%", value.matchPercentage);
                 const top2Skill = value.commonSkills.map(value => value.name).splice(0, 2);
                 const skillList = top2Skill.length ? insertVerticalBar(value.commonSkills.map(value => value.name).splice(0, 2)) : "No common skill"
