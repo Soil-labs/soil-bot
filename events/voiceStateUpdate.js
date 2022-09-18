@@ -1,8 +1,8 @@
 
 
-const { VoiceState, MessageEmbed } = require("discord.js");
+const { VoiceState, MessageEmbed, MessageActionRow, MessageButton } = require("discord.js");
 const { sprintf } = require("sprintf-js");
-const { addNewMember } = require("../helper/graphql");
+const { addNewMember, findRoom } = require("../helper/graphql");
 const { awaitWrap, updateUserCache, validUser, checkChannelSendPermission, convertMsToTime, checkMessageModerate } = require("../helper/util");
 
 const logger = require("../helper/logger");
@@ -59,17 +59,11 @@ module.exports = {
                 if (error) return logger.warn(`Cannot fectch message in ${voiceChannel.name} when voiceStateUpdate`);
 
                 let embeds = targetMessage.embeds;
-                let membersFields = embeds[0].fields[0].value;
 
                 const difference = new Date().getTime() - timestamp * 1000;
                 //to-do overflow the embed: Too many members joined
-                membersFields += sprintf("\n\`%s\` <@%s> joined this onboarding call.", convertMsToTime(difference), newState.member.id);
-                embeds[0].fields = [
-                    {
-                        name: "Activity",
-                        value: membersFields
-                    }
-                ];
+                embeds[0].description += sprintf("\n\`%s\` <@%s> joined this onboarding call.", convertMsToTime(difference), newState.member.id);
+
                 myCache.set("voiceContext", {
                     ...contexts,
                     [guildId]: {
@@ -95,11 +89,47 @@ module.exports = {
                                     .setTitle("Join the Party🎊")
                                     .setDescription(sprintf("Hey! I'm an Eden 🌳 bot helping <@%s> with this onboarding call! Click [here](<%s>) to claim a ticket and join the onboarding Party Page! Please note that this meesage will be deleted <t:%s:R>",
                                         hostId, roomLink, deleteInMin))
+                            ],
+                            components: [
+                                new MessageActionRow()
+                                    .addComponents([
+                                        new MessageButton()
+                                            .setStyle('LINK')
+                                            .setURL(roomLink)
+                                            .setLabel('Get Party Ticket')
+                                            .setEmoji("🎟️")
+                                    ])
                             ]
                         });
-                        setTimeout(() => {
+                        setTimeout(async() => {
                             if (msg.deletable){
                                 msg.delete();
+                            }
+                            const [result, error] = await findRoom({
+                                roomId: roomId
+                            });
+                            if (error) return;
+                            const filtered = result.members.filter((value) => value._id == newMemberId);
+                            if (filtered.length == 0){
+                                const dmChannel = await newState.member.createDM();
+                                return awaitWrap(dmChannel.send({
+                                    embeds: [
+                                        new MessageEmbed()
+                                            .setTitle("Join the Party🎊")
+                                            .setDescription(sprintf("Hey! I'm an Eden 🌳 bot helping <@%s> with this onboarding call! Click [here](<%s>) to claim a ticket and join the onboarding Party Page!",
+                                                hostId, roomLink))
+                                    ],
+                                    components: [
+                                        new MessageActionRow()
+                                            .addComponents([
+                                                new MessageButton()
+                                                    .setStyle('LINK')
+                                                    .setURL(roomLink)
+                                                    .setLabel('Get Party Ticket')
+                                                    .setEmoji("🎟️")
+                                            ])
+                                    ]
+                                }));
                             }
                         }, Number(CONSTANT.NUMERICAL_VALUE.ONBOARD_AUTO_DELETE) * 1000);
                     }

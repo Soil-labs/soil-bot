@@ -30,10 +30,10 @@ module.exports = {
         const inviter = interaction.user;
         const guildId = interaction.guild.id;
         
-        // if (invitee.id == inviter.id) return interaction.reply({
-        //     content: "Sorry, you cannot invite yourself.",
-        //     ephemeral: true
-        // })
+        if (invitee.id == inviter.id) return interaction.reply({
+            content: "Sorry, you cannot invite yourself.",
+            ephemeral: true
+        })
 
         if (invitee.bot) return interaction.reply({
             content: "Sorry, you cannot choose a bot as a target.",

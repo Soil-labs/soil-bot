@@ -226,7 +226,7 @@ module.exports = {
                 await guild.members.fetch();
                 await guild.channels.fetch();
                 //Clear local commands
-                //commands = []
+                // commands = []
                 //Set commands only available in this guild 
                 await rest.put(Routes.applicationGuildCommands(clientId, process.env.GUILDID), {
                     //JSON Format

@@ -56,7 +56,7 @@ module.exports = {
         const guildId = interaction.guild.id;
 
         if (subCommand == "member"){
-            const membersString = interaction.options.getString("frens").match(/<@.?[0-9]*?>/g);
+            const membersString = interaction.options.getString("frens").match(/<@!?[0-9]*?>/g);
             //membersString is null
             if (!membersString) return interaction.reply({
                 content: "Please input at least one member in this guild",
@@ -81,7 +81,6 @@ module.exports = {
 
                     const member = interaction.guild.members.cache.get(duplicateValue);
 
-                    //to-do, should fetch it again, here prevents unfetchable members and role mention and other mentions and bot
                     if (member){
                         if (member.user.bot) return;
                     }else return;
@@ -182,10 +181,10 @@ module.exports = {
                 content: `Error occured when creating room: \`${error}\``
             })
 
-            let membersFields = `\`00:00:00\` <@${hostId}> started this onboarding call.\n`;
+            let attendeesDescription = `\`00:00:00\` <@${hostId}> started this onboarding call.\n`;
             for (const memberId of selectedMembers){
                 if (memberId != hostId){
-                    membersFields += `\`00:00:00\` <@${memberId}> joined this onboarding call.\n`;
+                    attendeesDescription += `\`00:00:00\` <@${memberId}> joined this onboarding call.\n`;
                 }
             }
 
@@ -199,8 +198,7 @@ module.exports = {
                 embeds: [
                     new MessageEmbed()
                         .setAuthor({ name: `Onboarding Call Host - ${interaction.user.username}`, iconURL: interaction.user.avatarURL() })
-                        .setDescription(`**Started**: <t:${timestampSec}:f>(<t:${timestampSec}:R>)`)
-                        .addField("Attendees", membersFields)
+                        .setDescription(`**Started**: <t:${timestampSec}:f>(<t:${timestampSec}:R>)\n\n**Attendees**\n${attendeesDescription}`)
                 ],
                 components: [
                     new MessageActionRow()

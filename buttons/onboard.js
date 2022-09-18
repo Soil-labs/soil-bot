@@ -2,7 +2,6 @@ const { ButtonInteraction, MessageEmbed, MessageActionRow, MessageButton} = requ
 const { sprintf } = require("sprintf-js");
 
 const myCache = require("../helper/cache");
-const CONSTANT = require("../helper/const");
 const { convertMsToTime } = require("../helper/util");
 
 module.exports = {
@@ -72,17 +71,10 @@ module.exports = {
             let embeds = message.embeds;
             const title = `${interaction.guild.name} Onboarding Call Ended`;
 
-            let membersFields = embeds[0].fields[0].value;
             const difference = new Date().getTime() - timestamp * 1000;
-            membersFields += sprintf("\n\`%s\` <@%s> ended this onboarding call.", convertMsToTime(difference), hostId);
+            embeds[0].description += sprintf("\n\`%s\` <@%s> ended this onboarding call.", convertMsToTime(difference), hostId);
             
             embeds[0].setTitle(title);
-            embeds[0].fields = [
-                {
-                    name: "Activity",
-                    value: membersFields
-                }
-            ];
 
             await message.edit({
                 embeds: embeds,

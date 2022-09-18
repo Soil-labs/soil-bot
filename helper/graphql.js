@@ -438,6 +438,20 @@ const CREATE_ROOM = gql`
   }
 `;
 
+const FIND_ROOM = gql`
+  query(
+    $roomId: ID
+  ) {
+  findRoom(fields: {
+    _id: $roomId
+  }) {
+    members {
+      _id
+    }
+  }
+}
+`
+
 async function fetchServer(guildJSON) {
     const { result, error } = await awaitWrapTimeout(_client.request(GET_SERVER, guildJSON), CONSTANT.NUMERICAL_VALUE.GRAPHQL_TIMEOUT_LONG);
     if (error) return [null, _graphqlErrorHandler(error)];
@@ -824,6 +838,12 @@ async function createRoom(){
     else return [result.createRoom, null];
 }
 
+async function findRoom(roomJSON){
+    const { result, error } = await awaitWrapTimeout(_client.request(FIND_ROOM, roomJSON));
+    if (error) return [null, _graphqlErrorHandler(error)]
+    else return [result.findRoom, null];
+}
+
 //to-do GraphQL Error Handling
 function _graphqlErrorHandler(error){
   if (error.message == CONSTANT.ERROR.TIMEOUT) return CONSTANT.ERROR.TIMEOUT;
@@ -858,5 +878,6 @@ module.exports = {
   matchMemberToProject,
   endorseAttribute,
   createProjectUpdate,
-  createRoom
+  createRoom,
+  findRoom
 };

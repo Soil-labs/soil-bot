@@ -1,36 +1,36 @@
 const timezones = require('timezones.json/timezones.json')
 
-let _endPoint, _frontEnd, _champion, _project, _projectAll, _projectTweets, _createProject, _signUp;
+let _endPoint, _frontend, _champion, _project, _projectAll, _projectTweets, _createProject, _signUp;
 switch(process.env.VERSION){
   case "Test":
     _endPoint = "https://soil-test-backend.herokuapp.com/graphql";
-    _frontEnd = "https://soil-app-front-end-zeta.vercel.app";
-    _champion = _frontEnd + "/champion-dashboard";
-    _project = _frontEnd + "/projects/%s";
-    _projectAll = _frontEnd + "/projects?tab=1";
-    _projectTweets = _frontEnd + "/projects/%s/feed";
-    _createProject = _frontEnd + "/form/%s";
-    _signUp = _frontEnd + "/member/signup"; 
+    _frontend = "https://soil-app-front-end-zeta.vercel.app";
+    _champion = _frontend + "/champion-dashboard";
+    _project = _frontend + "/projects/%s";
+    _projectAll = _frontend + "/projects?tab=1";
+    _projectTweets = _frontend + "/projects/%s/feed";
+    _createProject = _frontend + "/form/%s";
+    _signUp = _frontend + "/member/signup"; 
     break;
   case "Develop":
     _endPoint = "https://oasis-botdevelopment.up.railway.app/graphql";
-    _frontEnd = "https://oasis-app-front-end-zeta.vercel.app";
-    _champion = _frontEnd + "/champion-dashboard";
-    _project = _frontEnd + "/projects/%s";
-    _projectAll = _frontEnd + "/projects?tab=1";
-    _projectTweets = _frontEnd + "/projects/%s/feed";
-    _createProject = _frontEnd + "/form/%s";
-    _signUp = _frontEnd + "/member/signup";
+    _frontend = "https://oasis-app-front-end-zeta.vercel.app";
+    _champion = _frontend + "/champion-dashboard";
+    _project = _frontend + "/projects/%s";
+    _projectAll = _frontend + "/projects?tab=1";
+    _projectTweets = _frontend + "/projects/%s/feed";
+    _createProject = _frontend + "/form/%s";
+    _signUp = _frontend + "/member/signup";
     break; 
   case "Production":
     _endPoint = "https://eden-deploy.herokuapp.com/graphql";
-    _frontEnd = "https://eden-app-front-end-zeta.vercel.app";
-    _champion = _frontEnd + "/champion-dashboard";
-    _project = _frontEnd + "/projects/%s";
-    _projectAll = _frontEnd + "/projects?tab=1";
-    _projectTweets = _frontEnd + "/projects/%s/feed";
-    _createProject = _frontEnd + "/form/%s";
-    _signUp = _frontEnd + "/member/signup";
+    _frontend = "https://eden-app-front-end-zeta.vercel.app";
+    _champion = _frontend + "/champion-dashboard";
+    _project = _frontend + "/projects/%s";
+    _projectAll = _frontend + "/projects?tab=1";
+    _projectTweets = _frontend + "/projects/%s/feed";
+    _createProject = _frontend + "/form/%s";
+    _signUp = _frontend + "/member/signup";
     break;
   default:
     logger.error("Please check the bot version in .env");
@@ -57,7 +57,7 @@ const LINK = Object.freeze({
     PROJECT_TWEET: _projectTweets,
     USER: "https://www.soil.xyz/profile/%s/",
     SKILL: "https://www.soil.xyz/member/%s/",
-    STAGING_ONBOARD: _frontEnd + "onboard%s",
+    STAGING_ONBOARD: _frontend + "onboard%s",
     ENDORSEMENTS: "https://www.soil.xyz/member/%s/endorsements/",
     CLAIM_ENDORSEMENT: "https://www.soil.xyz/endorsment/%s/",
     SIGNUP: _signUp,
