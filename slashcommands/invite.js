@@ -1,15 +1,14 @@
 const { SlashCommandBuilder } = require('@discordjs/builders');
 const { CommandInteraction, MessageEmbed } = require("discord.js");
 const { addNewMember } = require("../helper/graphql");
-const { validUser, awaitWrap } = require('../helper/util');
+const { validUser, awaitWrap, updateUserCache } = require('../helper/util');
 const { sprintf } = require('sprintf-js');
-const myCache = require("../helper/cache");
 const CONSTANT = require("../helper/const");
 
 
 module.exports = {
     commandName: "invite",
-    description: "Invite a newcomer to Soil🌱",
+    description: "Invite a fren to join Eden 🌳",
 
     data: null,
 
@@ -18,7 +17,7 @@ module.exports = {
             .setName(this.commandName)
             .setDescription(this.description)
             .addUserOption(option =>
-                option.setName("user")
+                option.setName("fren")
                     .setDescription("The member you'd like to support")
                     .setRequired(true))
     },
@@ -27,79 +26,114 @@ module.exports = {
      * @param  {CommandInteraction} interaction
      */
     async execute(interaction) {
-        const user = interaction.options.getUser('user');
-        const author = interaction.user
+        const invitee = interaction.options.getUser('fren');
+        const inviter = interaction.user;
+        const guildId = interaction.guild.id;
         
-        if (user.id == author.id) return interaction.reply({
+        if (invitee.id == inviter.id) return interaction.reply({
             content: "Sorry, you cannot invite yourself.",
             ephemeral: true
         })
-        if (user.bot) return interaction.reply({
+
+        if (invitee.bot) return interaction.reply({
             content: "Sorry, you cannot choose a bot as a target.",
             ephemeral: true
         })
-        const isNewAuthor = validUser(author.id);
-        if (!isNewAuthor) return interaction.reply({
-            content: "Please use \`/onboard\` command to onboard yourself first"
-        })
 
-        const isNewUser = validUser(user.id);
-        if (isNewUser) return interaction.reply({
-            content: "Sorry, this user has been onboarded.",
-            ephemeral: true
-        })
+        const isNewInviter = validUser(inviter.id, guildId);
+        if (!isNewInviter) {
+            const inviterInform = {
+                _id: inviter.id,
+                discordName: inviter.username,
+                discriminator: inviter.discriminator,
+                discordAvatar: inviter.displayAvatarURL({ format: 'jpg' }),
+                invitedBy: inviter.id,
+                serverId: guildId
+            };
 
-        const userInform = {
-            _id: user.id,
-            discordName: user.username,
-            discriminator: user.discriminator,
-            discordAvatar: user.displayAvatarURL({ format: 'jpg' }),
-            invitedBy: author.id
+            await interaction.deferReply({
+                ephemeral: true
+            })
+            const [inviterResult, inviterError] = await addNewMember(inviterInform);
+
+            if (inviterError) return interaction.followUp({
+                content: `Error occured when onboarding you: \`${error}\``
+            })
+
+            updateUserCache(inviter.id, inviter.username, guildId);
         }
+        //to-do handle invite myself in a smarter way, just return a dm or a reply
+        // if (invitee.id == inviter.id) return;
 
-        await interaction.deferReply({
-            ephemeral: true
-        })
-        const [result, error] = await addNewMember(userInform);
+        const inviteeInform = {
+            _id: invitee.id,
+            discordName: invitee.username,
+            discriminator: invitee.discriminator,
+            discordAvatar: invitee.displayAvatarURL({ format: 'jpg' }),
+            invitedBy: inviter.id,
+            serverId: guildId
+        }
+        if (!interaction.deferred) await interaction.deferReply({ ephemeral: true });
+
+        const [result, error] = await addNewMember(inviteeInform);
 
         if (error) return interaction.followUp({
             content: `Error occured: \`${error}\``
         })
 
-        //Add newcomer into the cache
-        myCache.set("users", [ ...myCache.get("users"), userInform ])
+        updateUserCache(invitee.id, invitee.username, guildId);
 
-        const onboardLink = sprintf(CONSTANT.LINK.ONBOARD, user.id);
-        let embedContent = new MessageEmbed()
-            .setAuthor({ name: author.username, url: sprintf(CONSTANT.LINK.USER, author.id), iconURL: author.avatarURL() });
-        const DMchannel = await user.createDM();
+        let embedContent = new MessageEmbed().setTitle("You've been invited to join Eden 🌳");
+        if (process.env.SLASH_CMD_ENV == "production" && process.env.DM_OPTION == "false"){
+            // const { result, error } = await awaitWrap(interaction.channel.send({
+            //     content: `<@${inviter.id}> has invited <@${invitee.id}> to join Eden 🌳! BIG WAGMI ENERGY!⚡`,
+            //     embeds: [
+            //         embedContent.setDescription(sprintf(CONSTANT.CONTENT.INVITE_DM_FAIL, {
+            //             onboardLink: CONSTANT.LINK.SIGNUP,
+            //             inviteeId: invitee.id
+            //         }))
+            //     ]
+            // }));
+            // if (error) return interaction.followUp({
+            //     content: "Cannot send message in this channel, please check the permission. But you have been onboarded!"
+            // })
+
+            return interaction.followUp({
+                content: "Congrates, you have onboarded your fren!"
+            })
+        }
+        const DMchannel = await invitee.createDM();
         const { DMResult, DMError } = await awaitWrap(DMchannel.send({
             embeds: [
-                embedContent.setDescription(sprintf(CONSTANT.CONTENT.INVITE_DM, { onboardLink: onboardLink }))
+                embedContent.setDescription(sprintf(CONSTANT.CONTENT.INVITE_DM, {
+                    onboardLink: CONSTANT.LINK.SIGNUP,
+                    inviterId: inviter.id
+                }))
             ]
-        }))
+        }), "DMResult", "DMError");
+
         if (DMError) {
-            interaction.channel.send({
-                content: `<@${user.id}>`,
+            const {channelResult, channelError} = await awaitWrap(interaction.channel.send({
+                content: `<@${inviter.id}> has invited <@${invitee.id}> to join Eden 🌳! BIG WAGMI ENERGY!⚡`,
                 embeds: [
-                    embedContent.setDescription(sprintf(CONSTANT.CONTENT.INVITE_DM_FAIL, { onboardLink: onboardLink }))
+                    embedContent.setDescription(sprintf(CONSTANT.CONTENT.INVITE_DM_FAIL, {
+                        onboardLink: CONSTANT.LINK.SIGNUP,
+                        inviteeId: invitee.id
+                    }))
                 ]
-            })
+            }), "channelResult", "channelError");
+            //to-do
             return interaction.followUp({
                 content: sprintf("Invite message has been sent to <#%s>", interaction.channel.id)
             })
         }
         return interaction.followUp({
-            content: sprintf("DM is sent to \`%s\`", user.username)
+            embeds: [
+                new MessageEmbed()
+                    .setTitle("We've sent your friend a DM 🌳")
+                    .setDescription("Growing the garden of opportunities is how we are all going to make it.❤️")
+            ]
         })
-
-
-        //Update Cache
-        // const tmp = myCache.get("users");
-        // const idArray = tmp.map(value => value._id);
-        // const index = idArray.indexOf(updateCache._id);
-        // tmp.splice(index, 1, userInform);
-        // myCache.set("users", tmp)
     }
 
 }

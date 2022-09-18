@@ -1,16 +1,14 @@
 const { SlashCommandBuilder } = require('@discordjs/builders');
 const { CommandInteraction, MessageEmbed } = require("discord.js");
-const { validUser } = require('../helper/util');
+const { validUser, updateUserCache } = require('../helper/util');
 const { addNewMember, updateUser } = require('../helper/graphql');
 const { sprintf } = require('sprintf-js');
-const myCache = require("../helper/cache");
 const CONSTANT = require("../helper/const");
-const _ = require("lodash");
 
 
 module.exports = {
     commandName: "signup",
-    description: "Onboard yourself",
+    description: "join Eden 🌳 to find projects you love",
 
     data: null,
 
@@ -25,7 +23,8 @@ module.exports = {
      */
     async execute(interaction) {
         const user = interaction.user;
-        const validResult = validUser(user.id);
+        const guildId = interaction.guild.id;
+        const validResult = validUser(user.id, guildId);
 
         const inform = {
             _id: user.id,
@@ -33,49 +32,34 @@ module.exports = {
             discriminator: user.discriminator,
             discordAvatar: user.displayAvatarURL()
         };
-
-        let cached = myCache.get("users");
+        await interaction.deferReply({ ephemeral: true });
         
         if (validResult){
             const [result, error] = await updateUser(inform);
 
-            if (error) return interaction.reply({
+            if (error) return interaction.followUp({
                 content: `Error occured when onboarding yourself: \`${error}\``,
-                ephemeral: true
-            })
-
-            const index = _.findIndex(cached, (value) => { return value._id == user.id });
-            cached.splice(index, 1, inform);
-
+            });
         }else{ 
-
             const [result, error] = await addNewMember({
                 ...inform,
-                invitedBy: user.id
+                invitedBy: user.id,
+                serverId: guildId
             });
             
-            if (error) return interaction.reply({
+            if (error) return interaction.followUp({
                 content: `Error occured when onboarding yourself: \`${error}\``,
-                ephemeral: true
-            })
-
-            cached.push(inform);
+            });
         }
 
-        myCache.set("users", cached);
-
-        const onboardLink = sprintf(CONSTANT.LINK.AIRTABLE_ONBOARDING, {
-            discordName: encodeURIComponent(user.username),
-            discordId: user.id
-        })
+        updateUserCache(user.id, user.username, guildId);
 
         const replyEmbed = new MessageEmbed()
-            .setTitle("Join Soil 🌳 ")
-            .setDescription(sprintf(CONSTANT.CONTENT.ONBOARD_SELF, { onboardLink: onboardLink }));
+            .setTitle("Hooray! You're about to join Eden 🌳")
+            .setDescription(sprintf(CONSTANT.CONTENT.ONBOARD_SELF, { onboardLink: CONSTANT.LINK.SIGNUP}));
 
-        return interaction.reply({
+        return interaction.followUp({
             embeds: [replyEmbed],
-            ephemeral: true
         })
 
     }

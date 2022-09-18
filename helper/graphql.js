@@ -1,45 +1,51 @@
 const { gql, GraphQLClient } = require("graphql-request")
 const { awaitWrapTimeout } = require("./util");
 const CONSTANT = require("./const");
-const logger = require("./logger");
-
-// let _endPoint = ''
-// switch(process.env.VERSION){
-//   case "Test":
-//     _endPoint = "https://soil-test-backend.herokuapp.com/graphql";
-//     break;
-//   case "Develop":
-//     _endPoint = "http://oasis-bot-test-deploy.herokuapp.com/graphql";
-//     break;
-//   case "Production":
-//     _endPoint = "https://eden-deploy.herokuapp.com/graphql";
-//     break;
-//   default:
-//     logger.error("Please check the bot version in .env");
-//     process.exit(1)
-// }
+const myCache = require("./cache");
 
 const _client = new GraphQLClient(CONSTANT.LINK.GRAPHQL_ENDPOINT, { headers: {} })
 
+const GET_SERVER = gql`
+  query(
+    $guildId: ID
+  ){
+  findServers(fields:{
+    _id: $guildId
+  }){
+    adminID
+    adminRoles
+    adminCommands
+  }
+}
+`;
+
 const GET_PROJECTS = gql`
     query{
-        findProjects(fields:{}){
+      findProjects(fields:{}){
+        _id
+        title
+        serverID 
+        garden_teams{
+          _id
+          name
+          roles{
             _id
-            title
-            description      
+            name
+          }
         }
+      }
     }
 `;
 
 const GET_SKILLS = gql`
-    query{
-        findSkills(fields:{
-        }){
-            _id
-            name
-            state
-        }
+  query{
+    findSkills(fields:{
+    }){
+      _id
+      name
+      state
     }
+  }
 `;
 
 const GET_USERS = gql`
@@ -47,8 +53,7 @@ const GET_USERS = gql`
     findMembers(fields: {}) {
       _id
       discordName
-      discordAvatar
-      discriminator
+      serverID
     }
   }
 `;
@@ -58,9 +63,37 @@ const GET_TEAMS = gql`
     findTeams(fields:{}){
       _id
       name
+      serverID
+      projects {
+        _id
+      }
     }
   }
 `
+
+const GET_UNVERIFIED_SKILL = gql`
+  query{
+    waitingToAproveSkills(fields:{}){
+      _id
+      name
+    }
+  }
+`
+
+const GET_ROLES = gql`
+  query{
+    findRoles(fields:{
+    }){
+      _id
+      name
+      serverID
+      teams{
+        _id
+      }
+    }
+  }
+`;
+
 const ADD_MEMBER = gql`
   mutation(
     $_id: ID,
@@ -68,6 +101,7 @@ const ADD_MEMBER = gql`
     $discordAvatar: String
     $discriminator: String
     $invitedBy: String
+    $serverId: String
   ){
   addNewMember(fields:{
     _id: $_id
@@ -75,6 +109,7 @@ const ADD_MEMBER = gql`
     discordAvatar: $discordAvatar
     discriminator: $discriminator
     invitedBy: $invitedBy
+    serverID: $serverId
   }){
     _id
   }
@@ -101,26 +136,19 @@ const UPDATE_USER = gql`
   }
 `;
 
-const GET_UNVERIFIED_SKILL = gql`
-  query{
-      waitingToAproveSkills(fields:{}){
-        _id
-        name
-      }
-    }
-`
-
 const ADD_SKILL_TO_MEMBER = gql`
   mutation (
     $skillID: ID
     $memberID: ID
     $authorID: ID
+    $serverId: [String]
   ){
   addSkillToMember(
     fields:{
       skillID: $skillID
       memberID: $memberID
       authorID: $authorID
+      serverID: $serverId
   }){
   	discordName
   }
@@ -166,32 +194,42 @@ const APPROVE_TWEET = gql`
   }
 `;
 
+const UPDATE_SERVER = gql`
+  mutation(
+    $guildId: ID
+    $guildName: String!
+    $adminID: [String]!
+    $adminRoles: [String]!
+    $adminCommands: [String]!
+  ){
+  updateServer(fields:{
+    	_id: $guildId
+      name: $guildName
+      adminID: $adminID
+      adminRoles: $adminRoles
+      adminCommands: $adminCommands
+  }){
+    _id
+  }
+}
+`
+
 const FETCH_PROJECT_DETAIL = gql`
     query(
         $projectID: ID
     ){
-        findProject(fields:{
-            _id: $projectID
-        }){
-            title
-            description
-            tweets{
-                title
-                content
-                author {
-                    discordName
-                }
-                registeredAt
-                approved
-            }
-            role{
-              _id
-              title
-            }    
-            champion{
-              _id
-            }
+      findProject(fields:{
+        _id: $projectID
+      }){
+        title
+        role{
+          title
+        }    
+        champion{
+          _id
+          discordName
         }
+      }
     }
 `;
 
@@ -278,32 +316,36 @@ const FETCH_SKILL_DETAIL = gql`
   }
 `;
 
-const MATCH_MEMBER_TO_USER = gql`
-  query(
-    $memberId: ID
-  ){
-    matchMembersToUser(fields:{
-      memberID: $memberId
-    }){
-    matchPercentage
-      member{
-        _id
-        discordName
-      }
-      commonSkills{
-        name
-      }
+// const MATCH_MEMBER_TO_USER = gql`
+//   query(
+//     $memberId: ID
+//     $serverId: [String]
+//   ){
+//     matchMembersToUser(fields:{
+//       memberID: $memberId
+//       serverID: $serverId
+//     }){
+//     matchPercentage
+//       member{
+//         _id
+//         discordName
+//       }
+//       commonSkills{
+//         name
+//       }
         
-    }
-  }
-`
+//     }
+//   }
+// `
 
 const MATCH_MEMBER_TO_SKILL = gql`
   query(
-    $skillsID: [ID]
+    $skillsId: [ID]
+    $serverId: [String]
   ){
     matchMembersToSkills(fields:{
-      skillsID: $skillsID
+      skillsID: $skillsId
+      serverID: $serverId
     }){
       matchPercentage
       member{
@@ -320,9 +362,11 @@ const MATCH_MEMBER_TO_SKILL = gql`
 const MATCH_MEMBER_TO_PROJECT = gql`
   query(
     $memberId: ID
+    $serverId: [String]
   ){
   findProjects_RecommendedToUser(fields:{
     memberID: $memberId
+    serverID: $serverId
   }){
       matchPercentage
       projectData{
@@ -357,55 +401,338 @@ const ENDORSE_ATTRIBUTE = gql`
 `
 
 const CREATE_PROJECT_UPDATE = gql`
-mutation(
-  $projectId: String
-  $memberIds: [String]
-  $authorId: String
-  $teamIds: [String]
-  $title: String
-  $content: String
-){
-  createProjectUpdate(fields:{
-    title: $title
-    content: $content
-    projectID: $projectId
-    memberID: $memberIds
-    authorID: $authorId
-    teamID: $teamIds
-  }){
-    _id   
+  mutation(
+    $projectId: String
+    $memberIds: [String]
+    $authorId: String
+    $teamIds: [String]
+    $roleIds: [String]
+    $serverId: [String]
+    $title: String
+    $content: String
+    $threadLink: String
+    $tokenAmount: String
+  ){
+    createProjectUpdate(fields:{
+      title: $title
+      content: $content
+      projectID: $projectId
+      memberID: $memberIds
+      roleID: $roleIds
+      authorID: $authorId
+      teamID: $teamIds
+      serverID: $serverId
+      threadDiscordID: $threadLink
+      token: $tokenAmount
+    }){
+      _id   
+    }
+  }
+`
+
+const CREATE_ROOM = gql`
+  mutation {
+    createRoom(fields: {}) {
+      _id
+    }
+  }
+`;
+
+const FIND_ROOM = gql`
+  query(
+    $roomId: ID
+  ) {
+  findRoom(fields: {
+    _id: $roomId
+  }) {
+    members {
+      _id
+    }
   }
 }
 `
 
+async function fetchServer(guildJSON) {
+    const { result, error } = await awaitWrapTimeout(_client.request(GET_SERVER, guildJSON), CONSTANT.NUMERICAL_VALUE.GRAPHQL_TIMEOUT_LONG);
+    if (error) return [null, _graphqlErrorHandler(error)];
+    else return [result.findServers, null];
+}
+
 async function fetchProjects() {
     const { result, error } = await awaitWrapTimeout(_client.request(GET_PROJECTS), CONSTANT.NUMERICAL_VALUE.GRAPHQL_TIMEOUT_LONG);
-    if (error) return [null, _graphqlErrorHandler(error)]
-    else return [result.findProjects, null]
+    if (error) return _graphqlErrorHandler(error);
+    else {
+      let projectCached = {}
+      let projectTeamRoleCached = {};
+      let teamCached = {};
+      let roleCached = {};
+      result.findProjects.forEach((value) => {
+        const servers = value.serverID;
+        const projectId = value._id;
+        const projectTitle = value.title;
+        const teams = value.garden_teams;
+        if (servers.length == 0) return;
+
+        let teamTmp = {};
+        let teamTmpCache = {};
+        let roleTmpCache = {};
+        if (teams.length != 0){
+          teams.forEach((team) => {
+            const teamId = team._id;
+            const teamName = team.name;
+            const roles = team.roles;
+            if (roles.length == 0) return;
+            teamTmp = {
+              ...teamTmp,
+              [teamId]: {
+                name: teamName
+              }
+            }
+            teamTmpCache = {
+              ...teamTmpCache,
+              [teamId]: {
+                name: teamName
+              }
+            }
+
+            if (roles.length != 0){
+              roles.forEach((role) => {
+                const roleId = role._id;
+                const roleName = role.name;
+                teamTmp[teamId] = {
+                  ...teamTmp[teamId],
+                  [roleId]: {
+                    name: roleName
+                  }
+                }
+                roleTmpCache = {
+                  ...roleTmpCache,
+                  [roleId]: {
+                    name: roleName
+                  }
+                }
+              })
+            }
+          })
+        }
+        servers.forEach((serverId) => {
+          if (projectTeamRoleCached[serverId]){
+            projectCached[serverId][projectId] = {
+              title: projectTitle
+            }
+            if (teams.length != 0){
+              projectTeamRoleCached[serverId][projectId] = {
+                ...teamTmp,
+                title: projectTitle
+              };
+            }
+          }else{
+            projectCached[serverId] = {
+              [projectId]: {
+                title: projectTitle
+              }
+            }
+            if (teams.length != 0){
+              projectTeamRoleCached[serverId] = {
+                [projectId]: {
+                  ...teamTmp,
+                  title: projectTitle
+                }
+              }
+            }
+          }
+          if (teamCached[serverId]){
+            teamCached[serverId] = {
+              ...teamCached[serverId],
+              ...teamTmpCache
+            };
+          }else{
+            teamCached[serverId] = {
+              ...teamTmpCache
+            }
+          }
+          if (roleCached[serverId]){
+            roleCached[serverId] = {
+              ...roleCached[serverId],
+              ...roleTmpCache
+            };
+          }else{
+            roleCached[serverId] = {
+              ...roleTmpCache
+            }
+          }
+        })
+      })
+      myCache.set("projects", projectCached)
+      myCache.set("projectTeamRole", projectTeamRoleCached);
+      myCache.set("teams", teamCached);
+      myCache.set("roles", roleCached);
+      return false
+    }
 }
 
 async function fetchSkills() {
     const { result, error } = await awaitWrapTimeout(_client.request(GET_SKILLS), CONSTANT.NUMERICAL_VALUE.GRAPHQL_TIMEOUT_LONG);
-    if (error) return [null, _graphqlErrorHandler(error)]
-    else return [result.findSkills, null]
+    if (error) return _graphqlErrorHandler(error);
+    else {
+      let toBecached = {};
+      result.findSkills.forEach((value) => {
+        toBecached[value._id] = {
+          name: value.name,
+          state: value.state
+        }
+      });
+      myCache.set("skills", toBecached);
+      return false
+    }
 }
 
 async function fetchUnverifiedSkills(){
     const { result, error } = await awaitWrapTimeout(_client.request(GET_UNVERIFIED_SKILL), CONSTANT.NUMERICAL_VALUE.GRAPHQL_TIMEOUT_LONG);
-    if (error) return [null, _graphqlErrorHandler(error)]
-    else return [result.waitingToAproveSkills, null]
+    if (error) return _graphqlErrorHandler(error);
+    else {
+      let toBecached = {};
+      result.waitingToAproveSkills.forEach((value) => {
+        toBecached[value._id] = {
+          name: value.name,
+        }
+      });
+      myCache.set("unverifiedSkills", toBecached);
+      return false
+    }
 }
 
 async function fetchUsers() {
   const { result, error } = await awaitWrapTimeout(_client.request(GET_USERS), CONSTANT.NUMERICAL_VALUE.GRAPHQL_TIMEOUT_LONG);
-  if (error) return [null, _graphqlErrorHandler(error)];
-  else return [result.findMembers, null];
+  if (error) return _graphqlErrorHandler(error);
+  else {
+    let toBecached = {};
+    result.findMembers.forEach((value) => {
+      toBecached[value._id] = {
+        discordName: value.discordName,
+        serverId: value.serverID
+      }
+    })
+    myCache.set("users", toBecached);
+    return false
+  }
 }
 
 async function fetchTeams(){
   const { result, error } = await awaitWrapTimeout(_client.request(GET_TEAMS), CONSTANT.NUMERICAL_VALUE.GRAPHQL_TIMEOUT_LONG);
-  if (error) return [null, _graphqlErrorHandler(error)];
-  else return [result.findTeams, null];
+  if (error) return _graphqlErrorHandler(error);
+  else {
+    let toBecached = {}
+    let projectToTeam = {}
+    result.findTeams.forEach((value) => {
+      const serverId = value.serverID[0];
+      const teamName = value.name;
+      const teamId = value._id;
+      const projectId = value.projects?._id;
+      if (!serverId) return;
+      //to-do assume one team => one server => one project
+      if (serverId in toBecached){
+        toBecached[serverId][teamId] = {
+          name: teamName,
+        };
+      }else{
+        toBecached[serverId] = {
+          [teamId]: {
+            name: teamName,
+          }
+        }
+      }
+      const key = `${projectId}_${serverId}`
+      if (key in projectToTeam) {
+        projectToTeam[key] = {
+          ...projectToTeam[key],
+          [teamId]: teamName
+        }
+      }else{
+        projectToTeam = {
+          [key]: {
+            [teamId]: teamName
+          }
+        }
+      }
+    })
+    myCache.set("teams", toBecached);
+    myCache.set("projectToTeam", projectToTeam)
+    return false
+  }
+}
+
+async function fetchRoles(){
+  const { result, error } = await awaitWrapTimeout(_client.request(GET_ROLES), CONSTANT.NUMERICAL_VALUE.GRAPHQL_TIMEOUT_LONG);
+  if (error) return _graphqlErrorHandler(error);
+  else {
+    let toBecached = {};
+    let teamToRoleMap = {};
+    result.findRoles.forEach((value) => {
+      const serverId = value.serverID[0];
+      const roleName = value.name;
+      const roleId = value._id;
+      const teamId = value.teams[0]?._id;
+      if (!serverId && !teamId) return;
+      //to-do assume one team => one server => one project
+
+      const key = `${teamId}_${serverId}`;
+      if (key in teamToRoleMap){
+        teamToRoleMap[key] = {
+          ...teamToRoleMap[key],
+          [roleId]: roleName
+        }
+      }else{
+        teamToRoleMap = {
+          [key]: {
+            [roleId]: roleName
+          }
+        }
+      }
+    })
+    myCache.set("teamToRole", teamToRoleMap);
+    myCache.set("roles", toBecached);
+    return false
+  }
+}
+
+function projectTeamRole(){
+  const cachedProject = myCache.get("projects");
+  const cachedProjectToTeam = myCache.get("projectToTeam");
+  const cachedTeamToRole = myCache.get("teamToRole");
+  let projectTeamRole = {}
+  Object.keys(cachedProject).forEach((serverId) => {
+    if (!(serverId in projectTeamRole)){
+      projectTeamRole = {
+        ...projectTeamRole,
+        [serverId]: {}
+      }
+    }
+    const projects = cachedProject[serverId];
+    Object.keys(projects).forEach((projectId) => {
+      const projectToTeamKey = `${projectId}_${serverId}`;
+      projectTeamRole[serverId][projectId] = {};
+        
+      if (projectToTeamKey in cachedProjectToTeam) {
+        const teams = cachedProjectToTeam[projectToTeamKey];
+        Object.keys(teams).forEach((teamId) => {
+          const teamToRoleKey = `${teamId}_${serverId}`;
+          projectTeamRole[serverId][projectId][teamId] = {
+            name: teams[teamId]
+          }
+          if (teamToRoleKey in cachedTeamToRole){
+            const roles = cachedTeamToRole[teamToRoleKey];
+            Object.keys(roles).forEach((roleId) => {
+              projectTeamRole[serverId][projectId][teamId][roleId] = {
+                name: roles[roleId]
+              }
+            })
+          }
+        })
+      }
+    })
+  })
+  myCache.set("projectTeamRole", projectTeamRole);
 }
 
 async function addNewMember(userJSON) {
@@ -418,6 +745,12 @@ async function updateUser(userJSON) {
     const { result, error } = await awaitWrapTimeout(_client.request(UPDATE_USER, userJSON));
     if (error) return [null, _graphqlErrorHandler(error)]
     else return [result.updateMember, null];
+}
+
+async function updateServer(serverJSON) {
+    const { result, error } = await awaitWrapTimeout(_client.request(UPDATE_SERVER, serverJSON));
+    if (error) return [null, _graphqlErrorHandler(error)]
+    else return [result.updateServer, null];
 }
 
 async function addSkillToMember(addSkillJSON){
@@ -468,11 +801,11 @@ async function addSkill(skillNameJSON){
     else return [result.createSkill, null];
 }
 
-async function matchMemberToUser(memberJSON){
-    const { result, error } = await awaitWrapTimeout(_client.request(MATCH_MEMBER_TO_USER, memberJSON));
-    if (error) return [null, _graphqlErrorHandler(error)]
-    else return [result.matchMembersToUser, null];
-}
+// async function matchMemberToUser(memberJSON){
+//     const { result, error } = await awaitWrapTimeout(_client.request(MATCH_MEMBER_TO_USER, memberJSON));
+//     if (error) return [null, _graphqlErrorHandler(error)]
+//     else return [result.matchMembersToUser, null];
+// }
 
 async function matchMemberToSkill(skillsJSON){
     const { result, error } = await awaitWrapTimeout(_client.request(MATCH_MEMBER_TO_SKILL, skillsJSON));
@@ -498,24 +831,41 @@ async function createProjectUpdate(projectUpdateJSON){
     else return [result.createProjectUpdate, null];
 }
 
+
+async function createRoom(){
+    const { result, error } = await awaitWrapTimeout(_client.request(CREATE_ROOM));
+    if (error) return [null, _graphqlErrorHandler(error)]
+    else return [result.createRoom, null];
+}
+
+async function findRoom(roomJSON){
+    const { result, error } = await awaitWrapTimeout(_client.request(FIND_ROOM, roomJSON));
+    if (error) return [null, _graphqlErrorHandler(error)]
+    else return [result.findRoom, null];
+}
+
 //to-do GraphQL Error Handling
 function _graphqlErrorHandler(error){
   if (error.message == CONSTANT.ERROR.TIMEOUT) return CONSTANT.ERROR.TIMEOUT;
   else {
-    if (error.response) return error.response.errors[0].message;
+    if (error.response) return error.response?.errors[0]?.message;
     else return error.message
   }
 }
 
 
 module.exports = { 
+  fetchServer,
   fetchProjects, 
   fetchSkills, 
   fetchUsers, 
   fetchTeams,
+  fetchRoles,
+  projectTeamRole,
   fetchUnverifiedSkills, 
   addNewMember,
   updateUser, 
+  updateServer,
   addSkillToMember, 
   newTweetProject, 
   approveTweet,
@@ -524,9 +874,10 @@ module.exports = {
   fetchUserDetail, 
   fetchTeamDetail,
   fetchSkillDetail,
-  matchMemberToUser,
   matchMemberToSkill,
   matchMemberToProject,
   endorseAttribute,
   createProjectUpdate,
+  createRoom,
+  findRoom
 };
