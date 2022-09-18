@@ -1,12 +1,11 @@
 const { SlashCommandBuilder } = require('@discordjs/builders');
-const { CommandInteraction, MessageEmbed, Modal, TextInputComponent, MessageActionRow } = require("discord.js");
+const { CommandInteraction, MessageEmbed } = require("discord.js");
 const { newTweetProject, fetchProjectDetail, createProjectUpdate } = require('../helper/graphql');
 const { validUser, validProject, awaitWrap, validTeam, validRole } = require('../helper/util');
 const { sprintf } = require('sprintf-js');
 
 const CONSTANT = require("../helper/const");
 const _ = require("lodash");
-const myCache = require('../helper/cache');
 
 module.exports = {
     commandName: "update",
@@ -18,21 +17,21 @@ module.exports = {
         this.data = new SlashCommandBuilder()
             .setName(this.commandName)
             .setDescription(this.description)
-            // .addSubcommand(commnad =>
-            //     commnad.setName("project")
-            //         .setDescription("Update your project milestone")
-            //             .addStringOption(option =>
-            //                 option.setName("project")
-            //                     .setDescription("Choose a project from the list")
-            //                     .setRequired(true)
-            //                     .setAutocomplete(true))
-            //             .addStringOption(option =>
-            //                 option.setName("announcement_title")
-            //                     .setDescription("Title of News or announcement you'd like to report")
-            //                     .setRequired(true))
-            //             .addStringOption(option =>
-            //                 option.setName("announcement_content")
-            //                     .setDescription("Content of News or announcement you'd like to report")))
+            .addSubcommand(commnad =>
+                commnad.setName("project")
+                    .setDescription("Update your project milestone")
+                        .addStringOption(option =>
+                            option.setName("project")
+                                .setDescription("Choose a project from the list")
+                                .setRequired(true)
+                                .setAutocomplete(true))
+                        .addStringOption(option =>
+                            option.setName("announcement_title")
+                                .setDescription("Title of News or announcement you'd like to report")
+                                .setRequired(true))
+                        .addStringOption(option =>
+                            option.setName("announcement_content")
+                                .setDescription("Content of News or announcement you'd like to report")))
             .addSubcommand(command =>
                 command.setName("garden")
                     .setDescription("Update DAO garden")
@@ -55,9 +54,20 @@ module.exports = {
                             option.setName("member")
                                 .setDescription("Members you'd like to add")
                                 .setRequired(true))
+                        .addStringOption(option =>
+                            option.setName("title")
+                                .setDescription("Title of News or announcement you'd like to report")
+                                .setRequired(true))
+                        .addStringOption(option =>
+                            option.setName("content")
+                                .setDescription("Content of News or announcement you'd like to report")
+                                .setRequired(true))
                         .addIntegerOption(option =>
                             option.setName("token_amount")
                                 .setDescription("Input the amount of token you'd like to send"))
+                        .addBooleanOption(option =>
+                            option.setName("request_thread")
+                                .setDescription("Create a thread for futher discussion"))
             )
     },
 
@@ -189,21 +199,27 @@ module.exports = {
                 })
             }
         }else{
-            const userId = interaction.user.id;
             const [
                 projectId,
                 teamId,
                 roleId,
                 membersString,
+                title,
+                content,
+                hasThread,
                 tokenAmount
             ] = [
                 interaction.options.getString("project"),
                 interaction.options.getString("team"),
                 interaction.options.getString("role"),
                 interaction.options.getString("member").match(/<@.?[0-9]*?>/g),
+                interaction.options.getString("title"),
+                interaction.options.getString("content"),
+                interaction.options.getBoolean("request_thread"),
                 interaction.options.getInteger("token_amount")
             ];
 
+            console.log(projectId, teamId, roleId);
             if (!membersString) return interaction.reply({
                 content: "Please input at least one member in this guild",
                 ephemeral: true
@@ -220,14 +236,9 @@ module.exports = {
                 ephemeral: true
             })
 
-            const roleName = validRole(roleId, guildId)?.name;
+            const roleName = validRole(teamId, guildId)?.name;
             if (!roleName) return interaction.reply({
-                content: "Please input a role",
-                ephemeral: true
-            })
-
-            if (tokenAmount != null && tokenAmount < 1) return interaction.reply({
-                content: "Token amount should be larger than 1",
+                content: "Please input a valid team",
                 ephemeral: true
             })
 
@@ -242,10 +253,9 @@ module.exports = {
                     }
                     const member = interaction.guild.members.cache.get(duplicateValue);
                     
-                    if (member){
-                        if (member.user.bot) return null;
-                        else return member.id
-                    }else return null;
+                    //to-do, should fetch it again, here prevents unfetchable members and role mention and other mentions and bot
+                    if (member?.user?.bot) return null;
+                    else return member.id
                 }
             }).filter(value => value);
 
@@ -254,51 +264,92 @@ module.exports = {
                 ephemeral: true
             })
 
-            const gardenModal = new Modal()
-                .setCustomId("garden")
-                .setTitle(`Share news to the secret garden!`);
-
-            gardenModal.addComponents(
-                new MessageActionRow()
-                    .addComponents(
-                        new TextInputComponent()
-                            .setCustomId("garden_title")
-                            .setRequired(true)
-                            .setPlaceholder("Enter title here")
-                            .setLabel("GARDERN TITLE")
-                            .setStyle("SHORT")
-                    ),
-                new MessageActionRow()
-                    .addComponents(
-                        new TextInputComponent()
-                            .setCustomId("garden_content")
-                            .setRequired(true)
-                            .setPlaceholder("Enter content here")
-                            .setLabel("GARDERN CONTENT")
-                            .setStyle("PARAGRAPH")
-                    )
-            )
-            let userCache = {
-                projectId: projectId,
-                projectTitle: projectTitle,
-                memberIds: members,
-                teamIds: [teamId],
-                teamName: teamName,
-                roleIds: [roleId],
-                roleName: roleName,
-                hasThread: true,
-                tokenAmount: null
-            };
-            if (tokenAmount) userCache.tokenAmount = tokenAmount;
-            myCache.set("gardenContext", {
-                ...myCache.get("gardenContext"),
-                [userId]: userCache
-            });
-            await interaction.showModal(gardenModal);
-            return interaction.followUp({
-                content: "Please fill in the form to continue",
+            await interaction.deferReply({
                 ephemeral: true
+            });
+
+            //to-do Better handling contents, like mention members, roles, or other possible discord contents
+            let replacedContent = _.replace(content, /<@.?[0-9]*?>/g, (match) => {
+                if (match.startsWith('<@') && match.endsWith('>')) {
+                    match = match.slice(2, -1);
+
+                    if (match.startsWith('&')){
+                        match = match.slice(1);
+                        const role = interaction.guild.roles.cache.get(match);
+                        if (!role) return "unknownRole";
+                        else return `@Role ${role.name}`
+                    }
+
+                    if (match.startsWith('!')) {
+                        match = match.slice(1);
+                    }
+                    const member = interaction.guild.members.cache.get(match);
+                    if (!member) return "unknownUser"
+                    if (member.user.bot) return `Bot ${member.displayName}`;
+                    return member.displayName;
+                }else return "unknownUser"
             })
+
+            replacedContent = _.replace(replacedContent, /<#[0-9]*?>/g, (match) => {
+                if (match.startsWith('<#') && match.endsWith('>')) {
+                    match = match.slice(2, -1);
+                    const channel = interaction.guild.channels.cache.get(match);
+                    if (!channel) return "unknownChannel";
+                    return `#${channel.name}`
+                }else return "unknownChannel"
+            })
+        
+            let thread = null;
+            const replyEmbed = new MessageEmbed().setDescription("Check the [Garden Feed](https://eden-garden-front.vercel.app/)\nCheck the [Garden Graph](https://garden-rho.vercel.app/)");
+            // Temporarily hard coded for Soil Team Server
+            if (hasThread && guildId == "996558082098339953") {
+                const targetChannel = interaction.guild.channels.cache.get("1008476220352114748");
+                if (targetChannel.type == "GUILD_TEXT"){
+                    thread = await targetChannel.threads.create({
+                        name: title
+                    })
+                    await thread.send({
+                        content: members.map((value) => (`<@${value}>`)).toString(),
+                        embeds: [
+                            new MessageEmbed()
+                                .setAuthor({ name: `@${interaction.member.displayName} -- created this update`, iconURL: interaction.user.avatarURL() })
+                                .setTitle(`${projectTitle} Updates`)
+                                .setDescription(`**Team Included**: ${teamName}\n**Role Included**: ${roleName}\n**Title**: ${title}\n**Content**: ${content}\n\nCheck the [Garden Feed](https://eden-garden-front.vercel.app/)\nCheck the [Garden Graph](https://garden-rho.vercel.app/)`)
+                        ]
+                    })
+                }else return interaction.followUp({
+                    embeds: [replyEmbed.setTitle("Update successfully but fail to create a thread")]
+                })
+            }
+
+            let updateInform = {
+                projectId: projectId,
+                memberIds: members,
+                authorId: interaction.user.id,
+                teamIds: [teamId],
+                roleIds: [roleId],
+                title: title,
+                content: replacedContent,
+                serverId: [guildId]
+            };
+
+            if (thread) updateInform.threadLink = sprintf(CONSTANT.LINK.THREAD, {
+                guildId: guildId,
+                threadId: thread.id
+            })
+
+            if (token) updateInform.tokenAmount = tokenAmount.toString();
+
+            const [result, error] = await createProjectUpdate(updateInform);
+            
+            if (error) return interaction.followUp({
+                content: `Error occured when fetching project details: \`${error}\``
+            })
+
+            return interaction.followUp({
+                embeds: [replyEmbed.setTitle("Update successfully the Secret Garden")]
+            })
+            
         }
 
     },

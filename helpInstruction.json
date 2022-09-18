@@ -1,0 +1,55 @@
+{
+    "PersonalCommand": {
+        "signup": [{
+            "name": "**/signup**\n",
+            "instruction": "> `Join Eden to find projects you love`\n"
+        }],
+        "onboard": [
+            {
+                "name": "**/onboard member**\n",
+                "instruction": "> `Onboard multiple new frens into Eden`\n"
+            },
+            {
+                "name": "**/onboard auto**\n",
+                "instruction": "> `Auto onboard multiple new frens into Eden in a voice channel`\n"
+            }
+        ],
+        "invite": [{
+            "name": "**/invite**\n",
+            "instruction": "> `Invite a fren to join Eden`\n"
+        }],
+        "endorse": [{
+            "name": "**/endorse**\n",
+            "instruction": "> `Endorse a discord members' skills`\n"
+        }],
+        "find": [
+            {
+                "name": "**/find fren**\n",
+                "instruction": "> `Find member profiles in the community`\n"
+            },
+            {
+                "name": "**/find skill**\n",
+                "instruction": "> `Find members with a particular set of Skills`\n"
+            }
+        ]
+    },  
+    "ProjectCommand": {
+        "find": [
+            {
+                "name": "**/find project**\n",
+                "instruction": "> `Find projects that match your profile`\n"
+            }
+        ],
+        "project": [
+            {
+                "name": "**/project new**\n",
+                "instruction": "> `Launch a project in the community`\n"
+            },
+            {
+                "name": "**/project activity**\n",
+                "instruction": "> `See key updates of a specific project`\n"
+            }
+        ]
+    }
+    
+}
