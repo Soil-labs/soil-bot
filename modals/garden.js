@@ -31,7 +31,8 @@ module.exports = {
             tokenAmount,
             projectTitle,
             teamName,
-            roleName
+            roleName,
+            autoArchiveDuration
         } = gardenContext[userId];
         await interaction.deferReply({ ephemeral: true });
 
@@ -41,7 +42,8 @@ module.exports = {
             const targetChannel = interaction.guild.channels.cache.get("1008476220352114748");
             if (targetChannel.type == "GUILD_TEXT"){
                 thread = await targetChannel.threads.create({
-                    name: title
+                    name: title,
+                    autoArchiveDuration: autoArchiveDuration ?? 1440
                 })
                 let embedDescription = `\u200B\n**Project**: ${projectTitle}\n**Team**: ${teamName}\n**Role**: ${roleName}`;
                 if (tokenAmount) embedDescription += `\n**Token Transferred**: \`${tokenAmount}\``;
@@ -99,7 +101,7 @@ module.exports = {
         })
         
         delete gardenContext[userId];
-        myCache.get("gardenContext", gardenContext);
+        myCache.set("gardenContext", gardenContext);
         
         if (hasThread){
             return interaction.followUp({

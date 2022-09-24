@@ -21,10 +21,8 @@ module.exports = {
         const projectTeamRoleInGuild = myCache.get("projectTeamRole")[guildId];
         if (!projectTeamRoleInGuild || Object.keys(projectTeamRoleInGuild).length == 0) return interaction.respond([]);
 
-        const options = interaction.options._hoistedOptions;
         const resolvedProject = interaction.options.getString("project");
         const resolvedTeam = interaction.options.getString("team");
-        const resolvedRole = interaction.options.getString("role");
 
         // console.log(options)
         // console.log("project", interaction.options.getString("project"));

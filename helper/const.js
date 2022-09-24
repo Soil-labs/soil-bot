@@ -69,7 +69,7 @@ const LINK = Object.freeze({
     DASHBOARD: _champion,
     DISCORD_MSG: "https://discord.com/channels/%(guildId)s/%(channelId)s/%(messageId)s",
     THREAD: "https://discord.com/channels/%(guildId)s/%(threadId)s",
-    ROOM: "https://eden-foundation.vercel.app/onboard/party/%(roomId)s"
+    ROOM: "https://eden-foundation2.vercel.app/onboard/party/%(roomId)s"
 })
 
 const CONTENT = Object.freeze({

@@ -1,9 +1,9 @@
 const { REST } = require('@discordjs/rest');
 const { Routes } = require('discord-api-types/v9');
-const { Client, MessageEmbed } = require("discord.js");
+const { Client, MessageEmbed, MessageButton, MessageActionRow } = require("discord.js");
 const { initializeApp, getApp } = require('firebase/app')
 const { getFirestore, getDocs, query, collection, writeBatch, doc } = require("firebase/firestore");
-const { fetchProjects, fetchSkills, fetchUsers, fetchUnverifiedSkills, fetchTeams, fetchServer, updateServer, fetchRoles, projectTeamRole } = require("../helper/graphql");
+const { fetchProjects, fetchSkills, fetchUsers, fetchUnverifiedSkills, fetchTeams, fetchServer, updateServer, fetchRoles, projectTeamRole, findGardens } = require("../helper/graphql");
 const { awaitWrap, getCurrentTimeInSec, getNextBirthday, checkChannelSendPermission } = require('../helper/util');
 
 const myCache = require("../helper/cache")
@@ -49,6 +49,58 @@ module.exports = {
                     table.addRow(items[index], "✅ Fetched and cached");
                 }
             })
+
+            // const [gardens, gardenError] = await findGardens();
+            // if (gardenError) {
+            //     table.addRow('GardenScan', `❌ Error: ${gardenError}`);
+            //     errorFlag = true;
+            // }else{
+            //     let soilTeamGuild = client.guilds.cache.get("988301790795685930");
+            //     if (!soilTeamGuild) {
+            //         const { result: fetchGuildResult, error: fetchGuildError } = await awaitWrap(client.guilds.fetch("988301790795685930"));
+            //         if (fetchGuildError) {
+            //             return myCache.set("birthday", value, CONSTANT.NUMERICAL_VALUE.BIRTHDAY_CHECK_INTERVAL);
+            //         }
+            //         soilTeamGuild = fetchGuildResult;
+            //     };
+            //     const {channels} = soilTeamGuild;
+            //     for (const garden of gardens.filter((garden) => garden.threadDiscordID && garden.serverID.includes("988301790795685930"))){
+            //         const link = garden.threadDiscordID;
+            //         const authorId = garden.author._id;
+            //         const threadId = link.slice(-19, link.length);
+            //         const thread = channels.cache.get(threadId);
+            //         if (thread.archived) continue;
+            //         const current = new Date().getTime();
+            //         const { messages, autoArchiveDuration } = thread;
+            //         const firstMsg = (await messages.fetch({limit: 1})).first();
+            //         //console.log(firstMsg, thread.name)
+            //         const autoArchiveDay = autoArchiveDuration / (24 * 60);
+            //         if (autoArchiveDay == 3 || autoArchiveDay == 7 || autoArchiveDay == 1){
+            //             const oneDayInMil = 24 * 60 * 60 * 1000;
+            //             if (firstMsg.createdTimestamp + autoArchiveDuration * 60 * 1000 - current <= oneDayInMil ){
+            //                 thread.setAutoArchiveDuration(1440);
+            //                 thread.send({
+            //                     content: `Hi, <@${authorId}>, this thread will be closed in 1 day. Time to make a decision.`,
+            //                     components: [
+            //                         new MessageActionRow()
+            //                             .addComponents([
+            //                                 new MessageButton()
+            //                                     .setCustomId('expired')
+            //                                     .setLabel('Archive this thread Now')
+            //                                     .setStyle('DANGER')
+            //                                     .setEmoji('⚠️'),
+            //                                 new MessageButton()
+            //                                     .setLabel(`Archive this thread in ${autoArchiveDuration / (24 * 60)} days`)
+            //                                     .setCustomId('putoffexpire')
+            //                                     .setStyle('SUCCESS')
+            //                                     .setEmoji('😌')
+            //                             ])
+            //                     ]
+            //                 })
+            //             }
+            //         }
+            //     }
+            // }
             
             //to-do temp method to handle multi-guild auto onboarding
             myCache.set("voiceContext", {});
@@ -129,6 +181,7 @@ module.exports = {
             }              
             myCache.set("server", cache);
             myCache.set("gardenContext", {});
+
             logger.info(`\n${table.toString()}`);
         }
 
@@ -204,7 +257,6 @@ module.exports = {
                     }
             }
         })
-
         try{
             if (process.env.SLASH_CMD_ENV == "production"){
                 //Clear globla commands

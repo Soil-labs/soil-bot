@@ -452,6 +452,18 @@ const FIND_ROOM = gql`
 }
 `
 
+const FIND_GARDENS = gql`
+  query {
+  findProjectUpdates(fields: {}) {
+      threadDiscordID
+      author {
+        _id
+      }
+      serverID
+    }
+  }
+`
+
 async function fetchServer(guildJSON) {
     const { result, error } = await awaitWrapTimeout(_client.request(GET_SERVER, guildJSON), CONSTANT.NUMERICAL_VALUE.GRAPHQL_TIMEOUT_LONG);
     if (error) return [null, _graphqlErrorHandler(error)];
@@ -844,6 +856,12 @@ async function findRoom(roomJSON){
     else return [result.findRoom, null];
 }
 
+async function findGardens(){
+    const { result, error } = await awaitWrapTimeout(_client.request(FIND_GARDENS), 10 * 1000);
+    if (error) return [null, _graphqlErrorHandler(error)]
+    else return [result.findProjectUpdates, null];
+}
+
 //to-do GraphQL Error Handling
 function _graphqlErrorHandler(error){
   if (error.message == CONSTANT.ERROR.TIMEOUT) return CONSTANT.ERROR.TIMEOUT;
@@ -879,5 +897,6 @@ module.exports = {
   endorseAttribute,
   createProjectUpdate,
   createRoom,
-  findRoom
+  findRoom,
+  findGardens
 };
