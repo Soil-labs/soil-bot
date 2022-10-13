@@ -1,5 +1,3 @@
-const timezones = require('timezones.json/timezones.json')
-
 let _endPoint, _frontend, _champion, _project, _projectAll, _projectTweets, _createProject, _signUp;
 switch(process.env.VERSION){
   case "Test":
@@ -69,7 +67,7 @@ const LINK = Object.freeze({
     DASHBOARD: _champion,
     DISCORD_MSG: "https://discord.com/channels/%(guildId)s/%(channelId)s/%(messageId)s",
     THREAD: "https://discord.com/channels/%(guildId)s/%(threadId)s",
-    ROOM: "https://eden-foundation.vercel.app/onboard/party/%(roomId)s"
+    ROOM: "https://eden-foundation2.vercel.app/onboard/party/%(roomId)s"
 })
 
 const CONTENT = Object.freeze({

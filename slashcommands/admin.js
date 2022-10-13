@@ -58,7 +58,7 @@ module.exports = {
                     .setDescription("Moderate admin command")
                     .addSubcommand(command =>
                         command.setName("add")
-                            .setDescription("Add an admin member")
+                            .setDescription("Add an admin command")
                             .addStringOption(option =>
                                 option.setName("command")
                                     .setDescription("Choose a command")
@@ -180,7 +180,7 @@ module.exports = {
             }else{
                 const userId = interaction.options.getString("user");
                 if (!cachedGuildAdmin.adminID.includes(userId)) return interaction.reply({
-                    content: "Please check your input, the role you chose is not in the list",
+                    content: "Please check your input, the member you chose is not in the list",
                     ephemeral: true
                 });
                 adminID = cachedGuildAdmin.adminID.filter(value => value != userId);
@@ -205,7 +205,7 @@ module.exports = {
                 successReply = `\`${commandName}\` has been added to the admin group`;
             }else{
                 if (!cachedGuildAdmin.adminCommands.includes(commandName)) return interaction.reply({
-                    content: "Please check your input, the role you chose is not in the list",
+                    content: "Please check your input, the command you chose is not in the list",
                     ephemeral: true
                 });
                 adminCommands = cachedGuildAdmin.adminCommands.filter(value => value != commandName);

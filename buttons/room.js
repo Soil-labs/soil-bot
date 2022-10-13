@@ -1,9 +1,5 @@
 const { PermissionFlagsBits } = require("discord-api-types/v9");
 const { ButtonInteraction} = require("discord.js");
-const { sprintf } = require("sprintf-js");
-
-const myCache = require("../helper/cache");
-const CONSTANT = require("../helper/const");
 
 module.exports = {
     customId: ["project", "talent"],

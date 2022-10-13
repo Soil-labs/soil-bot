@@ -20,7 +20,7 @@ module.exports = {
                 option.setName("month")
                     .setDescription("Your birthday month")
                     .setRequired(true)
-                    .addChoices(
+                    .addChoicetys(
                         {
                             name: "January",
                             value: "1"

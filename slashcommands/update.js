@@ -55,6 +55,19 @@ module.exports = {
                             option.setName("member")
                                 .setDescription("Members you'd like to add")
                                 .setRequired(true))
+                         .addStringOption(option =>
+                            option.setName("archive_duration")
+                                .setDescription("How long will this thread exist before being archived.")
+                                .addChoices(
+                                    {
+                                        name: '3 days',
+                                        value: '4320'
+                                    },
+                                    {
+                                        name: '7 days',
+                                        value: '10080'
+                                    },
+                                ))
                         .addIntegerOption(option =>
                             option.setName("token_amount")
                                 .setDescription("Input the amount of token you'd like to send"))
@@ -195,12 +208,14 @@ module.exports = {
                 teamId,
                 roleId,
                 membersString,
+                autoArchiveDuration,
                 tokenAmount
             ] = [
                 interaction.options.getString("project"),
                 interaction.options.getString("team"),
                 interaction.options.getString("role"),
                 interaction.options.getString("member").match(/<@.?[0-9]*?>/g),
+                interaction.options.getString('archive_duration'),
                 interaction.options.getInteger("token_amount")
             ];
 
@@ -287,8 +302,22 @@ module.exports = {
                 roleIds: [roleId],
                 roleName: roleName,
                 hasThread: true,
+                autoArchiveDuration: null,
                 tokenAmount: null
             };
+            // if (autoArchiveDuration == '4320'){
+            //     if(!interaction.guild.features.includes('THREE_DAY_THREAD_ARCHIVE')) return interaction.reply({
+            //         content: "Sorry, the guild you are in does not support three-day-archive thread.",
+            //         ephemeral: true
+            //     })
+            // }
+            // if (autoArchiveDuration == '10080'){
+            //     if(!interaction.guild.features.includes('SEVEN_DAY_THREAD_ARCHIVE')) return interaction.reply({
+            //         content: "Sorry, the guild you are in does not support seven-day-archive thread.",
+            //         ephemeral: true
+            //     })
+            // }
+            if (autoArchiveDuration) userCache.autoArchiveDuration = Number(autoArchiveDuration);
             if (tokenAmount) userCache.tokenAmount = tokenAmount;
             myCache.set("gardenContext", {
                 ...myCache.get("gardenContext"),
