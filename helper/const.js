@@ -1,5 +1,3 @@
-const timezones = require('timezones.json/timezones.json')
-
 let _endPoint, _frontend, _champion, _project, _projectAll, _projectTweets, _createProject, _signUp;
 switch(process.env.VERSION){
   case "Test":

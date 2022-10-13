@@ -1,5 +1,7 @@
 # Soil Test Bot
 
+## This repo has been archived, please check [the latest one](https://github.com/Soil-labs/Eden_Discord_Bot).
+
 This repo is for Soil Project. Click [here](https://share.descript.com/view/ek8jw2BigYa) to know more about this project and check our [Dework page](https://app.dework.xyz/developer-dao/soil) to know how to make a contribution and contact us.
 
 ## How to run it

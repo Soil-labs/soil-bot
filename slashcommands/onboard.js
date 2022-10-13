@@ -194,7 +194,7 @@ module.exports = {
                     content: "Permission denied, please check whether the bot is allowed to send message in this channel",
                 })
             }
-            const message= await voiceChannel.send({
+            const message = await voiceChannel.send({
                 embeds: [
                     new MessageEmbed()
                         .setAuthor({ name: `Onboarding Call Host - ${interaction.user.username}`, iconURL: interaction.user.avatarURL() })

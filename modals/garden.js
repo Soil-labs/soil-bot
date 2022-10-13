@@ -38,8 +38,8 @@ module.exports = {
 
         let thread = null;
         // Temporarily hard coded for Soil Team Server
-        if (hasThread && guildId == "996558082098339953") {
-            const targetChannel = interaction.guild.channels.cache.get("1008476220352114748");
+        if (hasThread && guildId == "988301790795685930") {
+            const targetChannel = interaction.guild.channels.cache.get("1001547443135058010");
             if (targetChannel.type == "GUILD_TEXT"){
                 thread = await targetChannel.threads.create({
                     name: title,
@@ -77,6 +77,8 @@ module.exports = {
                 content: "Update successfully but fail to create a thread"
             })
         }
+
+        // todo permission issue for voice-chat-1, View and Send are not enough
         let gardenUpdateInform = {
             projectId: projectId,
             memberIds: memberIds,
@@ -95,7 +97,7 @@ module.exports = {
         if (tokenAmount) gardenUpdateInform.tokenAmount = tokenAmount.toString();
 
         const [result, error] = await createProjectUpdate(gardenUpdateInform);
-            
+        
         if (error) return interaction.followUp({
             content: `Error occured when fetching project details: \`${error}\``
         })
